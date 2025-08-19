@@ -1,0 +1,965 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Plugin Skeleton and Development Environment",
+        "description": "Create the basic Kong plugin structure in Lua, establish the project repository, and configure a Docker Compose stack for local development and testing.",
+        "details": "The environment should include Kong Gateway (3.x+), Postgres, a demo API, and the plugin itself. The plugin skeleton must conform to Kong's plugin lifecycle and best practices. This corresponds to Milestone 1.",
+        "testStrategy": "Verify that the Docker stack launches successfully. Use Kong's Admin API to enable the empty plugin on a service/route and confirm it loads without errors and that Kong's logs show the plugin's init_worker phase.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Traffic Monitoring and Logging Hooks",
+        "description": "Hook into Kong's `access` and `log` request lifecycle phases to capture relevant request/response data for analysis.",
+        "details": "The plugin must instrument requests and responses, logging key data points (IP, headers, path, method, status code, latency) to Kong's standard logging pipeline or a custom backend. Ensure performance overhead is minimal.",
+        "testStrategy": "Send traffic through a route with the plugin enabled. Verify that detailed request logs are generated as expected in the configured output (e.g., stdout, file, or HTTP log sink). Measure request latency to establish a baseline.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Develop Static and Threshold-Based Threat Detectors",
+        "description": "Implement the core logic for detecting threats based on predefined static rules and configurable thresholds.",
+        "details": "This includes rules for IP blacklisting, anomalous request methods, and simple rate/burst detection. All rules and thresholds must be configurable via the plugin's declarative YAML/JSON configuration.",
+        "testStrategy": "Use Kong's test suite (busted) to write unit tests for the rule logic. Create integration tests that send specific traffic patterns (e.g., high request rate from one IP) and verify the plugin correctly identifies them as threats.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Integrate AI Gateway for Advanced Anomaly Detection",
+        "description": "Develop an optional module to connect to an LLM or AI inference service via Kong's AI Gateway for advanced threat detection.",
+        "details": "This feature will analyze suspicious payloads, headers, or traffic patterns for signs of injection, fuzzing, or other complex attacks. The integration should be toggleable in the plugin configuration.",
+        "testStrategy": "Mock the AI Gateway endpoint to test the request/response handling. For end-to-end testing, configure the plugin to point to a test LLM API and send sample malicious payloads, verifying the plugin correctly interprets the AI's score.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Implement Core Remediation Actions via Admin API",
+        "description": "Build the functionality to automatically apply defensive actions by making calls to Kong's Admin API.",
+        "details": "Based on detected threats and configured policies, the agent will apply rate-limiting, block consumers/IPs (e.g., using the ACL or IP Restriction plugin), or disable routes by modifying Kong objects through the Admin API.",
+        "testStrategy": "In a test environment, trigger a threat detection. Verify that the plugin successfully calls the Admin API and that the intended configuration change (e.g., a new rate-limit) is applied to the correct Kong entity.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Develop Notification and Reporting System",
+        "description": "Integrate with external systems like Slack, Email, or generic webhooks to send real-time alerts about detected threats and remediation actions.",
+        "details": "Utilize Kong's built-in logging plugins (e.g., HTTP Log) or custom Lua libraries to dispatch notifications. The alert payload must be detailed, including threat type, scope, and affected Kong entities (Service/Route/Consumer IDs).",
+        "testStrategy": "Configure the plugin with a mock webhook receiver. Trigger a threat and verify that a correctly formatted JSON payload is sent to the webhook endpoint with all required incident details.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Create Plugin Status and Incident Reporting Endpoint",
+        "description": "Expose a lightweight HTTP endpoint as a Kong Service to provide status information, recent incidents, and current configuration.",
+        "details": "This API will serve as a dashboard backend, allowing operators to query the agent's health and activity. The endpoint should be secured appropriately within the Kong environment.",
+        "testStrategy": "After triggering several incidents, query the new status endpoint and validate that the response contains an accurate list of recent actions and the current plugin status.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Declarative Configuration and 'Dry Run' Mode",
+        "description": "Finalize the plugin's configuration schema and implement a 'dry run' mode for safe, non-disruptive testing.",
+        "details": "The configuration must be manageable via declarative YAML/JSON through the Admin API or Konnect. The 'dry run' mode will log all detected threats and intended actions without actually enforcing them.",
+        "testStrategy": "Test applying and updating the plugin configuration via the Admin API. Enable 'dry run' mode, trigger a threat, and verify that the plugin logs the intended action (e.g., 'DRY RUN: would block IP 1.2.3.4') but does not actually apply the block.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Advanced Remediation: Config Rollback",
+        "description": "Develop a mechanism to automatically roll back a recent configuration change if it's correlated with a mass error event.",
+        "details": "This requires integrating with the Admin API to fetch recent configuration history (potentially from decK or Konnect context) and apply a previous version to a Service/Route.",
+        "testStrategy": "Deploy a 'bad' configuration that causes a spike in 5xx errors. Verify that the agent detects the anomaly, identifies the recent deployment as the likely cause, and successfully reverts the configuration via the Admin API.",
+        "priority": "low",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Operator Feedback Loop and Finalize Documentation",
+        "description": "Create an API endpoint for operators to provide feedback on automated actions (e.g., confirm/undo a block) and prepare comprehensive documentation.",
+        "details": "The feedback can be used to refine thresholds or retrain models. The final README must include installation, configuration, and development guides, along with sample YAML configs and demo instructions.",
+        "testStrategy": "Perform an automated block, then call the feedback API to undo it and verify the block is removed. Review the documentation for clarity, completeness, and accuracy.",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-19T20:02:39.463Z",
+      "updated": "2025-08-19T20:02:39.463Z",
+      "description": "Tasks for master context"
+    }
+  },
+  "assistant-parse": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize Kong Plugin Project and Basic Logging",
+        "description": "Create the basic file structure for a Kong Lua plugin, including handler.lua and schema.lua. Set up a Docker Compose environment with Kong, Postgres, and a demo API for local development. Implement the initial 'access' phase hook to log basic request details to stdout.",
+        "details": "Follow Kong plugin development best practices. The Docker setup should mirror the one described in the PRD (Section 6). The initial plugin should successfully load and log basic request data (e.g., method, URI, source IP) to Kong's standard output.",
+        "testStrategy": "Run `docker-compose up` and verify Kong starts with the plugin loaded. Send a test request to the gateway and check Kong's logs for the output from the plugin's `access` function.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Declarative Configuration and Dry-Run Mode",
+        "description": "Define the plugin's configuration schema in `schema.lua`. Implement logic to parse this configuration, including a global 'dry_run' flag that controls whether remediation actions are executed or only logged.",
+        "details": "The schema should support basic rule definitions (e.g., ip_blacklist as an array of strings), thresholds, and the `dry_run` boolean. The plugin's core logic must check this flag before initiating any remediation action.",
+        "testStrategy": "Use Kong's Admin API to apply a plugin configuration with `dry_run: true`. Trigger a condition that would normally cause an action and verify that the action is logged but not performed. Repeat with `dry_run: false` to confirm the action is executed.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement Static Rule-Based Threat Detection",
+        "description": "Implement threat detection based on static, configurable rules within the plugin's `access` phase. This includes checks for IP blacklists, disallowed HTTP methods, and simple request rate-limiting thresholds.",
+        "details": "Use Lua tables for efficient lookups of blacklisted IPs or methods. Leverage Kong's shared memory (`ngx.shared.dict`) for tracking request rates per consumer or IP to avoid reliance on an external database for this feature.",
+        "testStrategy": "Configure a blacklist rule via the plugin config. Send a request from a blacklisted IP and verify it's blocked with a 403 status. Configure a rate limit and send requests exceeding the limit to verify they are rejected with a 429 status code.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Core Remediation via Admin API",
+        "description": "Develop the logic to perform automated remediation by making calls to the Kong Admin API. Initial actions should include applying the `rate-limiting` or `request-termination` plugin to a consumer or service based on a detected threat.",
+        "details": "The plugin will need a secure way to access the Admin API, configured via the plugin schema. Actions should be triggered by the detection logic from the previous task. The logic must correctly identify the target entity (Consumer, Service) to apply the policy to.",
+        "testStrategy": "Trigger a threat condition (e.g., from Task 3). Verify that the plugin successfully calls the Admin API to apply a new rate-limiting policy to the offending consumer. Check the consumer's configuration via the Admin API to confirm the change.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop Dynamic Anomaly and Outlier Detection",
+        "description": "Implement more advanced, dynamic threat detection. This includes detecting unusual traffic bursts, sudden spikes in 5xx-level error rates, or anomalous request payload sizes by analyzing traffic patterns over time.",
+        "details": "This can be implemented in Lua using statistical methods on data stored in shared memory to detect deviations from a baseline (e.g., simple moving average). This logic should run in the `log` phase to minimize request latency.",
+        "testStrategy": "Simulate a traffic burst and verify the plugin detects it and logs an incident. Use a mock service that returns a high rate of 5xx errors and confirm the agent identifies this as an incident and triggers a remediation action.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Integrate Notification Hooks for Slack and Webhooks",
+        "description": "Implement functionality to send detailed incident notifications to external systems. Use Kong's `log-to-http` capabilities or a Lua HTTP client to send alerts to configurable Slack or generic webhook endpoints.",
+        "details": "The notification payload must be a structured JSON object containing incident details: threat summary, scope (affected Service/Route/Consumer IDs), the remediation action taken, and a timestamp.",
+        "testStrategy": "Configure the plugin with a mock webhook endpoint (e.g., Beeceptor or a local Python server). Trigger a threat event and verify that the mock endpoint receives a correctly formatted JSON payload with all the required incident details.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Create a Status and Incident Reporting API Endpoint",
+        "description": "Expose a lightweight HTTP endpoint via a dedicated Kong Service and Route. This endpoint will provide the current status of the agent, a list of recent incidents, and actions taken.",
+        "details": "The endpoint should be read-only and secured (e.g., using the `key-auth` plugin). It should read incident data from a shared store (like `ngx.shared.dict` or Redis) to provide a near real-time view of agent activity.",
+        "testStrategy": "After triggering several incidents, query the new status endpoint and verify it returns a JSON array of the incidents with correct details. Test that unauthorized requests to the endpoint are rejected.",
+        "priority": "low",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Advanced Remediation: Route Modification and Rollback",
+        "description": "Extend remediation capabilities to include modifying Service/Route objects on-the-fly (e.g., rerouting traffic) and performing a configuration rollback using the Admin API.",
+        "details": "For rollback, the agent might need to integrate with `decK` or the Konnect API to fetch previous configuration states before applying them. Route modification involves a `PATCH` request to the relevant Route object's configuration.",
+        "testStrategy": "Simulate a mass 5xx error incident. Verify the agent modifies the associated Route to point to a different, healthy upstream service. For rollback, manually introduce a bad configuration, trigger a detection, and verify the agent reverts it.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Integrate with Kong AI Gateway for Advanced Detection",
+        "description": "Implement an optional feature to use the Kong AI Gateway. The agent will forward suspicious request payloads (e.g., potential SQL injection) to an LLM via the AI Gateway for analysis and scoring.",
+        "details": "This involves configuring the `ai-proxy` plugin and having our agent make an internal request to the AI service. The response from the LLM will determine if a threat is confirmed. The implementation should handle both synchronous and asynchronous responses.",
+        "testStrategy": "Configure the AI Gateway to point to a mock or real LLM API. Send a request with a known SQL injection payload. Verify the agent forwards it to the AI Gateway and correctly interprets the 'malicious' response to trigger a remediation action.",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Finalize Documentation, Testing, and Packaging",
+        "description": "Write a comprehensive README.md covering installation, configuration, and usage. Finalize the Docker Compose stack for easy demonstration. Ensure high test coverage using Kong's `busted` test suite and package the plugin for distribution.",
+        "details": "The README must include example YAML configurations for various scenarios (e.g., static rules, dry-run, AI gateway). The test suite must cover all major features, including detection rules, remediation actions, and notifications.",
+        "testStrategy": "Follow the README instructions from a clean environment to install, configure, and run the plugin. Execute the entire `busted` test suite and ensure all tests pass. Prepare a release package for LuaRocks.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-19T20:05:45.204Z",
+      "updated": "2025-08-19T20:05:45.204Z",
+      "description": "Tasks for assistant-parse context"
+    }
+  },
+  "assistant-local": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize Kong Plugin Project and Local Development Stack",
+        "description": "Scaffold a Kong Lua plugin with handler.lua and schema.lua. Set up Docker Compose with Kong Gateway 3.x, Postgres, a demo upstream, and mount the plugin. Verify the plugin loads.",
+        "details": "Create the minimal plugin structure (handler.lua, schema.lua, daos.lua if needed). Provide a docker-compose.yml that runs Kong with the plugin mounted. Confirm init_worker runs and baseline logs are produced.",
+        "testStrategy": "Run docker-compose up; enable the plugin on a test service/route; send a request via curl and confirm the plugin loads and logs in Kong stdout.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Scaffold Minimal Kong Plugin Structure",
+            "description": "Create the initial Kong plugin directory with mandatory files: handler.lua and schema.lua. Add daos.lua if custom entities are required.",
+            "dependencies": [],
+            "details": "Follow Kong's plugin architecture conventions. Ensure handler.lua contains the plugin logic entry point and schema.lua defines the configuration schema. Include daos.lua only if the plugin needs custom database entities.",
+            "status": "done",
+            "testStrategy": "Verify the presence and basic syntax of handler.lua and schema.lua. Confirm Kong recognizes the plugin module on startup."
+          },
+          {
+            "id": 2,
+            "title": "Develop Docker Compose Stack for Local Kong Gateway",
+            "description": "Set up a docker-compose.yml that provisions Kong Gateway 3.x, Postgres, and a demo upstream service. Configure Kong to mount the custom plugin.",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Ensure Kong loads the plugin from a local volume. The stack should include all necessary environment variables and network configuration for Kong, Postgres, and the upstream service.",
+            "status": "done",
+            "testStrategy": "Run docker-compose up and confirm all services start without errors. Check Kong logs for plugin mount confirmation."
+          },
+          {
+            "id": 3,
+            "title": "Configure Kong for Plugin Activation",
+            "description": "Register the plugin in Kong's configuration and enable it on a test service or route using declarative config or Admin API.",
+            "dependencies": [
+              "1.2"
+            ],
+            "details": "Use declarative configuration (YAML) or Admin API calls to enable the plugin on a demo service/route. Ensure the plugin is listed in Kong's plugin registry.",
+            "status": "done",
+            "testStrategy": "Send a request to the test route and verify the plugin is active via Kong's plugin listing and configuration endpoints."
+          },
+          {
+            "id": 4,
+            "title": "Verify Plugin Lifecycle and Logging",
+            "description": "Confirm that the plugin's init_worker phase runs and baseline logs are produced in Kong's stdout.",
+            "dependencies": [
+              "1.3"
+            ],
+            "details": "Implement basic logging in handler.lua (e.g., in init_worker and access phases). Ensure logs appear in Kong's stdout when the plugin is loaded and requests are processed.",
+            "status": "done",
+            "testStrategy": "Inspect Kong container logs for expected plugin lifecycle messages after startup and test requests."
+          },
+          {
+            "id": 5,
+            "title": "Validate End-to-End Plugin Functionality",
+            "description": "Test the full stack by sending requests via curl to the demo upstream through Kong, confirming plugin execution and log output.",
+            "dependencies": [
+              "1.4"
+            ],
+            "details": "Use curl to send requests to Kong's proxy endpoint. Check that the plugin processes requests and produces expected logs, confirming correct mounting and execution.",
+            "status": "done",
+            "testStrategy": "Send test requests and verify plugin logs in Kong stdout. Confirm no errors and expected plugin behavior."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement Configuration Schema and Dry-Run Mode",
+        "description": "Define schema.lua fields (ip_blacklist, method_denylist, rate_limit, burst_threshold, dry_run, admin_api, notification_targets). Parse config and gate actions behind dry_run.",
+        "details": "Ensure declarative Admin API/Konnect compatibility and input validation. Expose sane defaults. All enforcement paths must check dry_run first before initiating any remediation.",
+        "testStrategy": "Apply a config with dry_run: true and rules set; trigger detection and confirm only logs occur. Flip to dry_run: false and verify enforcement is executed.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Configuration Schema Fields in schema.lua",
+            "description": "Specify all required fields in schema.lua: ip_blacklist, method_denylist, rate_limit, burst_threshold, dry_run, admin_api, and notification_targets, ensuring type, default values, and documentation are present.",
+            "dependencies": [],
+            "details": "Use declarative schema definitions compatible with Kong's plugin system. Ensure each field has input validation and sensible defaults. Document each field for clarity and future maintenance.",
+            "status": "done",
+            "testStrategy": "Validate schema.lua with various config samples, including missing and malformed fields, to confirm correct error handling and default assignment."
+          },
+          {
+            "id": 2,
+            "title": "Implement Configuration Parsing and Validation Logic",
+            "description": "Develop logic to parse incoming configuration, validate against schema.lua, and handle errors gracefully.",
+            "dependencies": [
+              "2.1"
+            ],
+            "details": "Integrate input validation routines to reject invalid configurations. Ensure compatibility with both declarative Admin API and Konnect workflows. Log validation errors with sufficient detail for troubleshooting.",
+            "status": "done",
+            "testStrategy": "Submit valid and invalid configurations via Admin API and Konnect; verify correct parsing, error reporting, and fallback to defaults."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Dry-Run Mode Enforcement Gate",
+            "description": "Ensure all enforcement and remediation paths check the dry_run flag before executing any action, gating real enforcement behind this setting.",
+            "dependencies": [
+              "2.2"
+            ],
+            "details": "Refactor enforcement logic so that when dry_run is true, actions are logged but not executed. When false, full enforcement proceeds. Maintain clear separation between detection and remediation.",
+            "status": "done",
+            "testStrategy": "Apply a config with dry_run: true and trigger detection; verify only logs are produced. Switch to dry_run: false and confirm enforcement actions occur."
+          },
+          {
+            "id": 4,
+            "title": "Expose and Document Sane Defaults for All Fields",
+            "description": "Set and document reasonable default values for all configuration fields to ensure safe and predictable plugin behavior out-of-the-box.",
+            "dependencies": [
+              "2.1"
+            ],
+            "details": "Review each field for best-practice defaults (e.g., empty lists, conservative rate limits). Update schema.lua and documentation to reflect these defaults. Ensure defaults are compatible with Admin API/Konnect.",
+            "status": "done",
+            "testStrategy": "Deploy plugin with minimal configuration; verify defaults are applied and plugin operates safely."
+          },
+          {
+            "id": 5,
+            "title": "Ensure Declarative Admin API and Konnect Compatibility",
+            "description": "Validate that the configuration schema and parsing logic work seamlessly with both Kong Admin API and Konnect declarative workflows.",
+            "dependencies": [
+              "2.2",
+              "2.4"
+            ],
+            "details": "Test configuration application via both Admin API and Konnect. Confirm that input validation, defaults, and dry_run gating function identically in both environments.",
+            "status": "done",
+            "testStrategy": "Apply identical configurations through Admin API and Konnect; verify consistent parsing, enforcement, and logging behaviors."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Add Access and Log Phase Instrumentation",
+        "description": "Capture request/response metadata (client_ip, method, path, headers subset, status, latency) and maintain counters in ngx.shared.dict. Emit structured logs.",
+        "details": "Hook into access and log phases. Store per-IP and global counters. Keep overhead under 10ms using efficient lookups and minimal allocations.",
+        "testStrategy": "Send traffic using wrk/hey through a route with the plugin enabled. Verify structured logs and counters update while measuring baseline latency.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Custom Log Format for Access and Log Phases",
+            "description": "Define a custom log format to capture required request/response metadata including client_ip, method, path, selected headers, status, and latency using NGINX's log_format directive.",
+            "dependencies": [],
+            "details": "Specify a log format that includes all necessary fields for instrumentation, leveraging built-in timing variables such as $request_time for latency. Ensure the format is compatible with structured logging and downstream analysis.",
+            "status": "pending",
+            "testStrategy": "Review generated log entries for completeness and correctness of all required fields using sample requests."
+          },
+          {
+            "id": 2,
+            "title": "Implement Access and Log Phase Hooks",
+            "description": "Integrate hooks into NGINX's access and log phases to capture metadata at appropriate points in the request lifecycle.",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Configure NGINX to execute custom logic during access and log phases, ensuring metadata is captured efficiently and with minimal overhead.",
+            "status": "pending",
+            "testStrategy": "Send test traffic and verify that hooks are triggered and metadata is captured as expected."
+          },
+          {
+            "id": 3,
+            "title": "Store Per-IP and Global Counters in ngx.shared.dict",
+            "description": "Maintain counters for requests, responses, and status codes both per-IP and globally using ngx.shared.dict for efficient lookups.",
+            "dependencies": [
+              "3.2"
+            ],
+            "details": "Implement logic to increment and retrieve counters in ngx.shared.dict, optimizing for performance and avoiding global locks.",
+            "status": "pending",
+            "testStrategy": "Simulate concurrent requests from multiple IPs and verify counters update correctly without exceeding latency targets."
+          },
+          {
+            "id": 4,
+            "title": "Emit Structured Logs with Captured Metadata",
+            "description": "Output structured logs containing all captured metadata in a format suitable for downstream analysis and monitoring.",
+            "dependencies": [
+              "3.3"
+            ],
+            "details": "Configure NGINX to emit logs in JSON or another structured format, ensuring all required fields are present and properly formatted.",
+            "status": "pending",
+            "testStrategy": "Inspect emitted logs for structure, completeness, and compatibility with log analysis tools."
+          },
+          {
+            "id": 5,
+            "title": "Optimize Instrumentation for Performance",
+            "description": "Ensure that all instrumentation logic, including lookups and allocations, keeps request overhead below 10ms.",
+            "dependencies": [
+              "3.4"
+            ],
+            "details": "Profile and optimize code paths for metadata capture, counter updates, and log emission. Use efficient data structures and minimize allocations.",
+            "status": "pending",
+            "testStrategy": "Benchmark request latency under load using wrk/hey and confirm that instrumentation overhead remains within specified limits."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Static Rule-Based Threat Detection",
+        "description": "Enforce IP blacklists, HTTP method denylist, and basic path regex filters in the access phase. Emit incident records.",
+        "details": "Use lookup tables for O(1) checks. Block early when matches occur. Structure incident objects with type, scope, evidence, and decision.",
+        "testStrategy": "Configure blacklists/denylists and send matching requests; expect 403/429. Verify incident records are logged with correct fields.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Implement IP Blacklist Enforcement",
+            "description": "Create a mechanism to check incoming requests against a predefined IP blacklist using lookup tables for O(1) access. Block requests early in the access phase if a match is found.",
+            "dependencies": [],
+            "details": "Define the data structure for the IP blacklist and integrate it into the access phase logic. Ensure efficient lookup and immediate blocking of matching requests.",
+            "status": "pending",
+            "testStrategy": "Configure the IP blacklist and send requests from blacklisted IPs; verify that such requests are blocked and appropriate incident records are emitted."
+          },
+          {
+            "id": 2,
+            "title": "Implement HTTP Method Denylist Filtering",
+            "description": "Develop logic to deny requests using HTTP methods specified in a denylist, leveraging lookup tables for fast checks during the access phase.",
+            "dependencies": [],
+            "details": "Specify the denylist of HTTP methods and integrate the check into the access phase. Block requests using denied methods before further processing.",
+            "status": "pending",
+            "testStrategy": "Set up a denylist and send requests with denied HTTP methods; confirm that these requests are blocked and incidents are logged."
+          },
+          {
+            "id": 3,
+            "title": "Apply Path Regex Filtering",
+            "description": "Integrate basic regex-based path filters to block requests matching suspicious or forbidden URL patterns during the access phase.",
+            "dependencies": [],
+            "details": "Define regex patterns for path filtering and implement efficient matching logic. Block requests that match any forbidden pattern and record the incident.",
+            "status": "pending",
+            "testStrategy": "Configure regex filters and send requests matching those patterns; ensure requests are blocked and incidents are emitted with correct evidence."
+          },
+          {
+            "id": 4,
+            "title": "Emit Structured Incident Records",
+            "description": "Develop a system to generate and store incident records for each blocked request, including type, scope, evidence, and decision fields.",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3"
+            ],
+            "details": "Design the incident object schema and ensure that every blocked request triggers the creation of a structured incident record with all required fields.",
+            "status": "pending",
+            "testStrategy": "Trigger blocking events via blacklist, denylist, and regex filters; verify that incident records are created with accurate and complete information."
+          },
+          {
+            "id": 5,
+            "title": "Validate Rule Effectiveness and Coverage",
+            "description": "Regularly assess and validate the accuracy and performance of blacklist, denylist, and regex rules to minimize false positives/negatives and maintain high detection fidelity.",
+            "dependencies": [
+              "4.4"
+            ],
+            "details": "Implement a process to review incident records and detection rules, tuning them for optimal coverage and efficiency. Use historical data and test scenarios to identify broken or inefficient rules.",
+            "status": "pending",
+            "testStrategy": "Periodically review incident logs and detection outcomes; adjust rules as needed and confirm improvements through targeted test cases."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Threshold and Anomaly Detection",
+        "description": "Detect bursts, per-IP rate spikes, error-rate spikes, and anomalous payload sizes using sliding windows computed in the log phase.",
+        "details": "Implement moving average/EMA in ngx.shared.dict with configurable thresholds and 1m/5m windows. Avoid global locks and keep computations lightweight.",
+        "testStrategy": "Replay burst traffic and induce 5xx responses in a mock upstream; verify incidents are created and overhead remains minimal.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Sliding Window Data Structures in ngx.shared.dict",
+            "description": "Define and implement efficient data structures in ngx.shared.dict to maintain per-metric and per-IP sliding windows for 1m and 5m intervals, supporting moving average and EMA calculations.",
+            "dependencies": [],
+            "details": "Ensure the design supports concurrent updates without global locks and is optimized for minimal memory and CPU overhead.",
+            "status": "pending",
+            "testStrategy": "Simulate concurrent log phase updates and verify correct windowed aggregation for multiple IPs and metrics."
+          },
+          {
+            "id": 2,
+            "title": "Implement Configurable Threshold Evaluation Logic",
+            "description": "Develop logic to compare computed metrics (rate, error rate, payload size) against configurable thresholds for each sliding window, supporting both static and dynamic (e.g., Z-score) thresholds.",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Allow thresholds to be set per metric and window, and support both absolute and statistical (e.g., standard deviation-based) thresholds.",
+            "status": "pending",
+            "testStrategy": "Configure various thresholds and verify correct detection of threshold crossings using synthetic log data."
+          },
+          {
+            "id": 3,
+            "title": "Detect and Classify Anomalies in Log Phase",
+            "description": "Integrate anomaly detection logic into the log phase to identify bursts, per-IP rate spikes, error-rate spikes, and anomalous payload sizes in real time.",
+            "dependencies": [
+              "5.2"
+            ],
+            "details": "Apply moving average/EMA and threshold logic to incoming log data, tagging and classifying anomalies by type and severity.",
+            "status": "pending",
+            "testStrategy": "Replay burst and error-prone traffic; verify anomalies are detected and classified as expected."
+          },
+          {
+            "id": 4,
+            "title": "Emit and Store Incident Records for Detected Anomalies",
+            "description": "Generate structured incident records when anomalies are detected, including type, scope, evidence, and threshold context, and store them for downstream processing or alerting.",
+            "dependencies": [
+              "5.3"
+            ],
+            "details": "Ensure incident records are lightweight, deduplicated within window, and compatible with existing logging/alerting pipelines.",
+            "status": "pending",
+            "testStrategy": "Trigger multiple anomaly types and verify incident records are emitted with correct fields and minimal duplication."
+          },
+          {
+            "id": 5,
+            "title": "Optimize and Validate Performance Under Load",
+            "description": "Profile and optimize the implementation to ensure all computations remain lightweight, avoid global locks, and maintain low overhead during high traffic.",
+            "dependencies": [
+              "5.4"
+            ],
+            "details": "Benchmark CPU, memory, and latency impact under simulated burst and error traffic; tune data structures and logic as needed.",
+            "status": "pending",
+            "testStrategy": "Run high-throughput traffic scenarios and confirm plugin overhead remains within acceptable limits (e.g., <10ms per request)."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Core Remediation via Admin API",
+        "description": "Apply automated actions via the Kong Admin API: rate-limiting, request-termination, and ACL/IP restrictions on offending consumers/services/routes.",
+        "details": "Secure Admin API access via config. Resolve the target entity from incident context. Ensure actions are idempotent with retry/backoff and audit logs.",
+        "testStrategy": "Trigger a detection that should apply a rate limit to a consumer. Verify via the Admin API that the policy is applied to the intended entity.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Secure Admin API Access Configuration",
+            "description": "Configure and validate secure access to the Kong Admin API, ensuring only authorized automation can perform remediation actions.",
+            "dependencies": [],
+            "details": "Implement authentication and network restrictions for the Admin API endpoint. Store credentials and endpoint configuration securely for use by automation components.",
+            "status": "pending",
+            "testStrategy": "Attempt Admin API access with valid and invalid credentials. Verify unauthorized requests are rejected and authorized requests succeed."
+          },
+          {
+            "id": 2,
+            "title": "Incident Context Entity Resolution",
+            "description": "Develop logic to extract and resolve the target consumer, service, or route from the incident context for precise remediation.",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Parse incident payloads to identify the affected entity type and unique identifier. Map incident data to Kong Admin API resource references.",
+            "status": "pending",
+            "testStrategy": "Simulate incidents targeting different entity types and verify correct resolution to Kong Admin API resource IDs."
+          },
+          {
+            "id": 3,
+            "title": "Automated Remediation Action Execution",
+            "description": "Implement automated application of rate-limiting, request-termination, and ACL/IP restriction plugins to the resolved entity via the Kong Admin API.",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Invoke Admin API endpoints to configure or update plugins on the target entity. Support all three remediation types and ensure correct plugin parameters are set.",
+            "status": "pending",
+            "testStrategy": "Trigger remediation for each action type and verify via Admin API that the correct plugin and configuration are applied to the intended entity."
+          },
+          {
+            "id": 4,
+            "title": "Idempotency, Retry, and Backoff Mechanisms",
+            "description": "Ensure all remediation actions are idempotent, with robust retry and exponential backoff logic to handle transient failures.",
+            "dependencies": [
+              "6.3"
+            ],
+            "details": "Track action state to prevent duplicate application. Implement retry logic with exponential backoff for failed API calls, and handle error responses gracefully.",
+            "status": "pending",
+            "testStrategy": "Simulate transient failures and repeated triggers. Verify no duplicate actions occur and that retries follow the backoff policy."
+          },
+          {
+            "id": 5,
+            "title": "Audit Logging of Remediation Actions",
+            "description": "Record detailed audit logs for all remediation actions, including entity, action type, parameters, status, and timestamps.",
+            "dependencies": [
+              "6.4"
+            ],
+            "details": "Log every attempted and completed remediation action with sufficient metadata for traceability and compliance. Store logs in a persistent and queryable format.",
+            "status": "pending",
+            "testStrategy": "Trigger multiple remediation actions and verify audit logs contain accurate, complete, and non-duplicated records for each action."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Advanced Remediation: Route/Service Modification and Rollback",
+        "description": "Modify Service/Route to reroute traffic and roll back recent configuration changes when correlated with mass 5xx events.",
+        "details": "Integrate with decK/Konnect or maintain local snapshots to revert. Provide correlation logic over the last N minutes and guardrails for safe rollback.",
+        "testStrategy": "Introduce a bad upstream to create errors, detect the spike, reroute traffic to a healthy upstream, then perform a rollback. Verify final state via Admin API.",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Detect and Correlate Mass 5xx Events",
+            "description": "Implement logic to monitor and correlate mass 5xx errors over the last N minutes, identifying affected routes/services and recent configuration changes.",
+            "dependencies": [],
+            "details": "Develop a mechanism to analyze error logs and correlate spikes in 5xx responses with recent configuration changes. Ensure the logic can operate within a configurable time window and supports safe thresholds for triggering remediation.",
+            "status": "pending",
+            "testStrategy": "Simulate bursts of 5xx errors by introducing a faulty upstream. Verify that the system correctly identifies the spike and correlates it with recent configuration changes."
+          },
+          {
+            "id": 2,
+            "title": "Integrate with decK/Konnect and Local Snapshot Management",
+            "description": "Set up integration with decK/Konnect for configuration management, or implement local snapshot storage to enable reliable rollback of service/route configurations.",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Configure decK to export and import Kong Gateway state files, or implement a local snapshot mechanism to capture and restore configurations. Ensure compatibility with both on-prem and Konnect-managed gateways.",
+            "status": "pending",
+            "testStrategy": "Export the current configuration, make changes, and verify that both decK/Konnect and local snapshots can restore the previous state accurately."
+          },
+          {
+            "id": 3,
+            "title": "Automate Safe Rollback Procedures",
+            "description": "Develop automated rollback procedures with guardrails to revert recent configuration changes when correlated with mass 5xx events.",
+            "dependencies": [
+              "7.2"
+            ],
+            "details": "Implement logic to identify the most recent safe configuration and automate the rollback process. Include guardrails such as validation checks, dry-run capabilities, and rollback abort conditions to prevent cascading failures.",
+            "status": "pending",
+            "testStrategy": "Trigger a rollback scenario after a detected spike. Validate that the rollback only occurs if safety checks pass and that the system returns to a healthy state."
+          },
+          {
+            "id": 4,
+            "title": "Modify Service/Route to Reroute Traffic",
+            "description": "Implement logic to dynamically modify service or route configurations to reroute traffic to healthy upstreams during incidents.",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Enable dynamic updates to Kong Gateway routes/services using the Admin API or declarative configuration. Ensure rerouting logic is atomic and reversible, and integrates with the rollback mechanism.",
+            "status": "pending",
+            "testStrategy": "During a simulated incident, reroute traffic to a healthy upstream and verify that requests are successfully redirected and error rates decrease."
+          },
+          {
+            "id": 5,
+            "title": "Validation and State Verification via Admin API",
+            "description": "Verify the final state of services/routes after remediation actions using the Kong Admin API to ensure consistency and correctness.",
+            "dependencies": [
+              "7.3",
+              "7.4"
+            ],
+            "details": "Query the Admin API to confirm that configuration changes, reroutes, and rollbacks have been applied as intended. Implement automated checks to detect configuration drift or incomplete rollbacks.",
+            "status": "pending",
+            "testStrategy": "After remediation and rollback actions, use the Admin API to validate that the system state matches the expected configuration and that traffic is flowing as intended."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Notifications and Incident Export",
+        "description": "Send structured incident notifications to Slack/Email/webhooks and optionally persist incidents to Postgres/Redis.",
+        "details": "Emit JSON payloads with threat summary, scope, action taken, and links to Kong entities. Implement exponential backoff and deduplication to avoid alert storms.",
+        "testStrategy": "Configure a mock webhook receiver and trigger incidents. Assert payload structure and deduplication behavior.",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Notification Payload Structure",
+            "description": "Define the JSON schema for incident notifications, ensuring inclusion of threat summary, scope, action taken, and links to Kong entities.",
+            "dependencies": [],
+            "details": "Specify required and optional fields, data types, and validation rules for the notification payload to ensure consistency across all delivery channels.",
+            "status": "pending",
+            "testStrategy": "Validate emitted payloads against the schema using sample incidents and assert presence and correctness of all required fields."
+          },
+          {
+            "id": 2,
+            "title": "Implement Multi-Channel Notification Delivery",
+            "description": "Develop logic to send structured notifications to Slack, Email, and webhooks based on configuration.",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Integrate with external APIs for each channel, handle authentication, and ensure message formatting is appropriate for each target.",
+            "status": "pending",
+            "testStrategy": "Configure mock endpoints for each channel, trigger incidents, and verify correct delivery and formatting of notifications."
+          },
+          {
+            "id": 3,
+            "title": "Persist Incidents to Postgres and Redis",
+            "description": "Add optional persistence of incident notifications to Postgres and Redis for audit and retrieval purposes.",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Implement storage logic with configurable toggles, ensuring atomic writes and schema compatibility for both databases.",
+            "status": "pending",
+            "testStrategy": "Trigger incidents with persistence enabled, then query both databases to confirm correct storage and data integrity."
+          },
+          {
+            "id": 4,
+            "title": "Implement Exponential Backoff and Deduplication",
+            "description": "Develop mechanisms to prevent alert storms by deduplicating notifications and applying exponential backoff on repeated incidents.",
+            "dependencies": [
+              "8.2",
+              "8.3"
+            ],
+            "details": "Track recent notifications, suppress duplicates within a configurable window, and increase delay between repeated alerts for the same incident.",
+            "status": "pending",
+            "testStrategy": "Simulate rapid-fire incidents and verify that deduplication and backoff logic suppresses redundant notifications as expected."
+          },
+          {
+            "id": 5,
+            "title": "Configure and Validate Notification Workflows",
+            "description": "Provide configuration options for notification targets and workflow behaviors, and validate end-to-end notification and persistence flows.",
+            "dependencies": [
+              "8.4"
+            ],
+            "details": "Expose configuration for enabling/disabling channels, setting backoff parameters, and toggling persistence. Ensure workflows respect all settings.",
+            "status": "pending",
+            "testStrategy": "Apply various configurations, trigger incidents, and assert that notifications and persistence behave according to the specified workflow."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Status and Incident Reporting Endpoint",
+        "description": "Expose a read-only status/incident endpoint via a dedicated Kong Service/Route secured with key-auth.",
+        "details": "Return current plugin status, configuration snapshot, and the last N incidents from shared dict or Redis. Ensure appropriate access controls.",
+        "testStrategy": "Trigger incidents, then GET the endpoint. Verify JSON contains correct fields and that unauthorized requests are rejected.",
+        "priority": "low",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Status/Incident Endpoint Schema",
+            "description": "Define the JSON structure for the endpoint response, including plugin status, configuration snapshot, and last N incidents.",
+            "dependencies": [],
+            "details": "Specify required fields, data types, and validation rules for status, configuration, and incident records. Ensure compatibility with Kong conventions.",
+            "status": "pending",
+            "testStrategy": "Validate schema against sample data and confirm all required fields are present and correctly typed."
+          },
+          {
+            "id": 2,
+            "title": "Implement Data Retrieval Logic",
+            "description": "Develop logic to fetch current plugin status, configuration snapshot, and last N incidents from shared dict or Redis.",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Integrate with Kong's plugin context to access status and configuration. Query shared dict or Redis for incident history, handling pagination and error cases.",
+            "status": "pending",
+            "testStrategy": "Populate shared dict/Redis with test incidents and verify endpoint returns accurate, complete data."
+          },
+          {
+            "id": 3,
+            "title": "Expose Endpoint via Kong Service/Route",
+            "description": "Create a dedicated Kong Service and Route for the status/incident endpoint.",
+            "dependencies": [
+              "9.2"
+            ],
+            "details": "Configure Kong to route requests to the new endpoint. Ensure the route is read-only and does not allow modification of data.",
+            "status": "pending",
+            "testStrategy": "Send GET requests to the endpoint and confirm correct routing and response format."
+          },
+          {
+            "id": 4,
+            "title": "Secure Endpoint with Key Authentication",
+            "description": "Apply Kong's key-auth plugin to the endpoint and configure Consumers and credentials for access control.",
+            "dependencies": [
+              "9.3"
+            ],
+            "details": "Assign API keys to authorized Consumers. Restrict endpoint access to requests presenting valid keys, following Kong best practices.",
+            "status": "pending",
+            "testStrategy": "Attempt access with valid and invalid keys; verify only authorized requests succeed and unauthorized requests are rejected."
+          },
+          {
+            "id": 5,
+            "title": "Implement Access Control and Audit Logging",
+            "description": "Enforce fine-grained access controls and log all access attempts to the endpoint for auditing.",
+            "dependencies": [
+              "9.4"
+            ],
+            "details": "Integrate with Kong's ACL plugin if needed. Record access attempts, including timestamp, Consumer, and result, for security auditing.",
+            "status": "pending",
+            "testStrategy": "Trigger access attempts from multiple Consumers and verify audit logs capture all relevant details and access controls are enforced."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Operator Feedback Loop and Final Documentation",
+        "description": "Add feedback capabilities to confirm/undo remediation, finalize README, packaging, and tests.",
+        "details": "Feedback updates thresholds/allowlists and can revert actions. Documentation includes installation, configuration, sample YAML, Docker workflows, and running the busted test suite.",
+        "testStrategy": "Trigger an auto-block, then use the feedback path to undo it and verify the block is removed. Run the full test suite and follow README steps from a clean environment.",
+        "priority": "medium",
+        "dependencies": [
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Operator Feedback Mechanism",
+            "description": "Develop UI and/or API endpoints that allow operators to confirm or undo remediation actions, ensuring feedback is captured for each remediation event.",
+            "dependencies": [],
+            "details": "Feedback should be actionable, enabling operators to either confirm the applied remediation or revert it. The system must log all feedback events for traceability.",
+            "status": "pending",
+            "testStrategy": "Trigger an auto-remediation, then use the feedback interface to confirm and undo the action. Verify that the system logs and state reflect the operator's input."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Feedback with Thresholds and Allowlists",
+            "description": "Ensure that operator feedback dynamically updates detection thresholds and allowlists, adapting future remediation logic based on confirmed or reverted actions.",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "When an operator confirms a remediation, thresholds or allowlists should be adjusted to reinforce the decision. If an action is undone, the system should learn to avoid similar false positives.",
+            "status": "pending",
+            "testStrategy": "After reverting a remediation, verify that the same triggering event does not cause another remediation unless thresholds are manually reset."
+          },
+          {
+            "id": 3,
+            "title": "Finalize Comprehensive README Documentation",
+            "description": "Complete the README to cover installation, configuration, sample YAML, Docker workflows, and instructions for running the busted test suite.",
+            "dependencies": [],
+            "details": "Documentation must be clear, up-to-date, and include practical examples for all supported deployment and testing scenarios.",
+            "status": "pending",
+            "testStrategy": "Follow README instructions from a clean environment to ensure all steps are accurate and reproducible."
+          },
+          {
+            "id": 4,
+            "title": "Package and Release Artifacts",
+            "description": "Prepare the project for distribution, including packaging source code, dependencies, and Docker images as needed for deployment.",
+            "dependencies": [
+              "10.3"
+            ],
+            "details": "Ensure all packaging scripts and Dockerfiles are tested and produce reproducible builds. Artifacts should be versioned and ready for release.",
+            "status": "pending",
+            "testStrategy": "Build all packages and Docker images from scratch, then deploy using the documented steps to verify successful installation."
+          },
+          {
+            "id": 5,
+            "title": "Validate and Expand Automated Test Suite",
+            "description": "Review, update, and expand the automated test suite to cover feedback loop logic, remediation confirmation/undo, and all documented workflows.",
+            "dependencies": [
+              "10.1",
+              "10.2",
+              "10.3"
+            ],
+            "details": "Tests should simulate real operator feedback scenarios, including edge cases for reverting actions and updating thresholds. Ensure coverage for all documented features.",
+            "status": "pending",
+            "testStrategy": "Run the full test suite, including new feedback loop tests, and confirm all pass. Manually verify edge cases not covered by automation."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-19T20:10:00.000Z",
+      "updated": "2025-08-19T21:17:08.108Z",
+      "description": "Tasks for assistant-local context (locally parsed; no external AI)"
+    }
+  }
+}

@@ -1,0 +1,121 @@
+_format_version: "3.0"
+_transform: true
+
+# Kong Guard AI - Declarative Configuration
+# This configuration sets up Kong Gateway with the custom kong-guard-ai plugin
+
+services:
+  # Demo API service for testing threat detection
+  - name: demo-api
+    url: http://httpbin.org
+    plugins:
+      - name: kong-guard-ai
+        config:
+          # Plugin configuration will be detailed in the plugin schema
+          dry_run: true
+          log_level: "info"
+          threat_detection:
+            enabled: true
+            rules:
+              rate_limit_threshold: 100  # requests per minute
+              suspicious_patterns:
+                - "(?i)(union|select|insert|delete|drop|alter|exec|script)"
+                - "(?i)(<script|javascript:|onload=|onerror=)"
+              blocked_ips: []
+              blocked_user_agents:
+                - "sqlmap"
+                - "nikto"
+                - "nmap"
+          response_actions:
+            enabled: true
+            immediate_block: false  # Due to dry_run mode
+            rate_limit_enforcement: false
+            notification_enabled: true
+          notifications:
+            webhook_url: "http://host.docker.internal:3001/webhook"  # Placeholder for webhook service
+            slack_webhook: ""  # Will be configured later
+            email_config:
+              enabled: false
+          ai_gateway:
+            enabled: false  # Will be enabled when AI Gateway is configured
+            model_endpoint: ""
+            threat_analysis_threshold: 0.7
+
+  # Kong Admin API proxy (for external access in development)
+  - name: kong-admin-proxy
+    url: http://localhost:8001
+    plugins:
+      - name: key-auth
+        config:
+          key_names: ["apikey"]
+
+  # Kong Guard AI Status endpoint
+  - name: kong-guard-status
+    url: http://kong-guard-ai-backend:3000  # Backend service will be created by other agents
+    plugins:
+      - name: key-auth
+        config:
+          key_names: ["apikey"]
+
+routes:
+  # Demo API routes for testing
+  - name: demo-get
+    service: demo-api
+    paths:
+      - "/demo"
+    methods:
+      - "GET"
+      - "POST"
+    strip_path: true
+
+  - name: demo-auth-test
+    service: demo-api
+    paths:
+      - "/auth-test"
+    methods:
+      - "GET"
+      - "POST"
+    strip_path: true
+
+  # Admin proxy route (development only)
+  - name: admin-proxy
+    service: kong-admin-proxy
+    paths:
+      - "/admin"
+    strip_path: true
+
+  # Status endpoint route
+  - name: guard-status
+    service: kong-guard-status
+    paths:
+      - "/guard-status"
+    strip_path: true
+
+consumers:
+  # Development API key consumer
+  - username: dev-user
+    keyauth_credentials:
+      - key: "dev-api-key-12345"
+
+  # Admin API key consumer
+  - username: admin-user
+    keyauth_credentials:
+      - key: "admin-api-key-67890"
+
+plugins:
+  # Global rate limiting (backup protection)
+  - name: rate-limiting
+    config:
+      minute: 1000
+      hour: 10000
+      policy: local
+
+  # Request logging
+  - name: file-log
+    config:
+      path: "/tmp/kong-access.log"
+
+  # Prometheus metrics (if available)
+  - name: prometheus
+    config:
+      per_consumer: true

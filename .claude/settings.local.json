@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npx -y @upstash/context7-mcp:*)",
+      "mcp__task-master-ai__get_tasks",
+      "mcp__task-master-ai__analyze_project_complexity"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "context7",
+    "task-master-ai"
+  ]
+}

@@ -1,0 +1,100 @@
+Product Requirements Document (PRD): Autonomous API Threat Response Agent for Kong
+
+1. Objective
+
+Design and develop an advanced Kong plugin (with an optional companion microservice) called the "Autonomous API Threat Response Agent." This agent will run within the Kong Gateway (OSS or Enterprise) and provide real-time, AI-driven API threat monitoring, incident classification, and automated remediation. It must fully leverage Kong’s plugin system, Admin API, Service/Route configuration capabilities, AI Gateway, and notification integrations. All core logic, hooks, and responses should be expressed as Kong-compliant Lua, Go, or AI Gateway components for maximal extensibility and performance in the Kong ecosystem.
+
+2. Background / Why Kong?
+
+Kong is an industry-leading, cloud-native API gateway used to secure, manage, and route API traffic at scale. It offers deep plugin extensibility (via Lua, Go, etc.), robust Admin APIs, declarative configuration (Konnect, decK, k8s), as well as emerging support for AI orchestration via Kong AI Gateway. Many critical businesses rely on Kong for uptime and compliance; empowering Kong with agentic, self-healing security closes a key DevSecOps gap. This aligns with Kong Hackathon’s focus on extensibility, AI, and new application paradigms for plugins and gateways.
+
+3. Product Scope (Kong focus)
+
+Features (Kong-centric):
+- Deep integration as a native Kong plugin, compatible with gateway and hybrid/cloud/OSS modes.
+- Traffic monitoring by hooking into the access and log phases of Kong’s request lifecycle.
+- Incident detection using:
+    • Static Lua-implemented rules (e.g., rate, method, IP blacklisting).
+    • Dynamic Lua or Go plug-ins for traffic pattern outlier detection (rate, bursts, weird payloads).
+    • Optional: Use Kong AI Gateway to connect to LLMs/AI inference for anomalous behavior (payloads, attack fuzz, injection signatures).
+- Policy-driven response mapped to Admin API actions:
+    • Apply rate limits, block consumer/APIs via Kong config.
+    • Modify Service/Route objects to restrict or reroute traffic on the fly.
+    • Inject dynamic Lua code (hot-patch) to insert temporary mitigation without full deploy.
+    • Rollback recent config using Admin API (can fetch deployment history via Konnect or decK).
+- Event-driven notification hooks to Slack, Email, or webhooks for instant operator awareness. Optionally record incident logs in a Kong-friendly backend (e.g., Postgres, Redis, or via Service integration with API analytics tooling).
+- Exposes status and incidents via a lightweight HTTP endpoint mounted as a Service in Kong (for dashboards, UIs, or alerts).
+- Configurable via declarative YAML passed through Kong’s Admin API, Konnect, or directly as plugin config.
+- "Dry run" mode: logs but doesn’t enforce, for safe integration testing.
+- All logic must be tested for Kong 3.x+ (OSS or Enterprise), performant (sub 10ms overhead), and avoid single-node lock-in (stateless/MPSD as much as possible).
+
+4. Functional Requirements
+
+4.1. Traffic Monitoring & Threat Detection (Kong details)
+- Use Kong’s Lua plugin lifecycle (init_worker, access, log) for request/response instrumentation.
+- Integrate with openresty libraries for ML/thresholds if feasible (Lua, Go, or FFI to fast-ML model for local scoring).
+- Optional: Use AI Gateway’s model invocation for advanced LLM checks (i.e., send suspicious traffic to LLM API for scoring, then handle synchronously or asynchronously).
+- Logging incident data to Kong’s logging pipeline or via plugin custom fields.
+
+4.2. Incident Classification
+- Classify at each stage (immediate, delayed, via AI Gateway).
+- Categories: API DDoS, credential stuffing, abuse, payload injection, route misconfig, mass error/5xx, client anomaly (unexpected IP/UA).
+
+4.3. Automated Response & Remediation
+- Core: Use Admin API to adjust Service/Route, Consumer, and plugin settings based on policy (auto block/allow, ratelimiting, etc.).
+- For rollback: fetch recent config (decK or Konnect API) and revert offending changes.
+- Optionally: dynamically insert Lua filters or reconfigure upstream for real-time mitigation.
+- All responses actioned via Kong’s Admin APIs or plugin system—no out-of-band config.
+
+4.4. Notification and Reporting
+- Use Kong’s built-in notifications, log-to-HTTP, and custom plugin events to send notifications.
+- Prefer Slack, Email, or arbitrary webhooks, with detailed incident payloads (threat summary, scope, json logs, map to Kong Service/Route/Consumer IDs).
+
+4.5. Learning & Feedback
+- Operator feedback API (HTTP, Kong Admin endpoint, or plugin config update) for training thresholds and confirming/undoing actions.
+- If using outside AI services (e.g., AI Gateway), write adapters so feedback closes the loop into retraining/scoring logic.
+
+4.6. Configuration and UX
+- All plugin config in Kong-standard declarative YAML/JSON, reloadable via Admin API.
+- State and logs exportable for audit through existing Kong analytic plugins (Loggly, Datadog, ELK, or Kong DB).
+- Provide a Kong Service + route for status queries (incident list, recent actions, plugin config/status).
+
+5. Non-Functional / Kong Specific
+
+- Must not add more than 10ms per request under >5,000 RPS per node.
+- Stateless plugin design—use Kong’s cluster/cache or Service integration for sync if needed.
+- Compatible with hybrid/cloud/OSS Gateway modes and Kong API Gateway 3.x+.
+- Secure API/incident log handling—never persist sensitive data outside authorized Kong stores.
+- Fully conformant to Kong plugin lifecycle and best practices.
+
+6. Implementation Brief (Dev Direction)
+
+- Develop plugin in Lua (primary), with option for Go/Python/component via Kong’s plugin interface for heavy ML.
+- Use Kong’s test suite (busted, etc.) for automated functional tests.
+- Provide Docker compose stack for rapid dev/test (Kong Gateway, Postgres, demo API, plugin, scripts).
+- Sample YAML plugin config with example rules, thresholds, dry-run setting, remote AI inference toggle.
+- README: Install, config guide, developing and running with Kong OSS/EE/Gateway/AI Gateway.
+
+
+7. Milestones (Suggested Hackathon Timeline)
+- M1: Plugin skeleton, config loading, and basic traffic logging
+- M2: Threat detectors (rules, thresholds, sample ML if possible)
+- M3: Core remediation (blocking, rate limiting, rollback config)
+- M4: Notification integration (Slack, log-to-HTTP, status endpoint)
+- M5: Learning/feedback loop, adaptive config
+- M6: Readme, Docker support, demos, test coverage
+
+8. Risks and Mitigations
+- False positives: support easy override, dry run, detailed audit logs
+- Performance impacts: optimize checks, allow tunable sampling/enforcement
+- Model drift: periodic feedback or operator retraining of ML rules
+
+9. Open Questions
+- Will judges provide example attack traffic?
+- Any required cloud AI or can any open-source (or local) ML suffice?
+- Minimum reporting/notification integration (Slack/Email mandatory?)
+
+10. Success Metrics
+- Threats detected, auto-handled, and reported correctly
+- Plugin latency <10ms added under load
+- Positive operator feedback (“was response correct?” loop)

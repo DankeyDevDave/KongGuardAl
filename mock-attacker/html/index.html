@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Attacker Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d32f2f;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .method {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Mock Attacker Service</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This service simulates various attack patterns for testing the Kong Guard AI plugin. Use only in development environments.
+        </div>
+
+        <h2>Available Test Endpoints</h2>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/health</strong> - Health check endpoint
+            <p>Returns a simple health status for monitoring.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/api/users</strong> - User listing endpoint
+            <p>Simulates a normal API endpoint that could be targeted for SQL injection attacks.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/api/search</strong> - Search endpoint
+            <p>Simulates a search API that could be vulnerable to XSS attacks.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/api/rapid</strong> - High-frequency endpoint
+            <p>Designed for testing rate limiting and DDoS protection mechanisms.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">POST</div>
+            <strong>/api/upload</strong> - Upload endpoint
+            <p>Accepts large payloads for testing upload abuse and payload size limits.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/api/error/{status}</strong> - Error simulation
+            <p>Returns specific HTTP error codes (400, 401, 403, 404, 500) for testing error handling.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/admin</strong> - Admin access attempt
+            <p>Simulates unauthorized admin access attempts.</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <strong>/.env</strong> - Configuration file access
+            <p>Simulates attempts to access sensitive configuration files.</p>
+        </div>
+
+        <h2>Testing Instructions</h2>
+        <p>Use these endpoints to test your Kong Guard AI plugin's threat detection capabilities:</p>
+        <ul>
+            <li><strong>Rate Limiting:</strong> Make rapid requests to <code>/api/rapid</code></li>
+            <li><strong>Suspicious Access:</strong> Try accessing <code>/admin</code> or <code>/.env</code></li>
+            <li><strong>Error Patterns:</strong> Generate errors using <code>/api/error/*</code> endpoints</li>
+            <li><strong>Large Payloads:</strong> Send large POST requests to <code>/api/upload</code></li>
+        </ul>
+    </div>
+</body>
+</html>
