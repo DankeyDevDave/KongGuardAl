@@ -12,6 +12,23 @@ jobs:
     runs-on: self-hosted
     
     steps:
+    - name: Clean workspace
+      run: |
+        echo "Cleaning workspace to avoid permission issues..."
+        # Clean up any Docker-created directories with proper permissions
+        if [ -d "$GITHUB_WORKSPACE" ]; then
+          sudo rm -rf "$GITHUB_WORKSPACE" || true
+        fi
+        if [ -d "redis-data" ]; then
+          sudo rm -rf redis-data || true
+        fi
+        if [ -d ".hive-mind" ]; then
+          sudo rm -rf .hive-mind || true
+        fi
+        if [ -d ".swarm" ]; then
+          sudo rm -rf .swarm || true
+        fi
+        
     - name: Checkout code
       uses: actions/checkout@v4
       
@@ -170,8 +187,24 @@ jobs:
       if: always()
       run: |
         echo "Cleaning up deployment..."
-        docker-compose down || true
+        # Ensure PATH includes local bin if we installed docker-compose there
+        export PATH=$HOME/.local/bin:$PATH
+        
+        # Stop containers
+        if docker compose version &> /dev/null; then
+          docker compose down || true
+        elif command -v docker-compose &> /dev/null; then
+          docker-compose down || true
+        fi
+        
+        # Clean Docker system
         docker system prune -f || true
+        
+        # Clean up directories with proper permissions
+        sudo rm -rf redis-data || true
+        sudo rm -rf .hive-mind || true
+        sudo rm -rf .swarm || true
+        sudo rm -rf kong-guard-ai/memory || true
         
     - name: Deployment status
       run: |

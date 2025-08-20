@@ -26,4 +26,15 @@ node_modules/
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/
+
+# Docker volumes and data
+redis-data/
+kong-datastore/
+postgres-data/
+*.db-shm
+*.db-wal
+
+# GitHub Actions runner artifacts
+_work/
+.runner/ 
