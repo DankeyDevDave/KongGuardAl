@@ -77,13 +77,17 @@ jobs:
         node --version
         npm --version
         
-        # Initialize Claude-Flow with Kong Guard AI optimization
-        npx claude-flow@alpha init --force --hive-mind --neural-enhanced
+        # Initialize Claude-Flow with Kong Guard AI optimization (optional enhancement)
+        echo "Attempting Claude-Flow initialization..."
+        npx claude-flow@alpha init --force --hive-mind --neural-enhanced || {
+          echo "⚠️ Claude-Flow initialization failed - continuing without AI enhancements"
+          echo "✅ Kong Guard AI will deploy with standard security features"
+        }
         
-        # Store Kong Guard AI deployment context in memory
+        # Store deployment context if Claude-Flow is available
         npx claude-flow@alpha memory store "production-deployment" \
           "Kong Guard AI deployed to Proxmox with enterprise security capabilities" \
-          --namespace kong-security
+          --namespace kong-security || echo "Memory storage skipped"
         
     - name: Deploy to Proxmox environment
       run: |
