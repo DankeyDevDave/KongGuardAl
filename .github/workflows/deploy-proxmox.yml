@@ -19,14 +19,23 @@ jobs:
       run: |
         docker --version
         
-        # Install Docker Compose if not present
-        if ! command -v docker-compose &> /dev/null; then
-          echo "Installing Docker Compose..."
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+        # Check if docker compose v2 is available (comes with newer Docker)
+        if docker compose version &> /dev/null; then
+          echo "Docker Compose v2 is available"
+          docker compose version
+        # Check if docker-compose v1 is available
+        elif command -v docker-compose &> /dev/null; then
+          echo "Docker Compose v1 is available"
+          docker-compose --version
+        else
+          echo "Installing Docker Compose locally..."
+          # Install in user directory without sudo
+          mkdir -p $HOME/.local/bin
+          curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o $HOME/.local/bin/docker-compose
+          chmod +x $HOME/.local/bin/docker-compose
+          export PATH=$HOME/.local/bin:$PATH
+          docker-compose --version
         fi
-        
-        docker-compose --version || docker compose version
         
     - name: Build Kong Guard AI plugin
       run: |
@@ -61,12 +70,21 @@ jobs:
     - name: Deploy to Proxmox environment
       run: |
         echo "Deploying Kong Guard AI to Proxmox environment..."
+        
+        # Ensure PATH includes local bin if we installed docker-compose there
+        export PATH=$HOME/.local/bin:$PATH
+        
         # Start the Docker stack with Claude-Flow coordination
         # Try docker compose v2 first, fallback to docker-compose v1
-        if command -v docker-compose &> /dev/null; then
+        if docker compose version &> /dev/null; then
+          echo "Using Docker Compose v2"
+          docker compose up -d --build
+        elif command -v docker-compose &> /dev/null; then
+          echo "Using Docker Compose v1"
           docker-compose up -d --build
         else
-          docker compose up -d --build
+          echo "Error: Docker Compose not found"
+          exit 1
         fi
         
         # Wait for services to be ready
