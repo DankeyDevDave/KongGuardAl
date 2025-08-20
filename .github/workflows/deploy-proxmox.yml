@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, proxmox]
+    runs-on: proxmox-runner-201
     
     steps:
     - name: Checkout code
