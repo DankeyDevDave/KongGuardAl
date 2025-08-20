@@ -15,6 +15,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Set up Node.js 20
+      run: |
+        echo "Installing Node.js 20 for Claude-Flow compatibility..."
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        node --version
+        npm --version
+      
     - name: Set up Docker and Docker Compose
       run: |
         docker --version
@@ -58,6 +66,9 @@ jobs:
     - name: Initialize Claude-Flow v2.0.0 Alpha
       run: |
         echo "Initializing Claude-Flow v2.0.0 Alpha for Kong Guard AI..."
+        node --version
+        npm --version
+        
         # Initialize Claude-Flow with Kong Guard AI optimization
         npx claude-flow@alpha init --force --hive-mind --neural-enhanced
         
