@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: proxmox-runner-201
+    runs-on: [self-hosted, proxmox]
     
     steps:
     - name: Checkout code
@@ -35,10 +35,21 @@ jobs:
           ./scripts/validate-all.sh
         fi
         
+    - name: Initialize Claude-Flow v2.0.0 Alpha
+      run: |
+        echo "Initializing Claude-Flow v2.0.0 Alpha for Kong Guard AI..."
+        # Initialize Claude-Flow with Kong Guard AI optimization
+        npx claude-flow@alpha init --force --hive-mind --neural-enhanced
+        
+        # Store Kong Guard AI deployment context in memory
+        npx claude-flow@alpha memory store "production-deployment" \
+          "Kong Guard AI deployed to Proxmox with enterprise security capabilities" \
+          --namespace kong-security
+        
     - name: Deploy to Proxmox environment
       run: |
         echo "Deploying Kong Guard AI to Proxmox environment..."
-        # Start the Docker stack
+        # Start the Docker stack with Claude-Flow coordination
         docker-compose up -d --build
         
         # Wait for services to be ready
@@ -47,8 +58,12 @@ jobs:
         # Validate Kong is running
         curl -f http://localhost:8001/status || exit 1
         
-        # Test plugin loading
-        echo "Testing Kong Guard AI plugin..."
+        # Initialize neural threat prediction
+        npx claude-flow@alpha neural train --pattern prediction \
+          --training-data "kong-guard-ai production deployment" --epochs 10
+        
+        # Test plugin loading with AI coordination
+        echo "Testing Kong Guard AI plugin with Claude-Flow..."
         if [ -f "scripts/validate-plugin-lifecycle.sh" ]; then
           chmod +x scripts/validate-plugin-lifecycle.sh
           ./scripts/validate-plugin-lifecycle.sh
