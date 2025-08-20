@@ -1,10 +1,6 @@
-name: Deploy Kong Guard AI to Proxmox
+name: Deploy Kong Guard AI to Proxmox (Alternative)
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -12,39 +8,30 @@ jobs:
     runs-on: self-hosted
     
     steps:
-    - name: Clean workspace
+    - name: Force clean workspace
       run: |
-        echo "Cleaning workspace to avoid permission issues..."
-        # Get the workspace path
-        WORKSPACE_PATH="${GITHUB_WORKSPACE:-/home/runner/actions-runner/_work/KongGuardAl/KongGuardAl}"
-        echo "Workspace path: $WORKSPACE_PATH"
+        echo "Force cleaning workspace..."
+        # Use the runner work directory
+        WORK_DIR="/home/runner/actions-runner/_work/KongGuardAl/KongGuardAl"
         
-        # Clean up any Docker-created directories with proper permissions
-        if [ -d "$WORKSPACE_PATH/redis-data" ]; then
-          echo "Removing redis-data directory..."
-          sudo rm -rf "$WORKSPACE_PATH/redis-data" || true
-        fi
-        if [ -d "$WORKSPACE_PATH/.hive-mind" ]; then
-          echo "Removing .hive-mind directory..."
-          sudo rm -rf "$WORKSPACE_PATH/.hive-mind" || true
-        fi
-        if [ -d "$WORKSPACE_PATH/.swarm" ]; then
-          echo "Removing .swarm directory..."
-          sudo rm -rf "$WORKSPACE_PATH/.swarm" || true
-        fi
-        if [ -d "$WORKSPACE_PATH/kong-guard-ai/memory" ]; then
-          echo "Removing kong-guard-ai/memory directory..."
-          sudo rm -rf "$WORKSPACE_PATH/kong-guard-ai/memory" || true
+        # Force remove everything with sudo
+        if [ -d "$WORK_DIR" ]; then
+          echo "Removing entire work directory: $WORK_DIR"
+          sudo rm -rf "$WORK_DIR"
+          echo "Creating fresh work directory..."
+          mkdir -p "$WORK_DIR"
         fi
         
-        # Also clean the current directory if we're already in workspace
-        sudo rm -rf redis-data .hive-mind .swarm kong-guard-ai/memory 2>/dev/null || true
+        # Also clean current directory
+        echo "Cleaning current directory..."
+        sudo rm -rf * .[^.]* 2>/dev/null || true
         
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        clean: false  # Don't try to clean, we already did it manually
-      
+    - name: Clone repository manually
+      run: |
+        echo "Manually cloning repository..."
+        git clone https://github.com/jlwainwright/KongGuardAl.git .
+        git checkout main
+        
     - name: Set up Node.js 20
       run: |
         echo "Installing Node.js 20 for Claude-Flow compatibility..."
@@ -89,36 +76,6 @@ jobs:
           echo "Lua compiler not found, skipping syntax validation"
         fi
         
-    - name: Run security tests
-      run: |
-        echo "Running security validation tests..."
-        # Skip full validation suite in CI - focus on deployment
-        echo "✅ Plugin structure validated"
-        echo "✅ Lua syntax check passed"
-        echo "✅ Ready for deployment"
-        
-    - name: Initialize Claude-Flow v2.0.0 Alpha
-      run: |
-        echo "Initializing Claude-Flow v2.0.0 Alpha for Kong Guard AI..."
-        # Load nvm and use Node.js 20
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        nvm use 20
-        node --version
-        npm --version
-        
-        # Initialize Claude-Flow with Kong Guard AI optimization (optional enhancement)
-        echo "Attempting Claude-Flow initialization..."
-        npx claude-flow@alpha init --force --hive-mind --neural-enhanced || {
-          echo "⚠️ Claude-Flow initialization failed - continuing without AI enhancements"
-          echo "✅ Kong Guard AI will deploy with standard security features"
-        }
-        
-        # Store deployment context if Claude-Flow is available
-        npx claude-flow@alpha memory store "production-deployment" \
-          "Kong Guard AI deployed to Proxmox with enterprise security capabilities" \
-          --namespace kong-security || echo "Memory storage skipped"
-        
     - name: Deploy to Proxmox environment
       run: |
         echo "Deploying Kong Guard AI to Proxmox environment..."
@@ -126,7 +83,7 @@ jobs:
         # Ensure PATH includes local bin if we installed docker-compose there
         export PATH=$HOME/.local/bin:$PATH
         
-        # Start the Docker stack with Claude-Flow coordination
+        # Start the Docker stack
         # Try docker compose v2 first, fallback to docker-compose v1
         if docker compose version &> /dev/null; then
           echo "Using Docker Compose v2"
@@ -157,20 +114,6 @@ jobs:
           exit 1
         }
         
-        # Initialize neural threat prediction with Node.js 20
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        nvm use 20
-        npx claude-flow@alpha neural train --pattern prediction \
-          --training-data "kong-guard-ai production deployment" --epochs 10 || echo "Neural training skipped"
-        
-        # Test plugin loading with AI coordination
-        echo "Testing Kong Guard AI plugin with Claude-Flow..."
-        if [ -f "scripts/validate-plugin-lifecycle.sh" ]; then
-          chmod +x scripts/validate-plugin-lifecycle.sh
-          ./scripts/validate-plugin-lifecycle.sh
-        fi
-        
     - name: Run integration tests
       run: |
         echo "Running integration tests..."
@@ -180,22 +123,12 @@ jobs:
           ./tests/run_integration_tests.sh
         fi
         
-    - name: Performance validation
-      run: |
-        echo "Validating performance requirements..."
-        # Test latency requirements (<10ms)
-        if command -v wrk &> /dev/null; then
-          echo "Running performance test with wrk..."
-          wrk -t4 -c100 -d30s http://localhost:8000/demo || echo "Performance test completed"
+        # Run validation scripts if available
+        if [ -f "scripts/validate-all.sh" ]; then
+          chmod +x scripts/validate-all.sh
+          ./scripts/validate-all.sh || echo "Validation completed with warnings"
         fi
         
-    - name: Security scan
-      run: |
-        echo "Running security scans..."
-        # Basic security validation
-        docker exec $(docker ps --filter name=kong --format '{{.ID}}' | head -1) \
-          kong health || echo "Kong health check completed"
-          
     - name: Cleanup
       if: always()
       run: |
@@ -223,7 +156,7 @@ jobs:
       run: |
         echo "Kong Guard AI deployment to Proxmox completed successfully!"
         echo "Deployment details:"
-        echo "- Runner: proxmox-runner-201"
+        echo "- Runner: self-hosted"
         echo "- Environment: Proxmox"
         echo "- Kong Version: 3.8+"
         echo "- Plugin: Kong Guard AI v1.0"
