@@ -1,0 +1,278 @@
+version: '3.8'
+
+networks:
+  kong-test-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  kong-db-data:
+  prometheus-data:
+  grafana-data:
+
+services:
+  # ====================
+  # Kong Database (PostgreSQL)
+  # ====================
+  kong-database:
+    image: postgres:13-alpine
+    container_name: kong-postgres
+    restart: unless-stopped
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - kong-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong123
+      POSTGRES_DB: kong
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ====================
+  # Kong Migration
+  # ====================
+  kong-migration:
+    image: kong:3.8.0
+    container_name: kong-migration
+    command: kong migrations bootstrap
+    networks:
+      - kong-test-net
+    restart: on-failure
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong123
+      KONG_PG_DATABASE: kong
+    depends_on:
+      kong-database:
+        condition: service_healthy
+
+  # ====================
+  # Kong Gateway (DB Mode)
+  # ====================
+  kong-db:
+    image: kong:3.8.0
+    container_name: kong-gateway-db
+    restart: unless-stopped
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.20
+    ports:
+      - "8000:8000"     # Proxy HTTP
+      - "8443:8443"     # Proxy HTTPS
+      - "8001:8001"     # Admin API HTTP
+      - "8444:8444"     # Admin API HTTPS
+      - "8002:8002"     # Kong Manager (GUI)
+      - "8445:8445"     # Kong Manager HTTPS
+    environment:
+      # Database
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong123
+      KONG_PG_DATABASE: kong
+      
+      # Network
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002, 0.0.0.0:8445 ssl
+      
+      # Admin GUI
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+      KONG_ADMIN_GUI_PATH: /
+      
+      # Logging
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_LOG_LEVEL: debug
+      
+      # Plugins
+      KONG_PLUGINS: bundled
+      
+      # Performance
+      KONG_NGINX_WORKER_PROCESSES: auto
+      KONG_MEM_CACHE_SIZE: 128m
+    depends_on:
+      kong-migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # ====================
+  # Kong Gateway (DB-less Mode)
+  # ====================
+  kong-dbless:
+    image: kong:3.8.0
+    container_name: kong-gateway-dbless
+    restart: unless-stopped
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.21
+    ports:
+      - "9000:8000"     # Proxy HTTP
+      - "9443:8443"     # Proxy HTTPS
+      - "9001:8001"     # Admin API HTTP
+      - "9444:8444"     # Admin API HTTPS
+    volumes:
+      - ./configs/kong-declarative.yml:/kong/declarative/kong.yml:ro
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    profiles:
+      - dbless
+
+  # ====================
+  # Redis Cache
+  # ====================
+  redis:
+    image: redis:7-alpine
+    container_name: kong-redis
+    restart: unless-stopped
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.30
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ====================
+  # Sample Microservices
+  # ====================
+  httpbin:
+    image: kennethreitz/httpbin
+    container_name: httpbin-service
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.40
+    ports:
+      - "8080:80"
+    environment:
+      - GUNICORN_CMD_ARGS=--capture-output --error-logfile - --access-logfile - --access-logformat '%(h)s %(t)s %(r)s %(s)s'
+
+  echo-server:
+    image: ealen/echo-server:latest
+    container_name: echo-service
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.41
+    ports:
+      - "8081:80"
+    environment:
+      - PORT=80
+      - LOGS__IGNORE__PING=true
+
+  mockbin:
+    image: mashape/mockbin
+    container_name: mockbin-service
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.42
+    ports:
+      - "8082:8080"
+    environment:
+      - MOCKBIN_PORT=8080
+
+  # ====================
+  # Monitoring Stack
+  # ====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kong-prometheus
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.50
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kong-grafana
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.51
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # ====================
+  # Development Tools
+  # ====================
+  postgres-admin:
+    image: dpage/pgadmin4:latest
+    container_name: kong-pgadmin
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.60
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@kong.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    restart: unless-stopped
+    profiles:
+      - tools
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: kong-redis-commander
+    networks:
+      kong-test-net:
+        ipv4_address: 172.20.0.61
+    ports:
+      - "8083:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    restart: unless-stopped
+    profiles:
+      - tools

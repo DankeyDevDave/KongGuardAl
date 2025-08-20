@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'kong-monitoring'
+
+scrape_configs:
+  # Kong Metrics
+  - job_name: 'kong'
+    static_configs:
+      - targets: ['kong-gateway-db:8001']
+        labels:
+          instance: 'kong-db-mode'
+      - targets: ['kong-gateway-dbless:8001']
+        labels:
+          instance: 'kong-dbless-mode'
+    metrics_path: '/metrics'
+    
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        
+  # PostgreSQL Exporter (if added)
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    
+  # Redis Exporter (if added)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']

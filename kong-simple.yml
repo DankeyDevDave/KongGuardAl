@@ -1,0 +1,39 @@
+_format_version: "3.0"
+
+services:
+  - name: demo-api
+    url: http://demo-api:80
+    routes:
+      - name: demo-route
+        paths:
+          - /demo
+    plugins:
+      - name: kong-guard-ai
+        config:
+          dry_run: false
+          block_threshold: 0.8
+          rate_limit_threshold: 0.6
+          ddos_rpm_threshold: 100
+          enable_ml: true
+          enable_notifications: true
+          notification_url: http://mock-attacker:80/webhook
+          enable_learning: true
+          log_level: info
+          
+  - name: test-api
+    url: http://demo-api:80
+    routes:
+      - name: test-route
+        paths:
+          - /test
+    plugins:
+      - name: kong-guard-ai
+        config:
+          dry_run: true  # Dry run mode for testing
+          block_threshold: 0.7
+          rate_limit_threshold: 0.5
+          ddos_rpm_threshold: 50
+          enable_ml: true
+          enable_notifications: false
+          enable_learning: true
+          log_level: debug
