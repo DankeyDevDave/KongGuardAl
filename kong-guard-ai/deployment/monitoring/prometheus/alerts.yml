@@ -1,0 +1,223 @@
+# Kong Guard AI Prometheus Alerts
+groups:
+  - name: kong-guard-ai-critical
+    interval: 30s
+    rules:
+      # Critical Security Alerts
+      - alert: HighThreatVolumeDetected
+        expr: rate(kong_guard_ai_threats_detected_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "High volume of threats detected"
+          description: "Kong Guard AI has detected {{ $value }} threats per second over the last 5 minutes"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/high-threat-volume"
+          
+      - alert: CriticalThreatDetected
+        expr: kong_guard_ai_threat_level > 9.0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Critical threat level detected"
+          description: "Threat level {{ $value }} detected from IP {{ $labels.client_ip }}"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/critical-threat"
+          
+      - alert: MassiveRateLimitingTriggered
+        expr: rate(kong_guard_ai_rate_limits_triggered_total[1m]) > 50
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Massive rate limiting activity detected"
+          description: "Rate limiting triggered {{ $value }} times per second - possible DDoS attack"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/mass-rate-limiting"
+
+  - name: kong-guard-ai-performance
+    interval: 30s
+    rules:
+      # Performance Alerts
+      - alert: KongGuardAIHighLatency
+        expr: histogram_quantile(0.95, rate(kong_guard_ai_processing_duration_seconds_bucket[5m])) > 0.015
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Kong Guard AI processing latency is high"
+          description: "95th percentile latency is {{ $value }}s, above 15ms threshold"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/high-latency"
+          
+      - alert: KongGuardAIMemoryUsageHigh
+        expr: kong_guard_ai_memory_usage_bytes / kong_guard_ai_memory_limit_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Kong Guard AI memory usage is high"
+          description: "Memory usage is {{ $value | humanizePercentage }} of allocated limit"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/high-memory"
+          
+      - alert: KongGuardAIHighErrorRate
+        expr: rate(kong_guard_ai_errors_total[5m]) / rate(kong_guard_ai_requests_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          component: reliability
+        annotations:
+          summary: "Kong Guard AI error rate is high"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/high-error-rate"
+
+  - name: kong-gateway-health
+    interval: 30s
+    rules:
+      # Kong Gateway Health
+      - alert: KongGatewayDown
+        expr: up{job="kong-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: gateway
+        annotations:
+          summary: "Kong Gateway is down"
+          description: "Kong Gateway instance {{ $labels.instance }} is not responding"
+          runbook_url: "https://docs.company.com/runbooks/kong/gateway-down"
+          
+      - alert: KongGatewayHighLatency
+        expr: histogram_quantile(0.95, rate(kong_http_requests_total[5m])) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Kong Gateway latency is high"
+          description: "95th percentile latency is {{ $value }}s"
+          runbook_url: "https://docs.company.com/runbooks/kong/high-latency"
+          
+      - alert: KongGatewayHighErrorRate
+        expr: rate(kong_http_requests_total{code=~"5.."}[5m]) / rate(kong_http_requests_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+          component: reliability
+        annotations:
+          summary: "Kong Gateway error rate is high"
+          description: "5xx error rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.company.com/runbooks/kong/high-error-rate"
+
+  - name: kong-guard-ai-ai-gateway
+    interval: 60s
+    rules:
+      # AI Gateway Integration Alerts
+      - alert: AIGatewayHighFailureRate
+        expr: rate(kong_guard_ai_ai_requests_failed_total[5m]) / rate(kong_guard_ai_ai_requests_total[5m]) > 0.25
+        for: 3m
+        labels:
+          severity: warning
+          component: ai-integration
+        annotations:
+          summary: "AI Gateway failure rate is high"
+          description: "AI Gateway failure rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/ai-gateway-failures"
+          
+      - alert: AIGatewayTimeout
+        expr: rate(kong_guard_ai_ai_requests_timeout_total[5m]) > 1
+        for: 2m
+        labels:
+          severity: warning
+          component: ai-integration
+        annotations:
+          summary: "AI Gateway timeouts occurring"
+          description: "AI Gateway timeouts: {{ $value }} per second"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/ai-gateway-timeouts"
+          
+      - alert: AIGatewayCostThreshold
+        expr: kong_guard_ai_ai_api_cost_total > 1000
+        for: 0s
+        labels:
+          severity: warning
+          component: cost
+        annotations:
+          summary: "AI Gateway API cost threshold exceeded"
+          description: "Daily AI API cost is ${{ $value }}, exceeding budget threshold"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/cost-threshold"
+
+  - name: kong-guard-ai-database
+    interval: 60s
+    rules:
+      # Database Health Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Kong database is not responding"
+          runbook_url: "https://docs.company.com/runbooks/postgresql/database-down"
+          
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL connection usage is high"
+          description: "Connection usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.company.com/runbooks/postgresql/high-connections"
+          
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_database_tup_fetched[5m]) / rate(pg_stat_database_tup_returned[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Query efficiency is low: {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.company.com/runbooks/postgresql/slow-queries"
+
+  - name: kong-guard-ai-notification
+    interval: 120s
+    rules:
+      # Notification System Alerts
+      - alert: NotificationSystemFailure
+        expr: rate(kong_guard_ai_notifications_failed_total[10m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: notifications
+        annotations:
+          summary: "Kong Guard AI notification system failing"
+          description: "Notification failure rate: {{ $value }} per second"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/notification-failures"
+          
+      - alert: SlackWebhookDown
+        expr: kong_guard_ai_slack_webhook_status == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: notifications
+        annotations:
+          summary: "Slack webhook is not responding"
+          description: "Slack notifications are failing"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/slack-webhook-down"
+          
+      - alert: EmailNotificationBacklog
+        expr: kong_guard_ai_email_queue_size > 50
+        for: 10m
+        labels:
+          severity: warning
+          component: notifications
+        annotations:
+          summary: "Email notification backlog is growing"
+          description: "Email queue size: {{ $value }} messages"
+          runbook_url: "https://docs.company.com/runbooks/kong-guard-ai/email-backlog"

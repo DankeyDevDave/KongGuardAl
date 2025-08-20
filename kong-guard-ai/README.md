@@ -46,7 +46,8 @@ The plugin implements Kong's standard lifecycle phases:
 Implements multi-layer threat detection:
 
 - **IP Reputation Analysis** - Whitelist/blacklist checking and repeat offender tracking
-- **Rate Limiting Detection** - DDoS and abuse pattern identification
+- **Rate Limiting Detection** - DDoS and abuse pattern identification  
+- **Path Regex Filtering** - ⭐ **NEW PHASE 4**: Pre-compiled regex patterns for URL-based attack detection
 - **Payload Analysis** - SQL injection, XSS, and injection attack detection
 - **Behavioral Analysis** - Anomalous request pattern detection
 - **AI-Powered Analysis** - Advanced threat detection via Kong AI Gateway
@@ -176,6 +177,13 @@ plugins:
 ## 🛡️ Security Features
 
 ### Real-Time Threat Detection
+- **Path Regex Filtering** ⭐ **NEW**: Pre-compiled regex patterns for URL-based attacks
+  - SQL injection in URL paths
+  - XSS vectors in query parameters
+  - Directory traversal attempts
+  - Admin panel access detection
+  - Configuration file exposure
+  - 8 attack categories with 80+ patterns
 - SQL injection pattern matching
 - Cross-site scripting (XSS) detection
 - Command injection identification

@@ -1,0 +1,52 @@
+# Kong Guard AI Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kong-guard-ai
+  labels:
+    name: kong-guard-ai
+    app.kubernetes.io/name: kong-guard-ai
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: security
+  annotations:
+    description: "Kong Gateway with Kong Guard AI security plugin"
+---
+# Network Policy for Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kong-guard-ai-network-policy
+  namespace: kong-guard-ai
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80

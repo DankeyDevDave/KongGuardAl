@@ -82,7 +82,37 @@ return {
                         type = "array",
                         elements = { type = "string" },
                         default = {},
-                        description = "List of blacklisted IP addresses or CIDR blocks"
+                        description = "List of blacklisted IP addresses or CIDR blocks (supports IPv4 CIDR notation like 192.168.1.0/24)"
+                    }
+                },
+                {
+                    enable_ip_blacklist = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable IP blacklist enforcement with O(1) lookup performance"
+                    }
+                },
+                {
+                    ip_blacklist_ttl_seconds = {
+                        type = "number",
+                        default = 3600,
+                        between = { 60, 86400 },
+                        description = "Default TTL for dynamically added blacklist entries (1 hour to 24 hours)"
+                    }
+                },
+                {
+                    trust_proxy_headers = {
+                        type = "boolean",
+                        default = true,
+                        description = "Trust proxy headers (X-Forwarded-For, X-Real-IP, CF-Connecting-IP) for real client IP detection"
+                    }
+                },
+                {
+                    ip_blacklist_max_size = {
+                        type = "number",
+                        default = 10000,
+                        between = { 100, 100000 },
+                        description = "Maximum number of IPs in the blacklist to prevent memory exhaustion"
                     }
                 },
                 {
@@ -310,8 +340,69 @@ return {
                     log_level = {
                         type = "string",
                         default = "info",
-                        one_of = { "debug", "info", "warn", "error" },
+                        one_of = { "debug", "info", "warn", "error", "critical" },
                         description = "Logging level for threat detection events"
+                    }
+                },
+                
+                -- PHASE 3: Structured Logging Configuration
+                {
+                    structured_logging_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable structured JSON logging with metadata enrichment"
+                    }
+                },
+                {
+                    async_logging = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable asynchronous log processing to reduce request latency impact"
+                    }
+                },
+                {
+                    log_sampling_rate = {
+                        type = "number",
+                        default = 1.0,
+                        between = { 0.01, 1.0 },
+                        description = "Sampling rate for structured logs (0.01-1.0). Use lower values for high traffic"
+                    }
+                },
+                {
+                    include_geolocation = {
+                        type = "boolean",
+                        default = false,
+                        description = "Include geolocation data in structured logs (requires external GeoIP service)"
+                    }
+                },
+                {
+                    include_user_agent_parsing = {
+                        type = "boolean",
+                        default = true,
+                        description = "Parse and include user agent details in structured logs"
+                    }
+                },
+                {
+                    max_log_entry_size = {
+                        type = "number",
+                        default = 32768,  -- 32KB
+                        between = { 1024, 131072 },  -- 1KB to 128KB
+                        description = "Maximum size of individual log entries in bytes"
+                    }
+                },
+                {
+                    log_correlation_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable request correlation IDs and session tracking"
+                    }
+                },
+                {
+                    external_log_timeout_ms = {
+                        type = "number",
+                        default = 1000,
+                        between = { 100, 10000 },
+                        description = "Timeout for external logging endpoint requests in milliseconds"
                     }
                 },
                 
@@ -335,6 +426,350 @@ return {
                         default = 3000,  -- SAFE: Shorter timeout to prevent delays
                         between = { 100, 30000 },
                         description = "Timeout for Admin API requests in milliseconds. RECOMMENDED: Use 3000ms to prevent blocking"
+                    }
+                },
+                
+                -- Advanced Rate Limiting Configuration (PHASE 5)
+                {
+                    enable_advanced_rate_limiting = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable advanced sliding window rate limiting with burst detection"
+                    }
+                },
+                {
+                    rate_limit_per_minute = {
+                        type = "number",
+                        default = 60,
+                        between = { 1, 10000 },
+                        description = "Requests per minute limit per IP address"
+                    }
+                },
+                {
+                    rate_limit_per_five_minutes = {
+                        type = "number",
+                        default = 300,
+                        between = { 1, 50000 },
+                        description = "Requests per 5 minutes limit per IP address"
+                    }
+                },
+                {
+                    rate_limit_per_hour = {
+                        type = "number",
+                        default = 3600,
+                        between = { 1, 500000 },
+                        description = "Requests per hour limit per IP address"
+                    }
+                },
+                {
+                    rate_limit_per_day = {
+                        type = "number",
+                        default = 86400,
+                        between = { 1, 10000000 },
+                        description = "Requests per day limit per IP address"
+                    }
+                },
+                {
+                    enable_burst_detection = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable burst traffic detection and progressive penalties"
+                    }
+                },
+                {
+                    burst_threshold_light = {
+                        type = "number",
+                        default = 200,
+                        between = { 100, 1000 },
+                        description = "Percentage above baseline for light burst detection (200% = 2x normal)"
+                    }
+                },
+                {
+                    burst_threshold_medium = {
+                        type = "number",
+                        default = 500,
+                        between = { 200, 2000 },
+                        description = "Percentage above baseline for medium burst detection"
+                    }
+                },
+                {
+                    burst_threshold_severe = {
+                        type = "number",
+                        default = 1000,
+                        between = { 500, 5000 },
+                        description = "Percentage above baseline for severe burst detection"
+                    }
+                },
+                {
+                    progressive_penalty_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable progressive penalties (warn → throttle → block)"
+                    }
+                },
+                {
+                    penalty_warning_duration = {
+                        type = "number",
+                        default = 600,
+                        between = { 60, 3600 },
+                        description = "Duration in seconds for warning penalty"
+                    }
+                },
+                {
+                    penalty_throttle_duration = {
+                        type = "number",
+                        default = 1800,
+                        between = { 300, 7200 },
+                        description = "Duration in seconds for throttle penalty"
+                    }
+                },
+                {
+                    penalty_block_duration = {
+                        type = "number",
+                        default = 3600,
+                        between = { 600, 86400 },
+                        description = "Duration in seconds for block penalty"
+                    }
+                },
+                {
+                    rate_limit_bypass_whitelist = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "List of IP addresses exempt from rate limiting"
+                    }
+                },
+                {
+                    dynamic_rate_adjustment = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable dynamic rate limit adjustment based on threat level"
+                    }
+                },
+                
+                -- Real-Time Analytics Dashboard Configuration (PHASE 6)
+                {
+                    analytics_dashboard_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable real-time analytics dashboard with threat intelligence"
+                    }
+                },
+                {
+                    analytics_endpoint_path = {
+                        type = "string",
+                        default = "/_guard_ai/analytics",
+                        description = "Base path for analytics dashboard API endpoints"
+                    }
+                },
+                {
+                    enable_threat_intelligence = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable threat intelligence feeds integration"
+                    }
+                },
+                {
+                    threat_intel_feeds = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {"alienvault_otx", "abuse_ch_malware", "spamhaus_drop"},
+                        description = "List of threat intelligence feeds to integrate"
+                    }
+                },
+                {
+                    enable_geographic_analysis = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable geographical attack pattern visualization"
+                    }
+                },
+                {
+                    geoip_service_url = {
+                        type = "string",
+                        description = "URL for GeoIP service API (e.g., MaxMind GeoIP2)"
+                    }
+                },
+                {
+                    enable_predictive_analytics = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable predictive threat modeling based on historical data"
+                    }
+                },
+                {
+                    prediction_confidence_threshold = {
+                        type = "number",
+                        default = 0.7,
+                        between = { 0.1, 1.0 },
+                        description = "Minimum confidence level for threat predictions (0-1)"
+                    }
+                },
+                {
+                    enable_anomaly_detection = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable automated anomaly detection in threat patterns"
+                    }
+                },
+                {
+                    anomaly_threshold_multiplier = {
+                        type = "number",
+                        default = 3.0,
+                        between = { 1.5, 10.0 },
+                        description = "Multiplier above baseline to trigger anomaly detection"
+                    }
+                },
+                {
+                    enable_correlation_analysis = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable attack pattern correlation and multi-stage attack detection"
+                    }
+                },
+                {
+                    correlation_window_seconds = {
+                        type = "number",
+                        default = 300,
+                        between = { 60, 3600 },
+                        description = "Time window for correlating related attack patterns"
+                    }
+                },
+                {
+                    enable_automated_threat_hunting = {
+                        type = "boolean",
+                        default = false,
+                        description = "Enable automated threat hunting capabilities (advanced feature)"
+                    }
+                },
+                {
+                    threat_hunting_interval = {
+                        type = "number",
+                        default = 3600,
+                        between = { 300, 86400 },
+                        description = "Interval in seconds for automated threat hunting scans"
+                    }
+                },
+                {
+                    enable_compliance_reporting = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable compliance reporting (PCI DSS, SOX, GDPR)"
+                    }
+                },
+                {
+                    compliance_frameworks = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {"pci_dss", "gdpr"},
+                        description = "List of compliance frameworks to report on"
+                    }
+                },
+                {
+                    executive_dashboard_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable executive dashboard with security KPIs"
+                    }
+                },
+                {
+                    analytics_data_retention_days = {
+                        type = "number",
+                        default = 30,
+                        between = { 7, 365 },
+                        description = "Number of days to retain analytics data"
+                    }
+                },
+                {
+                    external_threat_intel_api_key = {
+                        type = "string",
+                        description = "API key for external threat intelligence platforms"
+                    }
+                },
+                {
+                    threat_intel_update_interval = {
+                        type = "number",
+                        default = 3600,
+                        between = { 300, 86400 },
+                        description = "Interval in seconds for updating threat intelligence feeds"
+                    }
+                },
+                
+                -- PHASE 4: Path Regex Filtering Configuration
+                {
+                    enable_path_filtering = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable regex-based path filtering for attack pattern detection"
+                    }
+                },
+                {
+                    path_filter_block_threshold = {
+                        type = "number",
+                        default = 7.0,
+                        between = { 1.0, 10.0 },
+                        description = "Threat level threshold for blocking requests based on path patterns"
+                    }
+                },
+                {
+                    path_filter_suspicious_threshold = {
+                        type = "number",
+                        default = 4.0,
+                        between = { 1.0, 10.0 },
+                        description = "Threat level threshold for marking requests as suspicious"
+                    }
+                },
+                {
+                    custom_path_patterns = {
+                        type = "array",
+                        elements = {
+                            type = "record",
+                            fields = {
+                                { pattern = { type = "string", required = true } },
+                                { priority = { type = "number", default = 2, between = { 1, 4 } } },
+                                { description = { type = "string", default = "Custom pattern" } }
+                            }
+                        },
+                        default = {},
+                        description = "Custom regex patterns for path filtering with priority (1=critical, 4=low)"
+                    }
+                },
+                {
+                    path_whitelist = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "List of path patterns to whitelist (exact string matching)"
+                    }
+                },
+                {
+                    path_filter_skip_methods = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "HTTP methods to skip path filtering for (e.g., OPTIONS, HEAD)"
+                    }
+                },
+                {
+                    path_filter_case_sensitive = {
+                        type = "boolean",
+                        default = false,
+                        description = "Enable case-sensitive path pattern matching"
+                    }
+                },
+                {
+                    path_filter_max_pattern_matches = {
+                        type = "number",
+                        default = 10,
+                        between = { 1, 50 },
+                        description = "Maximum number of pattern matches to process per request"
+                    }
+                },
+                {
+                    path_filter_analytics_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable path filtering analytics and false positive tracking"
                     }
                 },
                 
@@ -365,6 +800,281 @@ return {
                         type = "string",
                         default = "/_guard_ai/metrics",
                         description = "Path for the metrics endpoint"
+                    }
+                },
+                
+                -- PHASE 4: HTTP Method Filtering Configuration
+                {
+                    enable_method_filtering = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable HTTP method denylist filtering to block dangerous methods like TRACE, CONNECT, DEBUG"
+                    }
+                },
+                {
+                    block_extended_methods = {
+                        type = "boolean", 
+                        default = false,
+                        description = "Block extended dangerous methods including WebDAV methods (LOCK, UNLOCK, MKCOL, etc.)"
+                    }
+                },
+                {
+                    custom_denied_methods = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "Custom HTTP methods to deny in addition to default dangerous methods"
+                    }
+                },
+                {
+                    custom_allowed_methods = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "Custom HTTP methods to explicitly allow (useful for APIs with non-standard methods)"
+                    }
+                },
+                {
+                    method_bypass_routes = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "Route patterns that bypass method filtering (e.g., ['/health', '/debug/*'] for internal endpoints)"
+                    }
+                },
+                {
+                    method_bypass_services = {
+                        type = "array",
+                        elements = { type = "string" },
+                        default = {},
+                        description = "Service IDs that bypass method filtering (useful for internal services requiring special methods)"
+                    }
+                },
+                {
+                    method_threat_threshold = {
+                        type = "number",
+                        default = 7.0,
+                        between = { 1.0, 10.0 },
+                        description = "Threat level threshold for method violations. Lower values = more sensitive blocking"
+                    }
+                },
+                {
+                    method_rate_limiting = {
+                        type = "boolean",
+                        default = false,
+                        description = "Enable method-specific rate limiting for detected violations"
+                    }
+                },
+                {
+                    method_analytics_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable detailed analytics tracking for HTTP method violations and patterns"
+                    }
+                },
+                
+                -- PHASE 4: Incident Management Configuration
+                {
+                    incident_analytics_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable incident analytics dashboard and reporting"
+                    }
+                },
+                {
+                    incident_alerting_enabled = {
+                        type = "boolean",
+                        default = true,
+                        description = "Enable real-time incident alerting and notifications"
+                    }
+                },
+                {
+                    incident_retention_days = {
+                        type = "number",
+                        default = 30,
+                        between = { 1, 365 },
+                        description = "Number of days to retain incident records before archival"
+                    }
+                },
+                {
+                    incident_body_snippet_size = {
+                        type = "number",
+                        default = 500,
+                        between = { 100, 2048 },
+                        description = "Maximum size of request body snippet to store in incident records"
+                    }
+                },
+                
+                -- Incident Alerting Configuration
+                {
+                    alert_notification_channels = {
+                        type = "array",
+                        elements = {
+                            type = "string",
+                            one_of = { "slack", "email", "webhook", "sms", "pagerduty", "teams" }
+                        },
+                        default = { "webhook" },
+                        description = "Notification channels for incident alerts"
+                    }
+                },
+                {
+                    escalation_notification_channels = {
+                        type = "array",
+                        elements = {
+                            type = "string",
+                            one_of = { "slack", "email", "webhook", "sms", "pagerduty", "teams" }
+                        },
+                        description = "Notification channels for escalated alerts (defaults to alert_notification_channels)"
+                    }
+                },
+                {
+                    escalation_delay_seconds = {
+                        type = "number",
+                        default = 300,
+                        between = { 60, 3600 },
+                        description = "Delay in seconds before escalating unacknowledged critical alerts"
+                    }
+                },
+                {
+                    max_escalation_levels = {
+                        type = "number",
+                        default = 3,
+                        between = { 1, 10 },
+                        description = "Maximum number of escalation levels before stopping"
+                    }
+                },
+                {
+                    notification_retry_delay = {
+                        type = "number",
+                        default = 60,
+                        between = { 30, 600 },
+                        description = "Delay in seconds before retrying failed notifications"
+                    }
+                },
+                {
+                    notification_max_retries = {
+                        type = "number",
+                        default = 3,
+                        between = { 1, 10 },
+                        description = "Maximum number of retry attempts for failed notifications"
+                    }
+                },
+                {
+                    alert_retention_days = {
+                        type = "number",
+                        default = 7,
+                        between = { 1, 30 },
+                        description = "Number of days to retain alert records"
+                    }
+                },
+                
+                -- Webhook Notification Configuration
+                {
+                    webhook_notification_url = {
+                        type = "string",
+                        description = "Webhook URL for incident notifications"
+                    }
+                },
+                {
+                    webhook_auth_header = {
+                        type = "string",
+                        description = "Authorization header name for webhook authentication"
+                    }
+                },
+                {
+                    webhook_auth_token = {
+                        type = "string",
+                        description = "Authorization token for webhook authentication"
+                    }
+                },
+                
+                -- Teams Integration
+                {
+                    teams_webhook_url = {
+                        type = "string",
+                        description = "Microsoft Teams webhook URL for incident notifications"
+                    }
+                },
+                
+                -- SIEM Integration Configuration
+                {
+                    enable_siem_export = {
+                        type = "boolean",
+                        default = false,
+                        description = "Enable automatic export of incidents to SIEM systems"
+                    }
+                },
+                {
+                    siem_export_formats = {
+                        type = "array",
+                        elements = {
+                            type = "string",
+                            one_of = { "json", "cef", "stix" }
+                        },
+                        default = { "json" },
+                        description = "Export formats for SIEM integration"
+                    }
+                },
+                {
+                    siem_export_endpoint = {
+                        type = "string",
+                        description = "HTTP endpoint for sending incident data to SIEM systems"
+                    }
+                },
+                {
+                    siem_batch_size = {
+                        type = "number",
+                        default = 100,
+                        between = { 1, 1000 },
+                        description = "Number of incidents to batch before sending to SIEM"
+                    }
+                },
+                {
+                    siem_export_interval = {
+                        type = "number",
+                        default = 300,
+                        between = { 60, 3600 },
+                        description = "Interval in seconds for batched SIEM exports"
+                    }
+                },
+                
+                -- Threat Intelligence Enrichment
+                {
+                    enable_threat_enrichment = {
+                        type = "boolean",
+                        default = false,
+                        description = "Enable enrichment of incidents with external threat intelligence"
+                    }
+                },
+                {
+                    threat_intel_providers = {
+                        type = "array",
+                        elements = {
+                            type = "string",
+                            one_of = { "virustotal", "abuseipdb", "threatfox", "custom" }
+                        },
+                        default = {},
+                        description = "Threat intelligence providers for incident enrichment"
+                    }
+                },
+                {
+                    threat_intel_api_keys = {
+                        type = "record",
+                        fields = {
+                            { virustotal = { type = "string" } },
+                            { abuseipdb = { type = "string" } },
+                            { threatfox = { type = "string" } },
+                            { custom = { type = "string" } }
+                        },
+                        description = "API keys for threat intelligence providers"
+                    }
+                },
+                {
+                    threat_intel_cache_ttl = {
+                        type = "number",
+                        default = 3600,
+                        between = { 300, 86400 },
+                        description = "TTL in seconds for cached threat intelligence data"
                     }
                 }
             }

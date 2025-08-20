@@ -1,0 +1,438 @@
+# Kong Guard AI Security Testing Container
+# Specialized container for security testing and penetration testing
+
+FROM kalilinux/kali-rolling:latest
+
+# Update and install base tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    python3 \
+    python3-pip \
+    python3-venv \
+    nodejs \
+    npm \
+    nmap \
+    nikto \
+    sqlmap \
+    dirb \
+    dirbuster \
+    gobuster \
+    wfuzz \
+    ffuf \
+    masscan \
+    zmap \
+    nuclei \
+    subfinder \
+    httpx \
+    jq \
+    unzip \
+    zip \
+    netcat-openbsd \
+    telnet \
+    dnsutils \
+    whois \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install additional Python security tools
+RUN pip3 install \
+    requests \
+    beautifulsoup4 \
+    selenium \
+    paramiko \
+    scapy \
+    impacket \
+    pycrypto \
+    pwntools \
+    ropper \
+    ropgadget \
+    capstone \
+    keystone-engine \
+    unicorn \
+    angr \
+    z3-solver \
+    pyshark \
+    dpkt \
+    netfilterqueue \
+    python-nmap \
+    python-masscan \
+    dnspython \
+    PyYAML \
+    colorama \
+    tabulate \
+    tqdm
+
+# Install OWASP ZAP
+RUN wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2_14_0_Linux.tar.gz \
+    && tar -xzf ZAP_2_14_0_Linux.tar.gz \
+    && mv ZAP_2.14.0 /opt/zaproxy \
+    && rm ZAP_2_14_0_Linux.tar.gz
+
+# Install Metasploit Framework
+RUN curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall \
+    && chmod 755 msfinstall \
+    && ./msfinstall \
+    && rm msfinstall
+
+# Install custom security testing tools
+RUN git clone https://github.com/1N3/Sn1per.git /opt/Sn1per \
+    && chmod +x /opt/Sn1per/install.sh \
+    && cd /opt/Sn1per && ./install.sh
+
+# Install Burp Suite Community Edition
+RUN wget "https://portswigger.net/burp/releases/download?product=community&type=Linux" -O burpsuite_community.sh \
+    && chmod +x burpsuite_community.sh \
+    && ./burpsuite_community.sh -q \
+    && rm burpsuite_community.sh
+
+# Create directories for payloads and results
+RUN mkdir -p /payloads \
+    && mkdir -p /results \
+    && mkdir -p /scripts \
+    && mkdir -p /wordlists
+
+# Download common wordlists
+RUN git clone https://github.com/danielmiessler/SecLists.git /wordlists/SecLists \
+    && git clone https://github.com/fuzzdb-project/fuzzdb.git /wordlists/fuzzdb
+
+# Create Kong Guard AI specific payloads
+RUN cat > /payloads/sql_injection.txt << 'EOF'
+' OR '1'='1
+' OR 1=1--
+' OR 1=1#
+' OR 1=1/*
+') OR '1'='1
+') OR 1=1--
+') OR 1=1#
+') OR 1=1/*
+' UNION SELECT NULL--
+' UNION SELECT 1,2,3--
+' UNION SELECT user(),version(),database()--
+' AND (SELECT COUNT(*) FROM sysobjects)>0--
+' AND (SELECT COUNT(*) FROM sysusers)>0--
+'; EXEC xp_cmdshell('dir')--
+'; EXEC xp_cmdshell('cat /etc/passwd')--
+' OR EXISTS(SELECT * FROM users WHERE username='admin')--
+' AND LENGTH(database())>0--
+' AND ASCII(SUBSTRING(database(),1,1))>64--
+EOF
+
+RUN cat > /payloads/xss_vectors.txt << 'EOF'
+<script>alert('XSS')</script>
+<img src=x onerror=alert('XSS')>
+<svg onload=alert('XSS')>
+<iframe src=javascript:alert('XSS')>
+<marquee onstart=alert('XSS')>
+<object data=javascript:alert('XSS')>
+<embed src=javascript:alert('XSS')>
+<applet code=alert('XSS')>
+<form><button formaction=javascript:alert('XSS')>
+<input autofocus onfocus=alert('XSS')>
+<select onfocus=alert('XSS') autofocus>
+<textarea onfocus=alert('XSS') autofocus>
+<keygen onfocus=alert('XSS') autofocus>
+<video><source onerror=alert('XSS')>
+<audio src=x onerror=alert('XSS')>
+<details open ontoggle=alert('XSS')>
+javascript:alert('XSS')
+vbscript:alert('XSS')
+data:text/html,<script>alert('XSS')</script>
+EOF
+
+RUN cat > /payloads/path_traversal.txt << 'EOF'
+../../../etc/passwd
+..%2f..%2f..%2fetc%2fpasswd
+..%252f..%252f..%252fetc%252fpasswd
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
+%2e%2e%5c%2e%2e%5c%2e%2e%5cetc%5cpasswd
+..%5c..%5c..%5cetc%5cpasswd
+%2e%2e/etc/passwd
+....//....//....//etc/passwd
+..///////..////..//////etc/passwd
+../etc/passwd%00
+../etc/passwd%0a
+../etc/passwd%00.txt
+../../windows/system32/drivers/etc/hosts
+../../windows/system.ini
+../../windows/win.ini
+../../../windows/repair/sam
+../../../windows/repair/system
+EOF
+
+RUN cat > /payloads/command_injection.txt << 'EOF'
+; ls -la
+| ls -la
+& ls -la
+&& ls -la
+|| ls -la
+` ls -la `
+$(ls -la)
+; cat /etc/passwd
+| cat /etc/passwd
+& cat /etc/passwd
+&& cat /etc/passwd
+|| cat /etc/passwd
+` cat /etc/passwd `
+$(cat /etc/passwd)
+; whoami
+| whoami
+& whoami
+&& whoami
+|| whoami
+` whoami `
+$(whoami)
+; id
+| id
+& id
+&& id
+|| id
+` id `
+$(id)
+EOF
+
+RUN cat > /payloads/nosql_injection.txt << 'EOF'
+true, true
+{"$ne": null}
+{"$ne": ""}
+{"$gt": ""}
+{"$regex": ".*"}
+{"$exists": true}
+{"$where": "return true"}
+{"$or": [{"username": {"$ne": null}}, {"username": {"$exists": true}}]}
+{"username": {"$nin": [""]}, "password": {"$nin": [""]}}
+{"$nor": [{"username": {"$exists": false}}, {"username": null}]}
+'; return true; var dummy='
+'; return true; //
+EOF
+
+# Create security test scripts
+RUN cat > /scripts/test_sql_injection.py << 'EOF'
+#!/usr/bin/env python3
+import requests
+import sys
+import time
+from urllib.parse import quote
+
+def test_sql_injection(base_url, payloads_file):
+    """Test SQL injection vulnerabilities"""
+    results = []
+    
+    with open(payloads_file, 'r') as f:
+        payloads = [line.strip() for line in f if line.strip()]
+    
+    test_paths = [
+        '/api/users',
+        '/search',
+        '/login',
+        '/admin',
+        '/user.php',
+        '/product.php'
+    ]
+    
+    for path in test_paths:
+        for payload in payloads:
+            # Test in URL parameters
+            test_url = f"{base_url}{path}?id={quote(payload)}"
+            
+            try:
+                response = requests.get(test_url, timeout=10)
+                
+                result = {
+                    'url': test_url,
+                    'payload': payload,
+                    'status_code': response.status_code,
+                    'blocked': response.status_code in [403, 406, 418, 429],
+                    'response_time': response.elapsed.total_seconds(),
+                    'response_length': len(response.text)
+                }
+                
+                results.append(result)
+                
+                # Check for error messages that might indicate vulnerability
+                error_indicators = [
+                    'sql syntax',
+                    'mysql_fetch',
+                    'ora-',
+                    'microsoft ole db',
+                    'sqlserver'
+                ]
+                
+                for indicator in error_indicators:
+                    if indicator.lower() in response.text.lower():
+                        result['potential_vulnerability'] = True
+                        break
+                
+                time.sleep(0.1)  # Rate limiting
+                
+            except Exception as e:
+                results.append({
+                    'url': test_url,
+                    'payload': payload,
+                    'error': str(e)
+                })
+    
+    return results
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python3 test_sql_injection.py <base_url>")
+        sys.exit(1)
+    
+    base_url = sys.argv[1].rstrip('/')
+    results = test_sql_injection(base_url, '/payloads/sql_injection.txt')
+    
+    blocked_count = sum(1 for r in results if r.get('blocked', False))
+    total_count = len(results)
+    
+    print(f"SQL Injection Test Results:")
+    print(f"Total requests: {total_count}")
+    print(f"Blocked requests: {blocked_count}")
+    print(f"Block rate: {(blocked_count/total_count)*100:.2f}%")
+    
+    # Save detailed results
+    import json
+    with open('/results/sql_injection_results.json', 'w') as f:
+        json.dump(results, f, indent=2)
+EOF
+
+RUN cat > /scripts/test_xss.py << 'EOF'
+#!/usr/bin/env python3
+import requests
+import sys
+import time
+from urllib.parse import quote
+
+def test_xss(base_url, payloads_file):
+    """Test XSS vulnerabilities"""
+    results = []
+    
+    with open(payloads_file, 'r') as f:
+        payloads = [line.strip() for line in f if line.strip()]
+    
+    test_paths = [
+        '/search',
+        '/comment',
+        '/feedback',
+        '/profile',
+        '/message'
+    ]
+    
+    for path in test_paths:
+        for payload in payloads:
+            # Test in URL parameters
+            test_url = f"{base_url}{path}?q={quote(payload)}"
+            
+            try:
+                response = requests.get(test_url, timeout=10)
+                
+                result = {
+                    'url': test_url,
+                    'payload': payload,
+                    'status_code': response.status_code,
+                    'blocked': response.status_code in [403, 406, 418, 429],
+                    'response_time': response.elapsed.total_seconds(),
+                    'response_length': len(response.text),
+                    'payload_reflected': payload in response.text
+                }
+                
+                results.append(result)
+                time.sleep(0.1)  # Rate limiting
+                
+            except Exception as e:
+                results.append({
+                    'url': test_url,
+                    'payload': payload,
+                    'error': str(e)
+                })
+    
+    return results
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python3 test_xss.py <base_url>")
+        sys.exit(1)
+    
+    base_url = sys.argv[1].rstrip('/')
+    results = test_xss(base_url, '/payloads/xss_vectors.txt')
+    
+    blocked_count = sum(1 for r in results if r.get('blocked', False))
+    total_count = len(results)
+    
+    print(f"XSS Test Results:")
+    print(f"Total requests: {total_count}")
+    print(f"Blocked requests: {blocked_count}")
+    print(f"Block rate: {(blocked_count/total_count)*100:.2f}%")
+    
+    # Save detailed results
+    import json
+    with open('/results/xss_results.json', 'w') as f:
+        json.dump(results, f, indent=2)
+EOF
+
+RUN cat > /scripts/comprehensive_security_test.sh << 'EOF'
+#!/bin/bash
+set -e
+
+TARGET_URL=${TARGET_URL:-"http://kong-gateway:8000"}
+RESULTS_DIR="/results"
+
+echo "Starting comprehensive security testing against: $TARGET_URL"
+echo "Results will be saved to: $RESULTS_DIR"
+
+# Create results directory
+mkdir -p "$RESULTS_DIR"
+
+# Test 1: SQL Injection
+echo "Testing SQL Injection..."
+python3 /scripts/test_sql_injection.py "$TARGET_URL"
+
+# Test 2: XSS
+echo "Testing XSS..."
+python3 /scripts/test_xss.py "$TARGET_URL"
+
+# Test 3: Directory traversal
+echo "Testing Path Traversal..."
+for payload in $(cat /payloads/path_traversal.txt); do
+    curl -s -o /dev/null -w "%{http_code}|%{time_total}|$payload\n" \
+        "$TARGET_URL/test/$payload" >> "$RESULTS_DIR/path_traversal_results.txt"
+done
+
+# Test 4: Command injection
+echo "Testing Command Injection..."
+for payload in $(cat /payloads/command_injection.txt); do
+    curl -s -o /dev/null -w "%{http_code}|%{time_total}|$payload\n" \
+        -d "cmd=$(echo $payload | base64)" \
+        "$TARGET_URL/exec" >> "$RESULTS_DIR/command_injection_results.txt"
+done
+
+# Test 5: OWASP ZAP baseline scan
+echo "Running OWASP ZAP baseline scan..."
+/opt/zaproxy/zap.sh -cmd -quickurl "$TARGET_URL" -quickout "$RESULTS_DIR/zap_report.html"
+
+# Test 6: Nikto scan
+echo "Running Nikto scan..."
+nikto -h "$TARGET_URL" -output "$RESULTS_DIR/nikto_report.txt"
+
+# Test 7: Load testing with wrk
+echo "Running load test..."
+wrk -t12 -c400 -d30s --timeout 10s "$TARGET_URL/test" > "$RESULTS_DIR/load_test_results.txt"
+
+# Test 8: Nuclei scan
+echo "Running Nuclei vulnerability scan..."
+nuclei -u "$TARGET_URL" -o "$RESULTS_DIR/nuclei_results.txt"
+
+echo "Security testing completed. Results saved to $RESULTS_DIR"
+EOF
+
+# Make scripts executable
+RUN chmod +x /scripts/*.py /scripts/*.sh
+
+# Set environment variables
+ENV TARGET_URL="http://kong-gateway:8000"
+ENV ADMIN_URL="http://kong-gateway:8001"
+ENV RESULTS_DIR="/results"
+
+WORKDIR /scripts
+
+CMD ["/scripts/comprehensive_security_test.sh"]

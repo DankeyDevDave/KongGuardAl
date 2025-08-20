@@ -1,0 +1,184 @@
+# Kong Guard AI Test Runner Dockerfile
+# Comprehensive testing environment with all necessary tools
+
+FROM ubuntu:22.04
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    jq \
+    unzip \
+    software-properties-common \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    build-essential \
+    cmake \
+    pkg-config \
+    libssl-dev \
+    zlib1g-dev \
+    libreadline-dev \
+    libyaml-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libffi-dev \
+    ruby-dev \
+    python3 \
+    python3-pip \
+    python3-venv \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Lua and LuaJIT
+RUN apt-get update && apt-get install -y \
+    lua5.1 \
+    luajit \
+    liblua5.1-0-dev \
+    libluajit-5.1-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install LuaRocks
+RUN wget https://luarocks.org/releases/luarocks-3.9.2.tar.gz \
+    && tar zxpf luarocks-3.9.2.tar.gz \
+    && cd luarocks-3.9.2 \
+    && ./configure --with-lua-include=/usr/include/lua5.1 \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf luarocks-3.9.2*
+
+# Install Lua testing dependencies
+RUN luarocks install busted \
+    && luarocks install luacov \
+    && luarocks install luacheck \
+    && luarocks install lua-cjson \
+    && luarocks install luasocket \
+    && luarocks install lyaml \
+    && luarocks install penlight
+
+# Install Kong for testing utilities
+RUN curl -Lo kong.deb "https://download.konghq.com/gateway-3.x-ubuntu-$(lsb_release -cs)/pool/all/k/kong/kong_3.7.0_amd64.deb" \
+    && dpkg -i kong.deb || apt-get install -f -y \
+    && rm kong.deb
+
+# Install Docker CLI for container management
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y docker-ce-cli \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install load testing tools
+RUN git clone https://github.com/wg/wrk.git \
+    && cd wrk \
+    && make \
+    && cp wrk /usr/local/bin/ \
+    && cd .. \
+    && rm -rf wrk
+
+# Install hey load testing tool
+RUN wget https://hey-release.s3.us-east-2.amazonaws.com/hey_linux_amd64 \
+    && chmod +x hey_linux_amd64 \
+    && mv hey_linux_amd64 /usr/local/bin/hey
+
+# Install security testing tools
+RUN pip3 install \
+    requests \
+    aiohttp \
+    pytest \
+    pytest-asyncio \
+    pytest-html \
+    pytest-cov \
+    locust \
+    sqlmap \
+    paramiko \
+    pycurl
+
+# Install Newman for API testing
+RUN npm install -g newman newman-reporter-html
+
+# Install OWASP ZAP baseline scanner
+RUN wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2_14_0_Linux.tar.gz \
+    && tar -xzf ZAP_2_14_0_Linux.tar.gz \
+    && mv ZAP_2.14.0 /opt/zaproxy \
+    && ln -s /opt/zaproxy/zap.sh /usr/local/bin/zap-baseline.py \
+    && rm ZAP_2_14_0_Linux.tar.gz
+
+# Install Go for additional tooling
+RUN wget https://go.dev/dl/go1.21.4.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz \
+    && rm go1.21.4.linux-amd64.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Install additional Go-based security tools
+RUN go install github.com/ffuf/ffuf/v2@latest \
+    && go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest \
+    && go install github.com/tomnomnom/waybackurls@latest
+
+# Create directories for test artifacts
+RUN mkdir -p /results \
+    && mkdir -p /workspace \
+    && mkdir -p /tools \
+    && mkdir -p /configs
+
+# Copy test scripts and utilities
+COPY tests/scripts/ /tools/
+COPY tests/configs/ /configs/
+
+# Make scripts executable
+RUN find /tools -name "*.sh" -exec chmod +x {} \;
+
+# Set working directory
+WORKDIR /workspace
+
+# Create entrypoint script
+RUN cat > /entrypoint.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Kong Guard AI Test Runner Starting..."
+echo "Environment: ${TEST_ENVIRONMENT:-local}"
+echo "Kong Admin URL: ${KONG_ADMIN_URL:-http://localhost:8001}"
+echo "Kong Proxy URL: ${KONG_PROXY_URL:-http://localhost:8000}"
+
+# Wait for Kong to be ready
+echo "Waiting for Kong to be ready..."
+for i in {1..30}; do
+    if curl -s "${KONG_ADMIN_URL}/status" > /dev/null 2>&1; then
+        echo "Kong is ready!"
+        break
+    fi
+    if [ $i -eq 30 ]; then
+        echo "Kong failed to start within 300 seconds"
+        exit 1
+    fi
+    echo "Attempt $i/30: Kong not ready, waiting 10 seconds..."
+    sleep 10
+done
+
+# Execute the provided command or default test suite
+if [ $# -eq 0 ]; then
+    echo "Running default test suite..."
+    exec /tools/run_all_tests.sh
+else
+    echo "Running custom command: $@"
+    exec "$@"
+fi
+EOF
+
+RUN chmod +x /entrypoint.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

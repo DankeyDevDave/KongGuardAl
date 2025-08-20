@@ -110,10 +110,22 @@ jobs:
         fi
         
         # Wait for services to be ready
-        sleep 30
+        echo "Waiting for Kong Gateway to be ready..."
+        for i in {1..60}; do
+          if curl -f http://localhost:8001/status 2>/dev/null; then
+            echo "✅ Kong Gateway is ready!"
+            break
+          fi
+          echo "Waiting for Kong... ($i/60)"
+          sleep 2
+        done
         
-        # Validate Kong is running
-        curl -f http://localhost:8001/status || exit 1
+        # Final validation
+        curl -f http://localhost:8001/status || {
+          echo "❌ Kong Gateway failed to start after 2 minutes"
+          docker-compose logs kong
+          exit 1
+        }
         
         # Initialize neural threat prediction with Node.js 20
         export NVM_DIR="$HOME/.nvm"

@@ -5,6 +5,7 @@
 local kong = kong
 local json = require "cjson.safe"
 local enforcement_gate = require "kong.plugins.kong-guard-ai.enforcement_gate"
+local method_filter = require "kong.plugins.kong-guard-ai.method_filter"
 
 local _M = {}
 
@@ -176,6 +177,12 @@ function _M.generate_metrics_response(conf)
         plugin_mode = conf.dry_run_mode and "dry_run" or "active",
         enforcement_metrics = enforcement_gate.get_enforcement_stats()
     }
+    
+    -- Add HTTP method filtering metrics (PHASE 4)
+    if conf.enable_method_filtering then
+        metrics.method_filtering = method_filter.get_method_analytics()
+        metrics.method_config = method_filter.get_config_summary()
+    end
     
     -- Add dry-run specific metrics
     if conf.dry_run_mode then

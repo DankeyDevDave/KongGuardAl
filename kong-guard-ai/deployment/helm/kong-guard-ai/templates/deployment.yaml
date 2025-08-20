@@ -1,0 +1,232 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kong-guard-ai.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kong-guard-ai.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.kong.replicaCount }}
+  strategy:
+    {{- toYaml .Values.kong.updateStrategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "kong-guard-ai.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kong-guard-ai.selectorLabels" . | nindent 8 }}
+        {{- with .Values.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8100"
+        prometheus.io/path: "/metrics"
+        kong-guard-ai.io/security-monitoring: "enabled"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "kong-guard-ai.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.kong.securityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-migration
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              until nc -z {{ include "kong-guard-ai.postgresql.fullname" . }} {{ .Values.postgresql.primary.service.ports.postgresql }}; do
+                echo "Waiting for database to be ready..."
+                sleep 5
+              done
+              echo "Database is ready!"
+      containers:
+        - name: kong-gateway
+          image: "{{ .Values.kong.image.repository }}:{{ .Values.kong.image.tag }}"
+          imagePullPolicy: {{ .Values.kong.image.pullPolicy }}
+          ports:
+            - name: proxy
+              containerPort: {{ .Values.kong.proxy.http.containerPort }}
+              protocol: TCP
+            {{- if .Values.kong.proxy.tls.enabled }}
+            - name: proxy-ssl
+              containerPort: {{ .Values.kong.proxy.tls.containerPort }}
+              protocol: TCP
+            {{- end }}
+            - name: admin-api
+              containerPort: {{ .Values.kong.admin.http.containerPort }}
+              protocol: TCP
+            {{- if .Values.kong.admin.tls.enabled }}
+            - name: admin-ssl
+              containerPort: {{ .Values.kong.admin.tls.containerPort }}
+              protocol: TCP
+            {{- end }}
+            - name: status
+              containerPort: 8100
+              protocol: TCP
+            - name: cluster
+              containerPort: 8005
+              protocol: TCP
+          env:
+            # Database Configuration
+            - name: KONG_DATABASE
+              value: {{ .Values.kong.env.database | quote }}
+            - name: KONG_PG_HOST
+              value: {{ include "kong-guard-ai.postgresql.fullname" . }}
+            - name: KONG_PG_PORT
+              value: {{ .Values.postgresql.primary.service.ports.postgresql | quote }}
+            - name: KONG_PG_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: KONG_PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kong-guard-ai.postgresql.secretName" . }}
+                  key: postgres-password
+            - name: KONG_PG_DATABASE
+              value: {{ .Values.postgresql.auth.database | quote }}
+            
+            # Network Configuration
+            - name: KONG_PROXY_LISTEN
+              value: "0.0.0.0:{{ .Values.kong.proxy.http.containerPort }}{{- if .Values.kong.proxy.tls.enabled }}, 0.0.0.0:{{ .Values.kong.proxy.tls.containerPort }} ssl http2{{- end }}"
+            - name: KONG_ADMIN_LISTEN
+              value: "0.0.0.0:{{ .Values.kong.admin.http.containerPort }}"
+            - name: KONG_STATUS_LISTEN
+              value: "0.0.0.0:8100"
+            - name: KONG_CLUSTER_LISTEN
+              value: "0.0.0.0:8005"
+            
+            # Performance Configuration
+            - name: KONG_NGINX_WORKER_PROCESSES
+              value: {{ .Values.kong.env.nginx_worker_processes | quote }}
+            - name: KONG_NGINX_WORKER_CONNECTIONS
+              value: {{ .Values.kong.env.nginx_worker_connections | quote }}
+            - name: KONG_MEM_CACHE_SIZE
+              value: {{ .Values.kong.env.mem_cache_size | quote }}
+            
+            # Plugin Configuration
+            - name: KONG_PLUGINS
+              value: {{ .Values.kong.env.plugins | quote }}
+            - name: KONG_LUA_PACKAGE_PATH
+              value: {{ .Values.kong.env.lua_package_path | quote }}
+            
+            # Security Configuration
+            - name: KONG_HEADERS
+              value: {{ .Values.kong.env.headers | quote }}
+            - name: KONG_SERVER_TOKENS
+              value: {{ .Values.kong.env.server_tokens | quote }}
+            - name: KONG_REAL_IP_HEADER
+              value: {{ .Values.kong.env.real_ip_header | quote }}
+            - name: KONG_REAL_IP_RECURSIVE
+              value: {{ .Values.kong.env.real_ip_recursive | quote }}
+            - name: KONG_TRUSTED_IPS
+              value: {{ .Values.kong.env.trusted_ips | quote }}
+            
+            # Logging Configuration
+            - name: KONG_LOG_LEVEL
+              value: {{ .Values.kong.env.log_level | quote }}
+            - name: KONG_PROXY_ACCESS_LOG
+              value: {{ .Values.kong.env.proxy_access_log | quote }}
+            - name: KONG_ADMIN_ACCESS_LOG
+              value: {{ .Values.kong.env.admin_access_log | quote }}
+            - name: KONG_PROXY_ERROR_LOG
+              value: {{ .Values.kong.env.proxy_error_log | quote }}
+            - name: KONG_ADMIN_ERROR_LOG
+              value: {{ .Values.kong.env.admin_error_log | quote }}
+            
+            # Kong Guard AI Configuration
+            {{- if .Values.secrets.aiApiKey }}
+            - name: KONG_GUARD_AI_AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kong-guard-ai.fullname" . }}-secret
+                  key: ai-api-key
+            {{- end }}
+            {{- if .Values.secrets.slackWebhookUrl }}
+            - name: KONG_GUARD_AI_SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kong-guard-ai.fullname" . }}-secret
+                  key: slack-webhook-url
+            {{- end }}
+            {{- if .Values.secrets.emailSmtpPassword }}
+            - name: KONG_GUARD_AI_EMAIL_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kong-guard-ai.fullname" . }}-secret
+                  key: email-smtp-password
+            {{- end }}
+            
+            # Shared Memory Configuration
+            - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_CACHE
+              value: "64m"
+            - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_RATE_LIMIT
+              value: "32m"
+            - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_IP_BLACKLIST
+              value: "16m"
+            - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_COUNTERS
+              value: "16m"
+            - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_AI_CACHE
+              value: "32m"
+          
+          volumeMounts:
+            - name: kong-config
+              mountPath: /etc/kong/kong.conf
+              subPath: kong.conf
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: var-lib-kong
+              mountPath: /var/lib/kong
+          
+          livenessProbe:
+            {{- toYaml .Values.kong.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.kong.readinessProbe | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.kong.startupProbe | nindent 12 }}
+          
+          resources:
+            {{- toYaml .Values.kong.resources | nindent 12 }}
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      
+      volumes:
+        - name: kong-config
+          configMap:
+            name: {{ include "kong-guard-ai.fullname" . }}-config
+        - name: tmp
+          emptyDir: {}
+        - name: var-lib-kong
+          emptyDir: {}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      terminationGracePeriodSeconds: 30

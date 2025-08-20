@@ -1,0 +1,236 @@
+# AlertManager Configuration for Kong Guard AI
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'kong-guard-ai-alerts@company.com'
+  smtp_auth_username: 'kong-guard-ai-alerts@company.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  slack_api_url: '${SLACK_API_URL}'
+
+# Routing tree for alerts
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+  routes:
+    # Critical security alerts - immediate notification
+    - match:
+        severity: critical
+        component: security
+      receiver: 'security-critical'
+      group_wait: 10s
+      repeat_interval: 5m
+    
+    # Performance alerts - business hours only
+    - match:
+        severity: warning
+        component: performance
+      receiver: 'performance-team'
+      active_time_intervals:
+        - business-hours
+    
+    # Database alerts - immediate for critical, delayed for warnings
+    - match:
+        component: database
+      receiver: 'database-team'
+      routes:
+        - match:
+            severity: critical
+          receiver: 'database-critical'
+          group_wait: 10s
+        - match:
+            severity: warning
+          receiver: 'database-warning'
+          group_wait: 5m
+    
+    # AI Gateway alerts - development team
+    - match:
+        component: ai-integration
+      receiver: 'ai-team'
+    
+    # Cost alerts - finance team
+    - match:
+        component: cost
+      receiver: 'finance-team'
+    
+    # Notification system alerts - operations team
+    - match:
+        component: notifications
+      receiver: 'ops-team'
+
+# Time intervals for routing
+time_intervals:
+  - name: business-hours
+    time_intervals:
+      - times:
+          - start_time: '09:00'
+            end_time: '17:00'
+        weekdays: ['monday:friday']
+        location: 'America/New_York'
+
+# Alert receivers
+receivers:
+  # Default receiver for uncategorized alerts
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'ops-team@company.com'
+        subject: '[Kong Guard AI] {{ .GroupLabels.alertname }} - {{ .GroupLabels.severity }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#kong-guard-ai-alerts'
+        title: 'Kong Guard AI Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Severity:* {{ .Labels.severity }}
+          *Description:* {{ .Annotations.description }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+
+  # Critical security alerts - immediate escalation
+  - name: 'security-critical'
+    email_configs:
+      - to: 'security-team@company.com,ciso@company.com,ops-team@company.com'
+        subject: '[CRITICAL SECURITY] Kong Guard AI - {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 CRITICAL SECURITY ALERT 🚨
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Threat Level: {{ .Labels.threat_level }}
+          Client IP: {{ .Labels.client_ip }}
+          Time: {{ .StartsAt }}
+          Runbook: {{ .Annotations.runbook_url }}
+          
+          IMMEDIATE ACTION REQUIRED
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security-critical'
+        title: '🚨 CRITICAL SECURITY ALERT'
+        color: 'danger'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          
+          *Threat Level:* {{ .Labels.threat_level }}
+          *Client IP:* {{ .Labels.client_ip }}
+          *Description:* {{ .Annotations.description }}
+          *Time:* {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          
+          <!channel> IMMEDIATE ACTION REQUIRED
+          {{ end }}
+    webhook_configs:
+      - url: 'https://hooks.company.com/security/critical'
+        send_resolved: true
+
+  # Performance team alerts
+  - name: 'performance-team'
+    email_configs:
+      - to: 'performance-team@company.com'
+        subject: '[Performance] Kong Guard AI - {{ .GroupLabels.alertname }}'
+        body: |
+          Performance Alert
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Metric Value: {{ .Labels.value }}
+          Instance: {{ .Labels.instance }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#performance-alerts'
+        color: 'warning'
+
+  # Database team alerts
+  - name: 'database-team'
+    email_configs:
+      - to: 'database-team@company.com'
+        subject: '[Database] Kong Guard AI - {{ .GroupLabels.alertname }}'
+
+  - name: 'database-critical'
+    email_configs:
+      - to: 'database-team@company.com,ops-team@company.com'
+        subject: '[CRITICAL DATABASE] Kong Guard AI - {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database-critical'
+        color: 'danger'
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_DATABASE_KEY}'
+        description: 'Kong Guard AI Database Alert: {{ .GroupLabels.alertname }}'
+
+  - name: 'database-warning'
+    email_configs:
+      - to: 'database-team@company.com'
+        subject: '[Database Warning] Kong Guard AI - {{ .GroupLabels.alertname }}'
+
+  # AI team alerts
+  - name: 'ai-team'
+    email_configs:
+      - to: 'ai-team@company.com'
+        subject: '[AI Gateway] Kong Guard AI - {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#ai-integration'
+
+  # Finance team for cost alerts
+  - name: 'finance-team'
+    email_configs:
+      - to: 'finance-team@company.com,ai-team@company.com'
+        subject: '[Cost Alert] Kong Guard AI - {{ .GroupLabels.alertname }}'
+        body: |
+          Cost Alert
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Current Cost: ${{ .Labels.cost }}
+          Budget Threshold: ${{ .Labels.threshold }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+
+  # Operations team for notification system alerts
+  - name: 'ops-team'
+    email_configs:
+      - to: 'ops-team@company.com'
+        subject: '[Operations] Kong Guard AI - {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#ops-alerts'
+
+# Inhibition rules to reduce noise
+inhibit_rules:
+  # Inhibit warning alerts when critical alerts are firing
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'instance']
+
+  # Inhibit individual service alerts when the entire cluster is down
+  - source_matchers:
+      - alertname = "KongGatewayDown"
+    target_matchers:
+      - component = "gateway"
+    equal: ['cluster']
+
+  # Inhibit AI Gateway timeout alerts when AI Gateway is completely down
+  - source_matchers:
+      - alertname = "AIGatewayDown"
+    target_matchers:
+      - alertname = "AIGatewayTimeout"
+    equal: ['instance']

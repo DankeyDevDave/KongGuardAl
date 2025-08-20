@@ -6,6 +6,7 @@ local kong = kong
 local http = require "resty.http"
 local json = require "cjson.safe"
 local enforcement_gate = require "kong.plugins.kong-guard-ai.enforcement_gate"
+local method_filter = require "kong.plugins.kong-guard-ai.method_filter"
 
 local _M = {}
 
@@ -49,8 +50,43 @@ function _M.execute_response(threat_result, request_context, conf)
         response_action = _M.execute_monitor_response(threat_result, request_context, conf)
     end
     
-    -- Check if config rollback is needed for critical threats
-    if conf.enable_config_rollback and threat_result.threat_level >= conf.rollback_threshold then
+    -- PHASE 7: Check if advanced remediation is needed for critical threats
+    if conf.enable_advanced_remediation and threat_result.threat_level >= (conf.rollback_threshold or 9.0) then
+        local advanced_remediation = require "kong.plugins.kong-guard-ai.advanced_remediation"
+        
+        -- Trigger advanced remediation analysis
+        local remediation_result = advanced_remediation.execute_advanced_remediation(
+            advanced_remediation.REMEDIATION_ACTIONS.CONFIG_ROLLBACK,
+            {
+                type = "service",
+                id = request_context.service_id,
+                route_id = request_context.route_id
+            },
+            {
+                strategy = conf.default_reroute_strategy or "immediate",
+                threat_level = threat_result.threat_level,
+                confidence = threat_result.confidence,
+                rollback_reason = "critical_threat_detected"
+            },
+            conf
+        )
+        
+        response_action.advanced_remediation_attempted = true
+        response_action.advanced_remediation_result = remediation_result
+        
+        if remediation_result.success then
+            kong.log.warn(string.format(
+                "[Kong Guard AI Responder] Advanced remediation executed: %s", 
+                remediation_result.remediation_id
+            ))
+        else
+            kong.log.error(string.format(
+                "[Kong Guard AI Responder] Advanced remediation failed: %s",
+                remediation_result.details.reason or "unknown"
+            ))
+        end
+    elseif conf.enable_config_rollback and threat_result.threat_level >= (conf.rollback_threshold or 9.0) then
+        -- Legacy config rollback for backward compatibility
         local action_types = enforcement_gate.get_action_types()
         local rollback_result = enforcement_gate.enforce_action(
             action_types.CONFIG_ROLLBACK,
@@ -124,6 +160,9 @@ function _M.execute_block_response(threat_result, request_context, conf)
     elseif threat_result.threat_type == "sql_injection" or threat_result.threat_type == "cross_site_scripting" then
         status_code = 400
         error_message = "Invalid request"
+    elseif threat_result.threat_type == "http_method_violation" then
+        -- Use specialized method blocking response
+        return method_filter.execute_method_block(threat_result, request_context, conf)
     end
     
     kong.response.exit(status_code, {

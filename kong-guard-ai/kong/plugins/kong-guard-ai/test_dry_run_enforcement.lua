@@ -4,6 +4,8 @@
 
 local kong = kong
 local enforcement_gate = require "kong.plugins.kong-guard-ai.enforcement_gate"
+local method_filter = require "kong.plugins.kong-guard-ai.method_filter"
+local test_method_filter = require "kong.plugins.kong-guard-ai.test_method_filter"
 local json = require "cjson.safe"
 
 local _M = {}
@@ -16,7 +18,11 @@ local test_conf_dry_run = {
     enable_rate_limiting_response = true,
     enable_config_rollback = true,
     admin_api_enabled = true,
-    block_duration_seconds = 3600
+    block_duration_seconds = 3600,
+    enable_method_filtering = true,
+    block_extended_methods = true,
+    method_analytics_enabled = true,
+    enable_testing_endpoints = true
 }
 
 -- Test configuration for active mode
@@ -27,7 +33,11 @@ local test_conf_active = {
     enable_rate_limiting_response = true,
     enable_config_rollback = true,
     admin_api_enabled = true,
-    block_duration_seconds = 3600
+    block_duration_seconds = 3600,
+    enable_method_filtering = true,
+    block_extended_methods = true,
+    method_analytics_enabled = true,
+    enable_testing_endpoints = true
 }
 
 -- Test results storage
@@ -454,7 +464,16 @@ function _M.handle_test_endpoint(conf)
         return nil
     end
     
-    -- Run test suite
+    -- Handle method filter specific test endpoints
+    if request_path:match("/_guard_ai/test/method_filter") then
+        return test_method_filter.handle_test_endpoint(conf)
+    end
+    
+    if request_path:match("/_guard_ai/analytics/method_filter") then
+        return test_method_filter.handle_analytics_endpoint(conf)
+    end
+    
+    -- Run standard test suite
     local results = _M.run_test_suite()
     
     -- Prepare response

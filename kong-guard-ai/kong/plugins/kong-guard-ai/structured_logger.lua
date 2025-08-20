@@ -296,7 +296,7 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
     local log_entry = {
         -- Core fields
         timestamp = timestamp,
-        timestamp_iso = os.date("!%Y-%m-%dT%H:%M:%S.000Z", timestamp),
+        timestamp_iso = os.date("!%Y-%m-%dT%H:%M:%S.000Z", math.floor(timestamp)),
         level = level.name,
         level_num = level.level,
         message = message,
@@ -310,24 +310,24 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
         
         -- Request information
         request = {
-            method = request_context.method,
-            path = request_context.path,
-            query_string = kong.request.get_raw_query(),
-            client_ip = request_context.client_ip,
-            user_agent = request_context.headers["user-agent"],
-            referer = request_context.headers["referer"],
-            content_type = request_context.headers["content-type"],
-            content_length = request_context.headers["content-length"],
+            method = request_context.method or "unknown",
+            path = request_context.path or "/",
+            query_string = (kong.request and kong.request.get_raw_query and kong.request.get_raw_query()) or "",
+            client_ip = request_context.client_ip or "unknown",
+            user_agent = request_context.headers and request_context.headers["user-agent"] or "",
+            referer = request_context.headers and request_context.headers["referer"] or "",
+            content_type = request_context.headers and request_context.headers["content-type"] or "",
+            content_length = request_context.headers and request_context.headers["content-length"] or "",
             header_count = 0
         },
         
         -- Kong context
         kong = {
-            service_id = request_context.service_id,
-            route_id = request_context.route_id,
-            consumer_id = request_context.consumer_id,
-            worker_pid = ngx.worker.pid(),
-            node_id = kong.node.get_id()
+            service_id = request_context.service_id or "unknown",
+            route_id = request_context.route_id or "unknown",
+            consumer_id = request_context.consumer_id or nil,
+            worker_pid = (ngx.worker and ngx.worker.pid and ngx.worker.pid()) or 0,
+            node_id = (kong.node and kong.node.get_id and kong.node.get_id()) or "unknown"
         },
         
         -- Configuration context
@@ -619,8 +619,8 @@ function _M.log_threat_event(threat_result, request_context, enforcement_result,
         threat_result.confidence or 0)
     
     local response_context = {
-        status = kong.response.get_status(),
-        processing_time_ms = kong.ctx.plugin.guard_ai_processing_time or 0
+        status = (kong.response and kong.response.get_status and kong.response.get_status()) or 200,
+        processing_time_ms = (kong.ctx and kong.ctx.plugin and kong.ctx.plugin.guard_ai_processing_time) or 0
     }
     
     -- Add enforcement information to threat result
@@ -657,7 +657,7 @@ function _M.log_performance_metrics(processing_time_ms, request_context, conf)
     local message = string.format("Request processing completed in %.2fms", processing_time_ms)
     
     local response_context = {
-        status = kong.response.get_status(),
+        status = (kong.response and kong.response.get_status and kong.response.get_status()) or 200,
         processing_time_ms = processing_time_ms
     }
     

@@ -1,0 +1,10 @@
+{
+  "kong-security": [
+    {
+      "key": "kong-guard-ai-system",
+      "value": "Complete enterprise Kong security plugin: Static threat detection (IP blacklist, method filtering, path regex), AI Gateway integration, advanced remediation with route modification, real-time analytics, incident management, performance <10ms, production deployment ready",
+      "namespace": "kong-security",
+      "timestamp": 1755663438107
+    }
+  ]
+}

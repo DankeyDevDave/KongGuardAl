@@ -14,7 +14,46 @@
 
 local kong = kong
 local ngx = ngx
-local cjson = require "cjson.safe"
+
+-- Try to load cjson.safe, fall back to regular cjson, then to a simple encoder
+local cjson
+local json_encode
+
+pcall(function()
+    cjson = require "cjson.safe"
+    json_encode = cjson.encode
+end)
+
+if not cjson then
+    pcall(function()
+        cjson = require "cjson"
+        json_encode = cjson.encode
+    end)
+end
+
+-- Fallback simple JSON encoder for testing environments
+if not json_encode then
+    json_encode = function(obj)
+        if type(obj) == "table" then
+            local pairs_list = {}
+            for k, v in pairs(obj) do
+                local key_str = '"' .. tostring(k) .. '"'
+                local val_str
+                if type(v) == "string" then
+                    val_str = '"' .. tostring(v) .. '"'
+                elseif type(v) == "table" then
+                    val_str = json_encode(v)  -- Recursive call
+                else
+                    val_str = tostring(v)
+                end
+                table.insert(pairs_list, key_str .. ':' .. val_str)
+            end
+            return "{" .. table.concat(pairs_list, ",") .. "}"
+        else
+            return tostring(obj)
+        end
+    end
+end
 
 local instrumentation = {}
 

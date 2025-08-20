@@ -1,0 +1,1050 @@
+openapi: 3.0.3
+info:
+  title: Kong Guard AI Plugin API
+  description: |
+    Kong Guard AI is an enterprise-grade security plugin for Kong Gateway that provides 
+    AI-powered threat detection, automated response capabilities, and comprehensive 
+    security monitoring for API gateways.
+    
+    This API specification covers all endpoints and configuration options available
+    for managing Kong Guard AI in production environments.
+  version: 1.0.0
+  contact:
+    name: Kong Guard AI Team
+    email: support@kongguardai.com
+    url: https://docs.kongguardai.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  x-logo:
+    url: https://docs.kongguardai.com/logo.png
+    altText: Kong Guard AI
+
+servers:
+  - url: https://kong-admin-api.example.com:8001
+    description: Kong Admin API (Production)
+  - url: https://kong-admin-api-staging.example.com:8001
+    description: Kong Admin API (Staging)
+  - url: http://localhost:8001
+    description: Kong Admin API (Development)
+
+tags:
+  - name: Plugin Management
+    description: Core plugin configuration and management
+  - name: Threat Detection
+    description: Threat detection configuration and monitoring
+  - name: Response Actions
+    description: Automated response and enforcement
+  - name: AI Integration
+    description: AI Gateway integration and configuration
+  - name: Notifications
+    description: Alert and notification management
+  - name: Analytics
+    description: Security analytics and reporting
+  - name: Monitoring
+    description: Health and performance monitoring
+
+paths:
+  /plugins:
+    get:
+      tags:
+        - Plugin Management
+      summary: List all plugins
+      description: Retrieve a list of all configured plugins including Kong Guard AI
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: name
+          in: query
+          description: Filter plugins by name
+          schema:
+            type: string
+            example: kong-guard-ai
+      responses:
+        '200':
+          description: Successfully retrieved plugins list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Plugin'
+                  total:
+                    type: integer
+                    example: 1
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Plugin Management
+      summary: Create Kong Guard AI plugin
+      description: Install and configure Kong Guard AI plugin globally or for specific services/routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginRequest'
+            examples:
+              global_plugin:
+                summary: Global Kong Guard AI Plugin
+                value:
+                  name: kong-guard-ai
+                  config:
+                    dry_run_mode: true
+                    threat_threshold: 8.0
+                    enable_notifications: true
+              service_plugin:
+                summary: Service-specific Plugin
+                value:
+                  name: kong-guard-ai
+                  service:
+                    id: "service-uuid"
+                  config:
+                    threat_threshold: 7.0
+                    enable_auto_blocking: true
+      responses:
+        '201':
+          description: Plugin created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plugin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /plugins/{plugin_id}:
+    get:
+      tags:
+        - Plugin Management
+      summary: Get plugin configuration
+      description: Retrieve configuration details for a specific Kong Guard AI plugin instance
+      parameters:
+        - $ref: '#/components/parameters/PluginIdParam'
+      responses:
+        '200':
+          description: Plugin configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plugin'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Plugin Management
+      summary: Update plugin configuration
+      description: Update Kong Guard AI plugin configuration
+      parameters:
+        - $ref: '#/components/parameters/PluginIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginUpdateRequest'
+            examples:
+              enable_ai_gateway:
+                summary: Enable AI Gateway
+                value:
+                  config:
+                    ai_gateway_enabled: true
+                    ai_analysis_threshold: 6.0
+              update_thresholds:
+                summary: Update Threat Thresholds
+                value:
+                  config:
+                    threat_threshold: 7.5
+                    notification_threshold: 7.0
+      responses:
+        '200':
+          description: Plugin updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plugin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Plugin Management
+      summary: Delete plugin
+      description: Remove Kong Guard AI plugin configuration
+      parameters:
+        - $ref: '#/components/parameters/PluginIdParam'
+      responses:
+        '204':
+          description: Plugin deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /kong-guard-ai/metrics:
+    get:
+      tags:
+        - Monitoring
+      summary: Get plugin metrics
+      description: Retrieve Kong Guard AI performance and security metrics
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP kong_guard_ai_requests_total Total number of requests processed
+                  # TYPE kong_guard_ai_requests_total counter
+                  kong_guard_ai_requests_total{status="processed"} 12345
+                  
+                  # HELP kong_guard_ai_threats_detected_total Total number of threats detected
+                  # TYPE kong_guard_ai_threats_detected_total counter
+                  kong_guard_ai_threats_detected_total{threat_type="sql_injection"} 42
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  /kong-guard-ai/health:
+    get:
+      tags:
+        - Monitoring
+      summary: Health check
+      description: Check Kong Guard AI plugin health status
+      responses:
+        '200':
+          description: Plugin is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Plugin is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /kong-guard-ai/threats:
+    get:
+      tags:
+        - Threat Detection
+      summary: Get recent threats
+      description: Retrieve recently detected threats and security events
+      parameters:
+        - name: since
+          in: query
+          description: Return threats detected since this timestamp
+          schema:
+            type: string
+            format: date-time
+        - name: severity
+          in: query
+          description: Filter by threat severity level
+          schema:
+            type: number
+            minimum: 1
+            maximum: 10
+        - name: limit
+          in: query
+          description: Maximum number of threats to return
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+      responses:
+        '200':
+          description: Threats retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  threats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ThreatEvent'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+
+  /kong-guard-ai/threats/{threat_id}:
+    get:
+      tags:
+        - Threat Detection
+      summary: Get threat details
+      description: Retrieve detailed information about a specific threat
+      parameters:
+        - name: threat_id
+          in: path
+          required: true
+          description: Unique identifier for the threat
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Threat details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreatDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /kong-guard-ai/whitelist:
+    get:
+      tags:
+        - Response Actions
+      summary: Get IP whitelist
+      description: Retrieve current IP whitelist configuration
+      responses:
+        '200':
+          description: IP whitelist retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  whitelist:
+                    type: array
+                    items:
+                      type: string
+                      format: ipv4
+                    example: ["192.168.1.0/24", "10.0.0.0/8"]
+
+    post:
+      tags:
+        - Response Actions
+      summary: Add IP to whitelist
+      description: Add an IP address or CIDR block to the whitelist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ip:
+                  type: string
+                  description: IP address or CIDR block to whitelist
+                  example: "192.168.1.100"
+                reason:
+                  type: string
+                  description: Reason for whitelisting
+                  example: "Trusted admin IP"
+              required:
+                - ip
+      responses:
+        '201':
+          description: IP added to whitelist successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /kong-guard-ai/blacklist:
+    get:
+      tags:
+        - Response Actions
+      summary: Get IP blacklist
+      description: Retrieve current IP blacklist configuration
+      responses:
+        '200':
+          description: IP blacklist retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blacklist:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ip:
+                          type: string
+                          format: ipv4
+                        blocked_until:
+                          type: string
+                          format: date-time
+                        reason:
+                          type: string
+                    example:
+                      - ip: "203.0.113.1"
+                        blocked_until: "2024-01-15T12:00:00Z"
+                        reason: "Multiple SQL injection attempts"
+
+    post:
+      tags:
+        - Response Actions
+      summary: Add IP to blacklist
+      description: Manually add an IP address to the blacklist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ip:
+                  type: string
+                  description: IP address to blacklist
+                  example: "203.0.113.1"
+                duration:
+                  type: integer
+                  description: Block duration in seconds
+                  example: 3600
+                reason:
+                  type: string
+                  description: Reason for blocking
+                  example: "Manual security intervention"
+              required:
+                - ip
+      responses:
+        '201':
+          description: IP added to blacklist successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /kong-guard-ai/ai-gateway/test:
+    post:
+      tags:
+        - AI Integration
+      summary: Test AI Gateway connection
+      description: Test connectivity and authentication with the configured AI Gateway
+      responses:
+        '200':
+          description: AI Gateway connection successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "connected"
+                  response_time:
+                    type: number
+                    example: 245.7
+                  model:
+                    type: string
+                    example: "gpt-4o-mini"
+        '503':
+          description: AI Gateway connection failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "failed"
+                  error:
+                    type: string
+                    example: "Connection timeout"
+
+  /kong-guard-ai/notifications/test:
+    post:
+      tags:
+        - Notifications
+      summary: Test notification channels
+      description: Send test notifications to configured channels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channels:
+                  type: array
+                  items:
+                    type: string
+                    enum: [slack, email, webhook]
+                  example: ["slack", "email"]
+                message:
+                  type: string
+                  example: "Kong Guard AI test notification"
+      responses:
+        '200':
+          description: Test notifications sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        channel:
+                          type: string
+                        status:
+                          type: string
+                          enum: [success, failed]
+                        response_time:
+                          type: number
+
+  /kong-guard-ai/analytics/summary:
+    get:
+      tags:
+        - Analytics
+      summary: Get security analytics summary
+      description: Retrieve aggregated security metrics and threat intelligence
+      parameters:
+        - name: period
+          in: query
+          description: Time period for analytics
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d]
+            default: 24h
+        - name: group_by
+          in: query
+          description: Group results by specified field
+          schema:
+            type: string
+            enum: [hour, day, threat_type, ip, country]
+            default: hour
+      responses:
+        '200':
+          description: Analytics summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+
+components:
+  parameters:
+    PluginIdParam:
+      name: plugin_id
+      in: path
+      required: true
+      description: Unique identifier for the plugin
+      schema:
+        type: string
+        format: uuid
+
+    OffsetParam:
+      name: offset
+      in: query
+      description: Number of resources to skip
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+    SizeParam:
+      name: size
+      in: query
+      description: Maximum number of resources to return
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 1000
+
+  schemas:
+    Plugin:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the plugin
+        name:
+          type: string
+          example: "kong-guard-ai"
+        enabled:
+          type: boolean
+          default: true
+        config:
+          $ref: '#/components/schemas/PluginConfig'
+        service:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        route:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        consumer:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PluginRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "kong-guard-ai"
+        enabled:
+          type: boolean
+          default: true
+        config:
+          $ref: '#/components/schemas/PluginConfig'
+        service:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        route:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        consumer:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+      required:
+        - name
+
+    PluginUpdateRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        config:
+          $ref: '#/components/schemas/PluginConfig'
+
+    PluginConfig:
+      type: object
+      properties:
+        # Core Configuration
+        dry_run_mode:
+          type: boolean
+          default: true
+          description: Enable dry run mode (log only, no enforcement)
+        threat_threshold:
+          type: number
+          default: 8.0
+          minimum: 1.0
+          maximum: 10.0
+          description: Minimum threat level to trigger responses
+        max_processing_time_ms:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+          description: Maximum processing time per request in milliseconds
+
+        # Threat Detection
+        enable_rate_limiting_detection:
+          type: boolean
+          default: true
+          description: Enable rate limiting detection
+        rate_limit_threshold:
+          type: integer
+          default: 150
+          minimum: 1
+          description: Requests per minute threshold
+        rate_limit_window_seconds:
+          type: integer
+          default: 60
+          minimum: 1
+          description: Rate limiting time window in seconds
+        enable_payload_analysis:
+          type: boolean
+          default: true
+          description: Enable request payload analysis
+        max_payload_size:
+          type: integer
+          default: 262144
+          description: Maximum payload size to analyze in bytes
+
+        # Response Actions
+        enable_auto_blocking:
+          type: boolean
+          default: false
+          description: Enable automatic IP blocking
+        block_duration_seconds:
+          type: integer
+          default: 1800
+          minimum: 60
+          description: Duration to block IPs in seconds
+        enable_rate_limiting_response:
+          type: boolean
+          default: true
+          description: Enable rate limiting as response action
+        enable_config_rollback:
+          type: boolean
+          default: false
+          description: Enable configuration rollback for critical threats
+
+        # AI Gateway Integration
+        ai_gateway_enabled:
+          type: boolean
+          default: false
+          description: Enable AI Gateway integration
+        ai_gateway_endpoint:
+          type: string
+          format: uri
+          description: AI Gateway API endpoint
+        ai_gateway_model:
+          type: string
+          default: "gpt-4o-mini"
+          description: AI model to use for analysis
+        ai_analysis_threshold:
+          type: number
+          default: 6.0
+          minimum: 1.0
+          maximum: 10.0
+          description: Threat level threshold for AI analysis
+        ai_timeout_ms:
+          type: integer
+          default: 3000
+          minimum: 1000
+          maximum: 10000
+          description: AI Gateway timeout in milliseconds
+
+        # Notifications
+        enable_notifications:
+          type: boolean
+          default: true
+          description: Enable threat notifications
+        notification_threshold:
+          type: number
+          default: 7.0
+          minimum: 1.0
+          maximum: 10.0
+          description: Threat level threshold for notifications
+        slack_webhook_url:
+          type: string
+          format: uri
+          description: Slack webhook URL for notifications
+        email_to:
+          type: array
+          items:
+            type: string
+            format: email
+          description: Email addresses for notifications
+        email_smtp_server:
+          type: string
+          description: SMTP server for email notifications
+
+        # IP Management
+        ip_whitelist:
+          type: array
+          items:
+            type: string
+          description: List of whitelisted IP addresses or CIDR blocks
+        ip_blacklist:
+          type: array
+          items:
+            type: string
+          description: List of blacklisted IP addresses
+
+        # Logging and Monitoring
+        log_level:
+          type: string
+          enum: [debug, info, warn, error]
+          default: info
+          description: Logging level
+        enable_learning:
+          type: boolean
+          default: false
+          description: Enable learning mode for pattern detection
+        learning_sample_rate:
+          type: number
+          default: 0.01
+          minimum: 0.0
+          maximum: 1.0
+          description: Sample rate for learning data collection
+
+        # Suspicious Patterns
+        suspicious_patterns:
+          type: array
+          items:
+            type: string
+          description: List of regex patterns for threat detection
+
+    ThreatEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique threat identifier
+        timestamp:
+          type: string
+          format: date-time
+        threat_level:
+          type: number
+          minimum: 1.0
+          maximum: 10.0
+        threat_type:
+          type: string
+          enum: [sql_injection, xss, command_injection, path_traversal, rate_limit_exceeded, suspicious_pattern, unknown]
+        client_ip:
+          type: string
+          format: ipv4
+        user_agent:
+          type: string
+        request_method:
+          type: string
+        request_path:
+          type: string
+        action_taken:
+          type: string
+          enum: [logged, rate_limited, blocked, none]
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+    ThreatDetails:
+      allOf:
+        - $ref: '#/components/schemas/ThreatEvent'
+        - type: object
+          properties:
+            request_headers:
+              type: object
+              additionalProperties:
+                type: string
+            request_body:
+              type: string
+              description: Request body (may be truncated)
+            pattern_matches:
+              type: array
+              items:
+                type: object
+                properties:
+                  pattern:
+                    type: string
+                  match:
+                    type: string
+            ai_analysis:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                result:
+                  type: string
+                confidence:
+                  type: number
+                response_time:
+                  type: number
+            geolocation:
+              type: object
+              properties:
+                country:
+                  type: string
+                region:
+                  type: string
+                city:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+
+    MetricsResponse:
+      type: object
+      properties:
+        requests_total:
+          type: integer
+          description: Total number of requests processed
+        threats_detected:
+          type: integer
+          description: Total number of threats detected
+        threats_blocked:
+          type: integer
+          description: Total number of requests blocked
+        rate_limits_applied:
+          type: integer
+          description: Total number of rate limits applied
+        ai_analysis_calls:
+          type: integer
+          description: Total number of AI analysis calls made
+        average_processing_time:
+          type: number
+          description: Average processing time in milliseconds
+        memory_usage:
+          type: object
+          properties:
+            cache_size:
+              type: integer
+            rate_limit_entries:
+              type: integer
+            ip_blacklist_size:
+              type: integer
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy, degraded]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        checks:
+          type: object
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, unhealthy]
+                response_time:
+                  type: number
+            ai_gateway:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, unhealthy, disabled]
+                response_time:
+                  type: number
+            memory:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, warning, critical]
+                usage_percent:
+                  type: number
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        period:
+          type: string
+          description: Time period for the analytics
+        total_requests:
+          type: integer
+        total_threats:
+          type: integer
+        threat_types:
+          type: object
+          additionalProperties:
+            type: integer
+        top_attacking_ips:
+          type: array
+          items:
+            type: object
+            properties:
+              ip:
+                type: string
+              count:
+                type: integer
+              country:
+                type: string
+        threat_timeline:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              count:
+                type: integer
+        response_actions:
+          type: object
+          properties:
+            blocked:
+              type: integer
+            rate_limited:
+              type: integer
+            logged_only:
+              type: integer
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+        details:
+          type: string
+          description: Additional error details
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters or configuration
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid configuration parameter"
+            code: 400
+            details: "threat_threshold must be between 1.0 and 10.0"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Plugin not found"
+            code: 404
+
+    Conflict:
+      description: Resource conflict - plugin already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Plugin already exists"
+            code: 409
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Internal server error"
+            code: 500
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Kong-Admin-Token
+      description: Kong Admin API key for authentication
+
+    BasicAuth:
+      type: http
+      scheme: basic
+      description: Basic HTTP authentication
+
+security:
+  - ApiKeyAuth: []
+  - BasicAuth: []

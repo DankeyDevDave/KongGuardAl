@@ -1,0 +1,745 @@
+# Kong Guard AI GitHub Actions CI/CD Pipeline
+# Comprehensive testing pipeline for integration testing and validation
+
+name: Kong Guard AI Integration Tests
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - integration
+          - e2e
+          - load
+          - security
+      kong_version:
+        description: 'Kong version to test against'
+        required: false
+        default: '3.7'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/kong-guard-ai-test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      - name: Setup LuaRocks
+        uses: leafo/gh-actions-luarocks@v4
+
+      - name: Install dependencies
+        run: |
+          luarocks install luacheck
+          luarocks install busted
+          luarocks install luacov
+
+      - name: Lint Lua code
+        run: |
+          find kong/plugins/kong-guard-ai -name "*.lua" -exec luacheck {} \;
+
+      - name: Validate configuration schema
+        run: |
+          lua -e "require('kong.plugins.kong-guard-ai.schema')"
+
+      - name: Run unit tests
+        run: |
+          busted --coverage --output=tap kong/plugins/kong-guard-ai/spec/
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./luacov.report.out
+          flags: unittests
+          name: codecov-lua
+
+  build-test-images:
+    name: Build Test Images
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    outputs:
+      test-runner-image: ${{ steps.meta-test-runner.outputs.tags }}
+      security-test-image: ${{ steps.meta-security.outputs.tags }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for test runner
+        id: meta-test-runner
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-test-runner
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push test runner image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./tests/docker/Dockerfile.test-runner
+          push: true
+          tags: ${{ steps.meta-test-runner.outputs.tags }}
+          labels: ${{ steps.meta-test-runner.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for security tester
+        id: meta-security
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-security-test
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push security test image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./tests/docker/Dockerfile.security-test
+          push: true
+          tags: ${{ steps.meta-security.outputs.tags }}
+          labels: ${{ steps.meta-security.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-test-images
+    if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'integration' || github.event.inputs.test_suite == '' }}
+    strategy:
+      matrix:
+        kong_version: [3.6, 3.7]
+        test_suite:
+          - ip_blacklist
+          - path_filter
+          - rate_limiting
+          - method_filter
+          - admin_api_remediation
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Kong version
+        run: |
+          KONG_VERSION="${{ github.event.inputs.kong_version || matrix.kong_version }}"
+          echo "KONG_VERSION=$KONG_VERSION" >> $GITHUB_ENV
+
+      - name: Create test configuration
+        run: |
+          mkdir -p tests/docker/test-configs
+          cat > tests/docker/test-configs/kong.yml << EOF
+          _format_version: "3.0"
+          _transform: true
+          
+          services:
+          - name: httpbin
+            url: http://mock-upstream:80
+            plugins:
+            - name: kong-guard-ai
+              config:
+                dry_run_mode: false
+                threat_threshold: 7.0
+                enable_ip_blacklist: true
+                enable_path_filtering: true
+                enable_advanced_rate_limiting: true
+                enable_method_filtering: true
+                admin_api_enabled: true
+          
+          routes:
+          - name: test-route
+            service: httpbin
+            paths:
+            - "/test"
+            - "/api"
+          EOF
+
+      - name: Start test environment
+        run: |
+          cd tests/docker
+          KONG_VERSION=${{ env.KONG_VERSION }} docker-compose -f docker-compose.test.yml up -d
+          
+          # Wait for services to be ready
+          timeout 300 bash -c 'until curl -f http://localhost:8001/status; do sleep 5; done'
+          timeout 300 bash -c 'until curl -f http://localhost:8080/get; do sleep 5; done'
+
+      - name: Run integration tests
+        run: |
+          docker run --rm \
+            --network tests_kong-test-net \
+            -v ${{ github.workspace }}:/workspace:ro \
+            -v ${{ github.workspace }}/test-results:/results \
+            -e KONG_ADMIN_URL=http://kong-gateway:8001 \
+            -e KONG_PROXY_URL=http://kong-gateway:8000 \
+            -e TEST_SUITE=${{ matrix.test_suite }} \
+            -e TEST_ENVIRONMENT=ci \
+            ${{ needs.build-test-images.outputs.test-runner-image }} \
+            lua /workspace/tests/integration/run_test_suite.lua ${{ matrix.test_suite }}
+
+      - name: Collect test results
+        if: always()
+        run: |
+          mkdir -p test-results/${{ matrix.test_suite }}
+          docker-compose -f tests/docker/docker-compose.test.yml logs kong-gateway > test-results/${{ matrix.test_suite }}/kong-logs.txt
+          docker-compose -f tests/docker/docker-compose.test.yml logs redis > test-results/${{ matrix.test_suite }}/redis-logs.txt
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-results-${{ matrix.test_suite }}-kong-${{ env.KONG_VERSION }}
+          path: test-results/
+
+      - name: Stop test environment
+        if: always()
+        run: |
+          cd tests/docker
+          docker-compose -f docker-compose.test.yml down -v
+
+  load-tests:
+    name: Load Tests
+    runs-on: ubuntu-latest
+    needs: build-test-images
+    if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'load' }}
+    strategy:
+      matrix:
+        load_profile:
+          - light    # 100 RPS for 60s
+          - medium   # 1000 RPS for 120s
+          - heavy    # 5000 RPS for 300s
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start test environment
+        run: |
+          cd tests/docker
+          docker-compose -f docker-compose.test.yml up -d kong-gateway mock-upstream redis
+          timeout 300 bash -c 'until curl -f http://localhost:8001/status; do sleep 5; done'
+
+      - name: Run load tests
+        run: |
+          case "${{ matrix.load_profile }}" in
+            light)
+              RATE=100
+              DURATION=60s
+              CONNECTIONS=50
+              ;;
+            medium)
+              RATE=1000
+              DURATION=120s
+              CONNECTIONS=200
+              ;;
+            heavy)
+              RATE=5000
+              DURATION=300s
+              CONNECTIONS=500
+              ;;
+          esac
+          
+          docker run --rm \
+            --network tests_kong-test-net \
+            -v ${{ github.workspace }}/test-results:/results \
+            ${{ needs.build-test-images.outputs.test-runner-image }} \
+            bash -c "
+              echo 'Starting load test: ${{ matrix.load_profile }} profile'
+              echo 'Rate: $RATE RPS, Duration: $DURATION, Connections: $CONNECTIONS'
+              
+              # wrk load test
+              wrk -t12 -c$CONNECTIONS -d$DURATION --timeout 10s \
+                -s /tools/load-test-script.lua \
+                http://kong-gateway:8000/test > /results/load-test-${{ matrix.load_profile }}.txt
+              
+              # hey load test for comparison
+              hey -z $DURATION -c $CONNECTIONS -q $RATE \
+                http://kong-gateway:8000/test > /results/hey-test-${{ matrix.load_profile }}.txt
+            "
+
+      - name: Analyze load test results
+        run: |
+          docker run --rm \
+            --network tests_kong-test-net \
+            -v ${{ github.workspace }}/test-results:/results \
+            ${{ needs.build-test-images.outputs.test-runner-image }} \
+            python3 -c "
+            import json
+            import re
+            
+            # Parse wrk results
+            with open('/results/load-test-${{ matrix.load_profile }}.txt', 'r') as f:
+                wrk_output = f.read()
+            
+            # Extract key metrics
+            latency_match = re.search(r'Latency\s+(\d+\.\d+)ms\s+(\d+\.\d+)ms\s+(\d+\.\d+)ms\s+(\d+\.\d+)%', wrk_output)
+            req_sec_match = re.search(r'Req/Sec\s+(\d+\.\d+)k?\s+(\d+\.\d+)k?\s+(\d+\.\d+)k?\s+(\d+\.\d+)%', wrk_output)
+            total_req_match = re.search(r'(\d+) requests in', wrk_output)
+            
+            results = {
+                'profile': '${{ matrix.load_profile }}',
+                'latency_avg_ms': float(latency_match.group(1)) if latency_match else 0,
+                'latency_p99_ms': float(latency_match.group(4)) if latency_match else 0,
+                'requests_per_sec': float(req_sec_match.group(1)) if req_sec_match else 0,
+                'total_requests': int(total_req_match.group(1)) if total_req_match else 0
+            }
+            
+            with open('/results/load-test-summary-${{ matrix.load_profile }}.json', 'w') as f:
+                json.dump(results, f, indent=2)
+            
+            print(f'Load test completed: {results}')
+            "
+
+      - name: Upload load test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results-${{ matrix.load_profile }}
+          path: test-results/
+
+      - name: Stop test environment
+        if: always()
+        run: |
+          cd tests/docker
+          docker-compose -f docker-compose.test.yml down -v
+
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: build-test-images
+    if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'security' }}
+    strategy:
+      matrix:
+        security_test:
+          - sql_injection
+          - xss_attacks
+          - path_traversal
+          - command_injection
+          - owasp_top10
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start test environment
+        run: |
+          cd tests/docker
+          docker-compose -f docker-compose.test.yml up -d kong-gateway mock-upstream
+          timeout 300 bash -c 'until curl -f http://localhost:8001/status; do sleep 5; done'
+
+      - name: Run security tests
+        run: |
+          docker run --rm \
+            --network tests_kong-test-net \
+            -v ${{ github.workspace }}/test-results:/results \
+            -e TARGET_URL=http://kong-gateway:8000 \
+            -e ADMIN_URL=http://kong-gateway:8001 \
+            -e TEST_TYPE=${{ matrix.security_test }} \
+            ${{ needs.build-test-images.outputs.security-test-image }}
+
+      - name: Analyze security test results
+        run: |
+          mkdir -p security-analysis
+          
+          # Check if any vulnerabilities were found
+          docker run --rm \
+            -v ${{ github.workspace }}/test-results:/results \
+            -v ${{ github.workspace }}/security-analysis:/analysis \
+            ${{ needs.build-test-images.outputs.test-runner-image }} \
+            python3 -c "
+            import json
+            import os
+            import glob
+            
+            results_dir = '/results'
+            analysis_dir = '/analysis'
+            
+            # Analyze results for vulnerabilities
+            total_tests = 0
+            blocked_tests = 0
+            vulnerabilities = []
+            
+            for result_file in glob.glob(os.path.join(results_dir, '*.json')):
+                with open(result_file, 'r') as f:
+                    data = json.load(f)
+                    
+                if isinstance(data, list):
+                    for test in data:
+                        total_tests += 1
+                        if test.get('blocked', False):
+                            blocked_tests += 1
+                        elif test.get('potential_vulnerability', False):
+                            vulnerabilities.append(test)
+            
+            block_rate = (blocked_tests / total_tests * 100) if total_tests > 0 else 0
+            
+            summary = {
+                'test_type': '${{ matrix.security_test }}',
+                'total_tests': total_tests,
+                'blocked_tests': blocked_tests,
+                'block_rate_percent': round(block_rate, 2),
+                'vulnerabilities_found': len(vulnerabilities),
+                'passed': len(vulnerabilities) == 0 and block_rate > 80
+            }
+            
+            with open(os.path.join(analysis_dir, 'security-summary-${{ matrix.security_test }}.json'), 'w') as f:
+                json.dump(summary, f, indent=2)
+            
+            print(f'Security test summary: {summary}')
+            
+            if len(vulnerabilities) > 0:
+                print(f'WARNING: {len(vulnerabilities)} potential vulnerabilities found!')
+                exit(1)
+            elif block_rate < 80:
+                print(f'WARNING: Block rate ({block_rate}%) is below threshold (80%)!')
+                exit(1)
+            else:
+                print('Security tests passed successfully!')
+            "
+
+      - name: Upload security test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-test-results-${{ matrix.security_test }}
+          path: |
+            test-results/
+            security-analysis/
+
+      - name: Stop test environment
+        if: always()
+        run: |
+          cd tests/docker
+          docker-compose -f docker-compose.test.yml down -v
+
+  performance-validation:
+    name: Performance Validation
+    runs-on: ubuntu-latest
+    needs: [integration-tests, load-tests]
+    if: always()
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+
+      - name: Validate performance requirements
+        run: |
+          python3 -c "
+          import json
+          import glob
+          import os
+          
+          # Performance requirements
+          MAX_LATENCY_MS = 10
+          MIN_THROUGHPUT_RPS = 1000
+          MIN_BLOCK_RATE = 80
+          
+          # Collect performance data
+          performance_data = {
+              'latency_tests': [],
+              'throughput_tests': [],
+              'block_rate_tests': []
+          }
+          
+          # Parse load test results
+          for summary_file in glob.glob('**/load-test-summary-*.json', recursive=True):
+              with open(summary_file, 'r') as f:
+                  data = json.load(f)
+                  performance_data['latency_tests'].append(data['latency_avg_ms'])
+                  performance_data['throughput_tests'].append(data['requests_per_sec'])
+          
+          # Parse security test results
+          for summary_file in glob.glob('**/security-summary-*.json', recursive=True):
+              with open(summary_file, 'r') as f:
+                  data = json.load(f)
+                  performance_data['block_rate_tests'].append(data['block_rate_percent'])
+          
+          # Validate requirements
+          avg_latency = sum(performance_data['latency_tests']) / len(performance_data['latency_tests']) if performance_data['latency_tests'] else 0
+          avg_throughput = sum(performance_data['throughput_tests']) / len(performance_data['throughput_tests']) if performance_data['throughput_tests'] else 0
+          avg_block_rate = sum(performance_data['block_rate_tests']) / len(performance_data['block_rate_tests']) if performance_data['block_rate_tests'] else 0
+          
+          print(f'Performance Validation Results:')
+          print(f'Average Latency: {avg_latency:.2f}ms (Requirement: <{MAX_LATENCY_MS}ms)')
+          print(f'Average Throughput: {avg_throughput:.2f} RPS (Requirement: >{MIN_THROUGHPUT_RPS} RPS)')
+          print(f'Average Block Rate: {avg_block_rate:.2f}% (Requirement: >{MIN_BLOCK_RATE}%)')
+          
+          validation_results = {
+              'latency_passed': avg_latency < MAX_LATENCY_MS,
+              'throughput_passed': avg_throughput > MIN_THROUGHPUT_RPS,
+              'block_rate_passed': avg_block_rate > MIN_BLOCK_RATE,
+              'avg_latency_ms': avg_latency,
+              'avg_throughput_rps': avg_throughput,
+              'avg_block_rate_percent': avg_block_rate
+          }
+          
+          with open('performance-validation.json', 'w') as f:
+              json.dump(validation_results, f, indent=2)
+          
+          all_passed = all([
+              validation_results['latency_passed'],
+              validation_results['throughput_passed'],
+              validation_results['block_rate_passed']
+          ])
+          
+          if not all_passed:
+              print('PERFORMANCE VALIDATION FAILED!')
+              exit(1)
+          else:
+              print('Performance validation passed successfully!')
+          "
+
+      - name: Upload performance validation results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-validation
+          path: performance-validation.json
+
+  generate-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [integration-tests, load-tests, security-tests, performance-validation]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+
+      - name: Generate comprehensive test report
+        run: |
+          python3 -c "
+          import json
+          import glob
+          import os
+          from datetime import datetime
+          
+          # Collect all test results
+          report = {
+              'timestamp': datetime.now().isoformat(),
+              'commit_sha': '${{ github.sha }}',
+              'branch': '${{ github.ref_name }}',
+              'workflow_run': '${{ github.run_number }}',
+              'integration_tests': {},
+              'load_tests': {},
+              'security_tests': {},
+              'performance_validation': {},
+              'summary': {}
+          }
+          
+          # Integration tests
+          for summary_file in glob.glob('**/integration-test-*.json', recursive=True):
+              test_name = os.path.basename(summary_file).replace('.json', '')
+              with open(summary_file, 'r') as f:
+                  report['integration_tests'][test_name] = json.load(f)
+          
+          # Load tests
+          for summary_file in glob.glob('**/load-test-summary-*.json', recursive=True):
+              test_name = os.path.basename(summary_file).replace('.json', '')
+              with open(summary_file, 'r') as f:
+                  report['load_tests'][test_name] = json.load(f)
+          
+          # Security tests
+          for summary_file in glob.glob('**/security-summary-*.json', recursive=True):
+              test_name = os.path.basename(summary_file).replace('.json', '')
+              with open(summary_file, 'r') as f:
+                  report['security_tests'][test_name] = json.load(f)
+          
+          # Performance validation
+          if os.path.exists('performance-validation.json'):
+              with open('performance-validation.json', 'r') as f:
+                  report['performance_validation'] = json.load(f)
+          
+          # Generate summary
+          total_tests = len(report['integration_tests']) + len(report['load_tests']) + len(report['security_tests'])
+          passed_tests = sum(1 for test in report['integration_tests'].values() if test.get('passed', False))
+          passed_tests += sum(1 for test in report['load_tests'].values() if test.get('passed', True))
+          passed_tests += sum(1 for test in report['security_tests'].values() if test.get('passed', False))
+          
+          report['summary'] = {
+              'total_tests': total_tests,
+              'passed_tests': passed_tests,
+              'failed_tests': total_tests - passed_tests,
+              'success_rate': (passed_tests / total_tests * 100) if total_tests > 0 else 0,
+              'performance_validation_passed': report['performance_validation'].get('latency_passed', False) and 
+                                               report['performance_validation'].get('throughput_passed', False) and
+                                               report['performance_validation'].get('block_rate_passed', False)
+          }
+          
+          with open('comprehensive-test-report.json', 'w') as f:
+              json.dump(report, f, indent=2)
+          
+          # Generate HTML report
+          html_report = f'''
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Kong Guard AI Test Report</title>
+              <style>
+                  body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                  .header {{ background: #f4f4f4; padding: 20px; border-radius: 5px; }}
+                  .summary {{ margin: 20px 0; }}
+                  .test-section {{ margin: 30px 0; }}
+                  .pass {{ color: green; }}
+                  .fail {{ color: red; }}
+                  table {{ border-collapse: collapse; width: 100%; }}
+                  th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                  th {{ background-color: #f2f2f2; }}
+              </style>
+          </head>
+          <body>
+              <div class=\"header\">
+                  <h1>Kong Guard AI Integration Test Report</h1>
+                  <p><strong>Commit:</strong> {report['commit_sha'][:8]}</p>
+                  <p><strong>Branch:</strong> {report['branch']}</p>
+                  <p><strong>Run:</strong> #{report['workflow_run']}</p>
+                  <p><strong>Timestamp:</strong> {report['timestamp']}</p>
+              </div>
+              
+              <div class=\"summary\">
+                  <h2>Test Summary</h2>
+                  <p><strong>Total Tests:</strong> {report['summary']['total_tests']}</p>
+                  <p><strong>Passed:</strong> <span class=\"pass\">{report['summary']['passed_tests']}</span></p>
+                  <p><strong>Failed:</strong> <span class=\"fail\">{report['summary']['failed_tests']}</span></p>
+                  <p><strong>Success Rate:</strong> {report['summary']['success_rate']:.1f}%</p>
+                  <p><strong>Performance Validation:</strong> 
+                     <span class=\"{'pass' if report['summary']['performance_validation_passed'] else 'fail'}\">
+                         {'PASSED' if report['summary']['performance_validation_passed'] else 'FAILED'}
+                     </span>
+                  </p>
+              </div>
+              
+              <div class=\"test-section\">
+                  <h2>Integration Tests</h2>
+                  <table>
+                      <tr><th>Test</th><th>Status</th><th>Details</th></tr>
+          '''
+          
+          for test_name, test_data in report['integration_tests'].items():
+              status = 'PASSED' if test_data.get('passed', False) else 'FAILED'
+              status_class = 'pass' if test_data.get('passed', False) else 'fail'
+              html_report += f'<tr><td>{test_name}</td><td class=\"{status_class}\">{status}</td><td>{test_data}</td></tr>'
+          
+          html_report += '''
+                  </table>
+              </div>
+              
+              <div class=\"test-section\">
+                  <h2>Performance Validation</h2>
+                  <table>
+                      <tr><th>Metric</th><th>Value</th><th>Requirement</th><th>Status</th></tr>
+          '''
+          
+          perf = report['performance_validation']
+          if perf:
+              html_report += f'''
+                      <tr><td>Average Latency</td><td>{perf.get('avg_latency_ms', 0):.2f}ms</td><td>&lt;10ms</td><td class=\"{'pass' if perf.get('latency_passed', False) else 'fail'}\">{\"PASS\" if perf.get('latency_passed', False) else \"FAIL\"}</td></tr>
+                      <tr><td>Average Throughput</td><td>{perf.get('avg_throughput_rps', 0):.2f} RPS</td><td>&gt;1000 RPS</td><td class=\"{'pass' if perf.get('throughput_passed', False) else 'fail'}\">{\"PASS\" if perf.get('throughput_passed', False) else \"FAIL\"}</td></tr>
+                      <tr><td>Average Block Rate</td><td>{perf.get('avg_block_rate_percent', 0):.2f}%</td><td>&gt;80%</td><td class=\"{'pass' if perf.get('block_rate_passed', False) else 'fail'}\">{\"PASS\" if perf.get('block_rate_passed', False) else \"FAIL\"}</td></tr>
+              '''
+          
+          html_report += '''
+                  </table>
+              </div>
+          </body>
+          </html>
+          '''
+          
+          with open('test-report.html', 'w') as f:
+              f.write(html_report)
+          
+          print(f'Test report generated: {report[\"summary\"]}')
+          "
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: comprehensive-test-report
+          path: |
+            comprehensive-test-report.json
+            test-report.html
+
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            try {
+              const reportData = fs.readFileSync('comprehensive-test-report.json', 'utf8');
+              const report = JSON.parse(reportData);
+              
+              const comment = `## 🧪 Kong Guard AI Test Results
+              
+              **Commit:** \`${report.commit_sha.substring(0, 8)}\`
+              **Workflow Run:** #${report.workflow_run}
+              
+              ### Summary
+              - **Total Tests:** ${report.summary.total_tests}
+              - **Passed:** ✅ ${report.summary.passed_tests}
+              - **Failed:** ❌ ${report.summary.failed_tests}
+              - **Success Rate:** ${report.summary.success_rate.toFixed(1)}%
+              - **Performance Validation:** ${report.summary.performance_validation_passed ? '✅ PASSED' : '❌ FAILED'}
+              
+              ### Performance Metrics
+              ${report.performance_validation.avg_latency_ms ? `- **Latency:** ${report.performance_validation.avg_latency_ms.toFixed(2)}ms` : ''}
+              ${report.performance_validation.avg_throughput_rps ? `- **Throughput:** ${report.performance_validation.avg_throughput_rps.toFixed(0)} RPS` : ''}
+              ${report.performance_validation.avg_block_rate_percent ? `- **Block Rate:** ${report.performance_validation.avg_block_rate_percent.toFixed(1)}%` : ''}
+              
+              📊 [View detailed test report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (error) {
+              console.log('Could not create PR comment:', error);
+            }

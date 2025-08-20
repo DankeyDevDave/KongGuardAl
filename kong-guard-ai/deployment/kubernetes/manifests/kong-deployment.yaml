@@ -1,0 +1,315 @@
+# Kong Gateway with Guard AI Deployment
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kong-guard-ai-secret
+  namespace: kong-guard-ai
+type: Opaque
+data:
+  AI_API_KEY: # Base64 encoded AI API key - set this before deployment
+  SLACK_WEBHOOK_URL: # Base64 encoded Slack webhook URL
+  EMAIL_SMTP_PASSWORD: # Base64 encoded SMTP password
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-gateway
+  namespace: kong-guard-ai
+  labels:
+    app.kubernetes.io/name: kong-gateway
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/version: "3.4.2"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kong-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kong-gateway
+        app.kubernetes.io/component: gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8100"
+        prometheus.io/path: "/metrics"
+        kong-guard-ai.io/security-monitoring: "enabled"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      initContainers:
+      - name: wait-for-migration
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          until wget --quiet --tries=1 --spider http://postgres:5432/; do
+            echo "Waiting for database to be ready..."
+            sleep 5
+          done
+          echo "Database is ready!"
+      containers:
+      - name: kong-gateway
+        image: kong-guard-ai:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: proxy
+          containerPort: 8000
+          protocol: TCP
+        - name: proxy-ssl
+          containerPort: 8443
+          protocol: TCP
+        - name: admin-api
+          containerPort: 8001
+          protocol: TCP
+        - name: admin-ssl
+          containerPort: 8444
+          protocol: TCP
+        - name: status
+          containerPort: 8100
+          protocol: TCP
+        - name: cluster
+          containerPort: 8005
+          protocol: TCP
+        env:
+        # Database Configuration
+        - name: KONG_DATABASE
+          value: "postgres"
+        - name: KONG_PG_HOST
+          value: "postgres"
+        - name: KONG_PG_PORT
+          value: "5432"
+        - name: KONG_PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
+        - name: KONG_PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        - name: KONG_PG_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_DB
+        
+        # Network Configuration
+        - name: KONG_PROXY_LISTEN
+          value: "0.0.0.0:8000, 0.0.0.0:8443 ssl http2"
+        - name: KONG_ADMIN_LISTEN
+          value: "0.0.0.0:8001"
+        - name: KONG_STATUS_LISTEN
+          value: "0.0.0.0:8100"
+        - name: KONG_CLUSTER_LISTEN
+          value: "0.0.0.0:8005"
+        
+        # Plugin Configuration
+        - name: KONG_PLUGINS
+          value: "bundled,kong-guard-ai"
+        - name: KONG_LUA_PACKAGE_PATH
+          value: "/usr/local/share/lua/5.1/?.lua;;"
+        
+        # Performance Configuration
+        - name: KONG_NGINX_WORKER_PROCESSES
+          value: "auto"
+        - name: KONG_NGINX_WORKER_CONNECTIONS
+          value: "4096"
+        - name: KONG_MEM_CACHE_SIZE
+          value: "128m"
+        
+        # Security Configuration
+        - name: KONG_HEADERS
+          value: "off"
+        - name: KONG_SERVER_TOKENS
+          value: "off"
+        - name: KONG_REAL_IP_HEADER
+          value: "X-Forwarded-For"
+        - name: KONG_REAL_IP_RECURSIVE
+          value: "on"
+        - name: KONG_TRUSTED_IPS
+          value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+        
+        # Logging Configuration
+        - name: KONG_LOG_LEVEL
+          value: "info"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PROXY_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_ERROR_LOG
+          value: "/dev/stderr"
+        
+        # Kong Guard AI Configuration
+        - name: KONG_GUARD_AI_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kong-guard-ai-secret
+              key: AI_API_KEY
+              optional: true
+        - name: KONG_GUARD_AI_SLACK_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: kong-guard-ai-secret
+              key: SLACK_WEBHOOK_URL
+              optional: true
+        - name: KONG_GUARD_AI_EMAIL_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kong-guard-ai-secret
+              key: EMAIL_SMTP_PASSWORD
+              optional: true
+        
+        # Shared Memory Configuration
+        - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_CACHE
+          value: "64m"
+        - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_RATE_LIMIT
+          value: "32m"
+        - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_IP_BLACKLIST
+          value: "16m"
+        - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_COUNTERS
+          value: "16m"
+        - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_AI_CACHE
+          value: "32m"
+        
+        volumeMounts:
+        - name: kong-config
+          mountPath: /etc/kong/kong.conf
+          subPath: kong.conf
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: var-lib-kong
+          mountPath: /var/lib/kong
+        
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8100
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8100
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+          
+        startupProbe:
+          httpGet:
+            path: /status
+            port: 8100
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+          
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+            
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+      
+      volumes:
+      - name: kong-config
+        configMap:
+          name: kong-guard-ai-config
+      - name: tmp
+        emptyDir: {}
+      - name: var-lib-kong
+        emptyDir: {}
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - kong-gateway
+              topologyKey: kubernetes.io/hostname
+      
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-gateway
+  namespace: kong-guard-ai
+  labels:
+    app.kubernetes.io/name: kong-gateway
+    app.kubernetes.io/component: gateway
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0
+  ports:
+  - name: proxy
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+  - name: proxy-ssl
+    port: 443
+    targetPort: 8443
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kong-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-admin
+  namespace: kong-guard-ai
+  labels:
+    app.kubernetes.io/name: kong-gateway
+    app.kubernetes.io/component: admin
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+  ports:
+  - name: admin-api
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  - name: admin-ssl
+    port: 8444
+    targetPort: 8444
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kong-gateway

@@ -428,7 +428,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -436,7 +436,7 @@
             "description": "Define a custom log format to capture required request/response metadata including client_ip, method, path, selected headers, status, and latency using NGINX's log_format directive.",
             "dependencies": [],
             "details": "Specify a log format that includes all necessary fields for instrumentation, leveraging built-in timing variables such as $request_time for latency. Ensure the format is compatible with structured logging and downstream analysis.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Review generated log entries for completeness and correctness of all required fields using sample requests."
           },
           {
@@ -447,7 +447,7 @@
               "3.1"
             ],
             "details": "Configure NGINX to execute custom logic during access and log phases, ensuring metadata is captured efficiently and with minimal overhead.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Send test traffic and verify that hooks are triggered and metadata is captured as expected."
           },
           {
@@ -458,7 +458,7 @@
               "3.2"
             ],
             "details": "Implement logic to increment and retrieve counters in ngx.shared.dict, optimizing for performance and avoiding global locks.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate concurrent requests from multiple IPs and verify counters update correctly without exceeding latency targets."
           },
           {
@@ -469,7 +469,7 @@
               "3.3"
             ],
             "details": "Configure NGINX to emit logs in JSON or another structured format, ensuring all required fields are present and properly formatted.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Inspect emitted logs for structure, completeness, and compatibility with log analysis tools."
           },
           {
@@ -480,7 +480,7 @@
               "3.4"
             ],
             "details": "Profile and optimize code paths for metadata capture, counter updates, and log emission. Use efficient data structures and minimize allocations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Benchmark request latency under load using wrk/hey and confirm that instrumentation overhead remains within specified limits."
           }
         ]
@@ -495,7 +495,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -503,7 +503,7 @@
             "description": "Create a mechanism to check incoming requests against a predefined IP blacklist using lookup tables for O(1) access. Block requests early in the access phase if a match is found.",
             "dependencies": [],
             "details": "Define the data structure for the IP blacklist and integrate it into the access phase logic. Ensure efficient lookup and immediate blocking of matching requests.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Configure the IP blacklist and send requests from blacklisted IPs; verify that such requests are blocked and appropriate incident records are emitted."
           },
           {
@@ -512,7 +512,7 @@
             "description": "Develop logic to deny requests using HTTP methods specified in a denylist, leveraging lookup tables for fast checks during the access phase.",
             "dependencies": [],
             "details": "Specify the denylist of HTTP methods and integrate the check into the access phase. Block requests using denied methods before further processing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Set up a denylist and send requests with denied HTTP methods; confirm that these requests are blocked and incidents are logged."
           },
           {
@@ -521,7 +521,7 @@
             "description": "Integrate basic regex-based path filters to block requests matching suspicious or forbidden URL patterns during the access phase.",
             "dependencies": [],
             "details": "Define regex patterns for path filtering and implement efficient matching logic. Block requests that match any forbidden pattern and record the incident.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Configure regex filters and send requests matching those patterns; ensure requests are blocked and incidents are emitted with correct evidence."
           },
           {
@@ -534,7 +534,7 @@
               "4.3"
             ],
             "details": "Design the incident object schema and ensure that every blocked request triggers the creation of a structured incident record with all required fields.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger blocking events via blacklist, denylist, and regex filters; verify that incident records are created with accurate and complete information."
           },
           {
@@ -545,7 +545,7 @@
               "4.4"
             ],
             "details": "Implement a process to review incident records and detection rules, tuning them for optimal coverage and efficiency. Use historical data and test scenarios to identify broken or inefficient rules.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Periodically review incident logs and detection outcomes; adjust rules as needed and confirm improvements through targeted test cases."
           }
         ]
@@ -560,7 +560,7 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -568,7 +568,7 @@
             "description": "Define and implement efficient data structures in ngx.shared.dict to maintain per-metric and per-IP sliding windows for 1m and 5m intervals, supporting moving average and EMA calculations.",
             "dependencies": [],
             "details": "Ensure the design supports concurrent updates without global locks and is optimized for minimal memory and CPU overhead.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate concurrent log phase updates and verify correct windowed aggregation for multiple IPs and metrics."
           },
           {
@@ -579,7 +579,7 @@
               "5.1"
             ],
             "details": "Allow thresholds to be set per metric and window, and support both absolute and statistical (e.g., standard deviation-based) thresholds.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Configure various thresholds and verify correct detection of threshold crossings using synthetic log data."
           },
           {
@@ -590,7 +590,7 @@
               "5.2"
             ],
             "details": "Apply moving average/EMA and threshold logic to incoming log data, tagging and classifying anomalies by type and severity.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Replay burst and error-prone traffic; verify anomalies are detected and classified as expected."
           },
           {
@@ -601,7 +601,7 @@
               "5.3"
             ],
             "details": "Ensure incident records are lightweight, deduplicated within window, and compatible with existing logging/alerting pipelines.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger multiple anomaly types and verify incident records are emitted with correct fields and minimal duplication."
           },
           {
@@ -612,7 +612,7 @@
               "5.4"
             ],
             "details": "Benchmark CPU, memory, and latency impact under simulated burst and error traffic; tune data structures and logic as needed.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run high-throughput traffic scenarios and confirm plugin overhead remains within acceptable limits (e.g., <10ms per request)."
           }
         ]
@@ -627,7 +627,7 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -635,7 +635,7 @@
             "description": "Configure and validate secure access to the Kong Admin API, ensuring only authorized automation can perform remediation actions.",
             "dependencies": [],
             "details": "Implement authentication and network restrictions for the Admin API endpoint. Store credentials and endpoint configuration securely for use by automation components.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Attempt Admin API access with valid and invalid credentials. Verify unauthorized requests are rejected and authorized requests succeed."
           },
           {
@@ -646,7 +646,7 @@
               "6.1"
             ],
             "details": "Parse incident payloads to identify the affected entity type and unique identifier. Map incident data to Kong Admin API resource references.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate incidents targeting different entity types and verify correct resolution to Kong Admin API resource IDs."
           },
           {
@@ -657,7 +657,7 @@
               "6.2"
             ],
             "details": "Invoke Admin API endpoints to configure or update plugins on the target entity. Support all three remediation types and ensure correct plugin parameters are set.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger remediation for each action type and verify via Admin API that the correct plugin and configuration are applied to the intended entity."
           },
           {
@@ -668,7 +668,7 @@
               "6.3"
             ],
             "details": "Track action state to prevent duplicate application. Implement retry logic with exponential backoff for failed API calls, and handle error responses gracefully.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate transient failures and repeated triggers. Verify no duplicate actions occur and that retries follow the backoff policy."
           },
           {
@@ -679,7 +679,7 @@
               "6.4"
             ],
             "details": "Log every attempted and completed remediation action with sufficient metadata for traceability and compliance. Store logs in a persistent and queryable format.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger multiple remediation actions and verify audit logs contain accurate, complete, and non-duplicated records for each action."
           }
         ]
@@ -694,7 +694,7 @@
         "dependencies": [
           6
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -702,7 +702,7 @@
             "description": "Implement logic to monitor and correlate mass 5xx errors over the last N minutes, identifying affected routes/services and recent configuration changes.",
             "dependencies": [],
             "details": "Develop a mechanism to analyze error logs and correlate spikes in 5xx responses with recent configuration changes. Ensure the logic can operate within a configurable time window and supports safe thresholds for triggering remediation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate bursts of 5xx errors by introducing a faulty upstream. Verify that the system correctly identifies the spike and correlates it with recent configuration changes."
           },
           {
@@ -713,7 +713,7 @@
               "7.1"
             ],
             "details": "Configure decK to export and import Kong Gateway state files, or implement a local snapshot mechanism to capture and restore configurations. Ensure compatibility with both on-prem and Konnect-managed gateways.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Export the current configuration, make changes, and verify that both decK/Konnect and local snapshots can restore the previous state accurately."
           },
           {
@@ -724,7 +724,7 @@
               "7.2"
             ],
             "details": "Implement logic to identify the most recent safe configuration and automate the rollback process. Include guardrails such as validation checks, dry-run capabilities, and rollback abort conditions to prevent cascading failures.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger a rollback scenario after a detected spike. Validate that the rollback only occurs if safety checks pass and that the system returns to a healthy state."
           },
           {
@@ -735,7 +735,7 @@
               "7.1"
             ],
             "details": "Enable dynamic updates to Kong Gateway routes/services using the Admin API or declarative configuration. Ensure rerouting logic is atomic and reversible, and integrates with the rollback mechanism.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "During a simulated incident, reroute traffic to a healthy upstream and verify that requests are successfully redirected and error rates decrease."
           },
           {
@@ -747,7 +747,7 @@
               "7.4"
             ],
             "details": "Query the Admin API to confirm that configuration changes, reroutes, and rollbacks have been applied as intended. Implement automated checks to detect configuration drift or incomplete rollbacks.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "After remediation and rollback actions, use the Admin API to validate that the system state matches the expected configuration and that traffic is flowing as intended."
           }
         ]
@@ -762,7 +762,7 @@
         "dependencies": [
           6
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -770,7 +770,7 @@
             "description": "Define the JSON schema for incident notifications, ensuring inclusion of threat summary, scope, action taken, and links to Kong entities.",
             "dependencies": [],
             "details": "Specify required and optional fields, data types, and validation rules for the notification payload to ensure consistency across all delivery channels.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate emitted payloads against the schema using sample incidents and assert presence and correctness of all required fields."
           },
           {
@@ -781,7 +781,7 @@
               "8.1"
             ],
             "details": "Integrate with external APIs for each channel, handle authentication, and ensure message formatting is appropriate for each target.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Configure mock endpoints for each channel, trigger incidents, and verify correct delivery and formatting of notifications."
           },
           {
@@ -792,7 +792,7 @@
               "8.1"
             ],
             "details": "Implement storage logic with configurable toggles, ensuring atomic writes and schema compatibility for both databases.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger incidents with persistence enabled, then query both databases to confirm correct storage and data integrity."
           },
           {
@@ -804,7 +804,7 @@
               "8.3"
             ],
             "details": "Track recent notifications, suppress duplicates within a configurable window, and increase delay between repeated alerts for the same incident.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate rapid-fire incidents and verify that deduplication and backoff logic suppresses redundant notifications as expected."
           },
           {
@@ -815,7 +815,7 @@
               "8.4"
             ],
             "details": "Expose configuration for enabling/disabling channels, setting backoff parameters, and toggling persistence. Ensure workflows respect all settings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Apply various configurations, trigger incidents, and assert that notifications and persistence behave according to the specified workflow."
           }
         ]
@@ -830,7 +830,7 @@
         "dependencies": [
           6
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -838,7 +838,7 @@
             "description": "Define the JSON structure for the endpoint response, including plugin status, configuration snapshot, and last N incidents.",
             "dependencies": [],
             "details": "Specify required fields, data types, and validation rules for status, configuration, and incident records. Ensure compatibility with Kong conventions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Validate schema against sample data and confirm all required fields are present and correctly typed."
           },
           {
@@ -849,7 +849,7 @@
               "9.1"
             ],
             "details": "Integrate with Kong's plugin context to access status and configuration. Query shared dict or Redis for incident history, handling pagination and error cases.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Populate shared dict/Redis with test incidents and verify endpoint returns accurate, complete data."
           },
           {
@@ -860,7 +860,7 @@
               "9.2"
             ],
             "details": "Configure Kong to route requests to the new endpoint. Ensure the route is read-only and does not allow modification of data.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Send GET requests to the endpoint and confirm correct routing and response format."
           },
           {
@@ -871,7 +871,7 @@
               "9.3"
             ],
             "details": "Assign API keys to authorized Consumers. Restrict endpoint access to requests presenting valid keys, following Kong best practices.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Attempt access with valid and invalid keys; verify only authorized requests succeed and unauthorized requests are rejected."
           },
           {
@@ -882,7 +882,7 @@
               "9.4"
             ],
             "details": "Integrate with Kong's ACL plugin if needed. Record access attempts, including timestamp, Consumer, and result, for security auditing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger access attempts from multiple Consumers and verify audit logs capture all relevant details and access controls are enforced."
           }
         ]
@@ -898,7 +898,7 @@
           8,
           9
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -906,7 +906,7 @@
             "description": "Develop UI and/or API endpoints that allow operators to confirm or undo remediation actions, ensuring feedback is captured for each remediation event.",
             "dependencies": [],
             "details": "Feedback should be actionable, enabling operators to either confirm the applied remediation or revert it. The system must log all feedback events for traceability.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger an auto-remediation, then use the feedback interface to confirm and undo the action. Verify that the system logs and state reflect the operator's input."
           },
           {
@@ -917,7 +917,7 @@
               "10.1"
             ],
             "details": "When an operator confirms a remediation, thresholds or allowlists should be adjusted to reinforce the decision. If an action is undone, the system should learn to avoid similar false positives.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "After reverting a remediation, verify that the same triggering event does not cause another remediation unless thresholds are manually reset."
           },
           {
@@ -926,7 +926,7 @@
             "description": "Complete the README to cover installation, configuration, sample YAML, Docker workflows, and instructions for running the busted test suite.",
             "dependencies": [],
             "details": "Documentation must be clear, up-to-date, and include practical examples for all supported deployment and testing scenarios.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Follow README instructions from a clean environment to ensure all steps are accurate and reproducible."
           },
           {
@@ -937,7 +937,7 @@
               "10.3"
             ],
             "details": "Ensure all packaging scripts and Dockerfiles are tested and produce reproducible builds. Artifacts should be versioned and ready for release.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Build all packages and Docker images from scratch, then deploy using the documented steps to verify successful installation."
           },
           {
@@ -950,7 +950,7 @@
               "10.3"
             ],
             "details": "Tests should simulate real operator feedback scenarios, including edge cases for reverting actions and updating thresholds. Ensure coverage for all documented features.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run the full test suite, including new feedback loop tests, and confirm all pass. Manually verify edge cases not covered by automation."
           }
         ]
@@ -958,7 +958,7 @@
     ],
     "metadata": {
       "created": "2025-08-19T20:10:00.000Z",
-      "updated": "2025-08-19T21:17:08.108Z",
+      "updated": "2025-08-19T22:33:34.391Z",
       "description": "Tasks for assistant-local context (locally parsed; no external AI)"
     }
   }

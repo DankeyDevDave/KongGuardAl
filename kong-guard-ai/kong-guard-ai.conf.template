@@ -1,0 +1,151 @@
+# Kong Configuration Template for Kong Guard AI Plugin
+# Enhanced with Phase 5 & 6: Rate Limiting and Analytics Systems
+#
+# This template provides the necessary shared memory zones and configuration
+# for the Kong Guard AI plugin with advanced rate limiting and analytics.
+
+# === Basic Kong Configuration ===
+admin_listen = 0.0.0.0:8001
+proxy_listen = 0.0.0.0:8000
+
+# Enable the Kong Guard AI plugin
+plugins = bundled,kong-guard-ai
+
+# Database configuration (choose one)
+database = postgres
+# database = off  # for DB-less mode
+
+# PostgreSQL configuration (if using database)
+pg_host = localhost
+pg_port = 5432
+pg_database = kong
+pg_user = kong
+pg_password = kong
+
+# === Kong Guard AI Shared Memory Zones ===
+# These shared memory zones are required for the plugin to function properly
+
+# Core threat detection cache (existing)
+lua_shared_dict kong_guard_ai_cache 64m
+
+# Counter management system (existing) 
+lua_shared_dict kong_guard_ai_counters 32m
+lua_shared_dict kong_guard_ai_data 16m
+
+# PHASE 5: Advanced Rate Limiting Memory Zones
+# Rate limiting sliding windows and penalty tracking
+lua_shared_dict kong_guard_ai_rate_limits 128m
+lua_shared_dict kong_guard_ai_burst_detection 64m
+
+# PHASE 6: Analytics Dashboard Memory Zones  
+# Real-time analytics and threat intelligence
+lua_shared_dict kong_guard_ai_analytics 256m
+lua_shared_dict kong_guard_ai_threat_intel 128m
+
+# === Performance Optimization ===
+# Worker processes - adjust based on CPU cores
+nginx_worker_processes auto
+
+# Worker connections - adjust based on expected load
+nginx_events_worker_connections 4096
+
+# Memory allocation for Lua operations
+lua_package_path '/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;;'
+
+# === Logging Configuration ===
+# Enhanced logging for threat detection events
+log_level = info
+access_log = /var/log/kong/access.log
+error_log = /var/log/kong/error.log
+
+# === SSL/TLS Configuration (Production) ===
+# Uncomment and configure for production use
+# ssl_cert = /path/to/your/certificate.crt
+# ssl_cert_key = /path/to/your/private.key
+
+# === Additional Kong Settings ===
+# Increase proxy buffer sizes for large payloads
+nginx_http_client_body_buffer_size = 128k
+nginx_http_client_max_body_size = 10m
+
+# Timeout settings
+nginx_http_lua_socket_connect_timeout = 60s
+nginx_http_lua_socket_send_timeout = 60s
+nginx_http_lua_socket_read_timeout = 60s
+
+# === Rate Limiting Global Settings ===
+# These settings complement the plugin's rate limiting
+nginx_http_limit_req_zone = $binary_remote_addr zone=global:10m rate=100r/s
+
+# === Security Headers ===
+# Additional security headers (can be overridden by plugin)
+headers = X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+
+# === Kong Guard AI Plugin Environment Variables ===
+# Set these environment variables for plugin configuration
+
+# API Keys for AI and Threat Intelligence services
+# export OPENAI_API_KEY="your_openai_api_key_here"
+# export ANTHROPIC_API_KEY="your_anthropic_api_key_here" 
+# export THREAT_INTEL_API_KEY="your_threat_intel_api_key_here"
+
+# External service endpoints
+# export GEOIP_SERVICE_URL="https://api.maxmind.com/geoip/v2.1/city"
+# export THREAT_INTEL_FEED_URL="https://api.alienvault.com/otx/v1"
+
+# Notification endpoints
+# export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+# export EMAIL_SMTP_SERVER="smtp.yourdomain.com"
+
+# === Example Plugin Configuration ===
+# This would typically be applied via Kong Admin API or declarative config
+
+# curl -X POST http://localhost:8001/plugins \
+#   --data "name=kong-guard-ai" \
+#   --data "config.dry_run_mode=false" \
+#   --data "config.threat_threshold=7.0" \
+#   --data "config.enable_advanced_rate_limiting=true" \
+#   --data "config.rate_limit_per_minute=60" \
+#   --data "config.rate_limit_per_hour=3600" \
+#   --data "config.enable_burst_detection=true" \
+#   --data "config.analytics_dashboard_enabled=true" \
+#   --data "config.enable_threat_intelligence=true" \
+#   --data "config.enable_geographic_analysis=true" \
+#   --data "config.enable_predictive_analytics=true" \
+#   --data "config.enable_compliance_reporting=true"
+
+# === Monitoring and Observability ===
+# Status and metrics endpoints will be available at:
+# - /_guard_ai/status          (Plugin health status)
+# - /_guard_ai/metrics         (Performance metrics)
+# - /_guard_ai/analytics/kpis  (Executive dashboard KPIs)
+# - /_guard_ai/analytics/threats (Real-time threat data)
+# - /_guard_ai/analytics/geo     (Geographic threat analysis)
+# - /_guard_ai/analytics/predictions (Threat predictions)
+# - /_guard_ai/analytics/compliance  (Compliance reports)
+
+# === Memory Usage Guidelines ===
+# Recommended minimum system requirements:
+# - RAM: 4GB+ (8GB+ for high-traffic environments)
+# - CPU: 4+ cores 
+# - Storage: 20GB+ for logs and analytics data
+#
+# Shared memory zone sizing guidelines:
+# - kong_guard_ai_cache: 64m (core detection cache)
+# - kong_guard_ai_counters: 32m (request/response counters)
+# - kong_guard_ai_rate_limits: 128m (rate limiting data - scales with unique IPs)
+# - kong_guard_ai_analytics: 256m (analytics and threat intelligence)
+# - Total: ~480m for plugin shared memory zones
+#
+# Monitor memory usage via /_guard_ai/metrics endpoint
+
+# === Development vs Production Settings ===
+
+# Development settings (permissive)
+# lua_code_cache = off  # Disable for development only
+# log_level = debug
+
+# Production settings (secure)
+# lua_code_cache = on   # Always enable in production  
+# log_level = warn
+# admin_listen = 127.0.0.1:8001  # Restrict admin API access

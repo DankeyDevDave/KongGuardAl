@@ -4,6 +4,7 @@
 
 local kong = kong
 local json = require "cjson.safe"
+local method_filter = require "kong.plugins.kong-guard-ai.method_filter"
 
 local _M = {}
 
@@ -29,7 +30,8 @@ local THREAT_TYPES = {
     ANOMALOUS_BEHAVIOR = "anomalous_behavior",
     CREDENTIAL_STUFFING = "credential_stuffing",
     DDoS = "distributed_denial_of_service",
-    API_ABUSE = "api_abuse"
+    API_ABUSE = "api_abuse",
+    HTTP_METHOD_VIOLATION = "http_method_violation"
 }
 
 ---
@@ -50,6 +52,12 @@ function _M.init_worker(conf)
     if conf.enable_learning then
         learning_data.request_patterns = {}
         learning_data.response_patterns = {}
+    end
+    
+    -- Initialize HTTP method filtering if enabled
+    if conf.enable_method_filtering then
+        method_filter.init_worker(conf)
+        kong.log.info("[Kong Guard AI Detector] HTTP method filtering initialized")
     end
     
     kong.log.info("[Kong Guard AI Detector] Detection engine initialized")
@@ -88,29 +96,40 @@ function _M.analyze_request(request_context, conf)
         recommended_action = "allow"
     }
     
-    -- 1. IP Reputation Analysis
+    -- 1. HTTP Method Analysis (fast O(1) check first)
+    if conf.enable_method_filtering then
+        local method_threat = method_filter.analyze_method(request_context.method, request_context, conf)
+        _M.merge_threat_result(threat_result, method_threat)
+        
+        -- Early return for denied methods to avoid unnecessary processing
+        if method_threat.recommended_action == "block" then
+            return threat_result
+        end
+    end
+    
+    -- 2. IP Reputation Analysis
     if conf.enable_ip_reputation then
         local ip_threat = _M.analyze_ip_reputation(request_context.client_ip, conf)
         _M.merge_threat_result(threat_result, ip_threat)
     end
     
-    -- 2. Rate Limiting Analysis  
+    -- 3. Rate Limiting Analysis  
     if conf.enable_rate_limiting_detection then
         local rate_threat = _M.analyze_rate_limiting(request_context, conf)
         _M.merge_threat_result(threat_result, rate_threat)
     end
     
-    -- 3. Payload Analysis
+    -- 4. Payload Analysis
     if conf.enable_payload_analysis then
         local payload_threat = _M.analyze_payload(request_context, conf)
         _M.merge_threat_result(threat_result, payload_threat)
     end
     
-    -- 4. Behavioral Analysis
+    -- 5. Behavioral Analysis
     local behavior_threat = _M.analyze_behavior(request_context, conf)
     _M.merge_threat_result(threat_result, behavior_threat)
     
-    -- 5. Determine if AI analysis is needed
+    -- 6. Determine if AI analysis is needed
     if threat_result.threat_level >= conf.ai_analysis_threshold then
         threat_result.requires_ai_analysis = true
     end

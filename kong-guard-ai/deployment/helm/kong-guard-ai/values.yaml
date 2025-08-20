@@ -1,0 +1,386 @@
+# Kong Guard AI Helm Chart Values
+# Default values for kong-guard-ai deployment
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Kong Gateway Configuration
+kong:
+  image:
+    repository: kong-guard-ai
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  # Replica configuration
+  replicaCount: 3
+  
+  # Update strategy
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  
+  # Resource configuration
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2"
+  
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+  
+  # Network configuration
+  proxy:
+    enabled: true
+    type: LoadBalancer
+    annotations: {}
+    loadBalancerSourceRanges: []
+    http:
+      enabled: true
+      servicePort: 80
+      containerPort: 8000
+    tls:
+      enabled: true
+      servicePort: 443
+      containerPort: 8443
+  
+  admin:
+    enabled: true
+    type: ClusterIP
+    http:
+      enabled: true
+      servicePort: 8001
+      containerPort: 8001
+    tls:
+      enabled: false
+      servicePort: 8444
+      containerPort: 8444
+  
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /status
+      port: 8100
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /status
+      port: 8100
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    successThreshold: 1
+    failureThreshold: 3
+  
+  startupProbe:
+    httpGet:
+      path: /status
+      port: 8100
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+  
+  # Environment configuration
+  env:
+    # Database configuration
+    database: postgres
+    pg_host: "{{ include \"kong-guard-ai.postgresql.fullname\" . }}"
+    pg_port: 5432
+    pg_database: kong
+    pg_user: kong
+    
+    # Performance tuning
+    nginx_worker_processes: auto
+    nginx_worker_connections: 4096
+    mem_cache_size: 128m
+    
+    # Plugin configuration
+    plugins: "bundled,kong-guard-ai"
+    lua_package_path: "/usr/local/share/lua/5.1/?.lua;;"
+    
+    # Security configuration
+    headers: "off"
+    server_tokens: "off"
+    real_ip_header: "X-Forwarded-For"
+    real_ip_recursive: "on"
+    trusted_ips: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    
+    # Logging
+    log_level: info
+    proxy_access_log: "/dev/stdout"
+    admin_access_log: "/dev/stdout"
+    proxy_error_log: "/dev/stderr"
+    admin_error_log: "/dev/stderr"
+
+# Kong Guard AI Plugin Configuration
+kongGuardAI:
+  enabled: true
+  
+  # Core settings
+  config:
+    dry_run_mode: true
+    threat_threshold: 8.0
+    max_processing_time_ms: 10
+    
+    # Threat detection
+    enable_rate_limiting_detection: true
+    rate_limit_threshold: 150
+    rate_limit_window_seconds: 60
+    enable_payload_analysis: true
+    max_payload_size: 262144
+    
+    # Response actions
+    enable_auto_blocking: false
+    block_duration_seconds: 1800
+    enable_rate_limiting_response: true
+    enable_config_rollback: false
+    
+    # AI Gateway integration
+    ai_gateway_enabled: false
+    ai_gateway_model: "gpt-4o-mini"
+    ai_analysis_threshold: 6.0
+    ai_timeout_ms: 3000
+    
+    # Notifications
+    enable_notifications: true
+    notification_threshold: 7.0
+    
+    # Admin API integration
+    admin_api_enabled: false
+    admin_api_timeout_ms: 3000
+    
+    # Logging and monitoring
+    log_level: "info"
+    enable_learning: false
+    learning_sample_rate: 0.01
+    
+    # IP management
+    ip_whitelist: []
+    ip_blacklist: []
+    
+    # Pattern detection
+    suspicious_patterns:
+      - "(?i)(union|select|insert|delete|update|drop|create|alter).*?(from|into|table|database)"
+      - "(?i)<script[^>]*>.*?</script>"
+      - "(?i)(eval|function|settimeout|setinterval)\\s*\\("
+      - "(?i)(document\\.|window\\.|location\\.)"
+      - "(?i)(cmd|command|exec|system|shell)\\s*[(=]"
+
+# Secret configuration (API keys, credentials)
+secrets:
+  # AI Gateway credentials
+  aiApiKey: ""
+  
+  # Notification credentials
+  slackWebhookUrl: ""
+  emailSmtpPassword: ""
+  
+  # External service credentials
+  externalLogApiKey: ""
+  
+  # Admin API credentials
+  adminApiKey: ""
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: kong
+    password: ""
+    database: kong
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+
+# Redis configuration (optional caching)
+redis:
+  enabled: false
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      path: /metrics
+    rules:
+      enabled: true
+  
+  grafana:
+    enabled: true
+    adminPassword: "admin"
+    persistence:
+      enabled: true
+      size: 5Gi
+    dashboards:
+      enabled: true
+  
+  alertmanager:
+    enabled: true
+    config:
+      global:
+        smtp_smarthost: 'localhost:587'
+        smtp_from: 'alerts@company.com'
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: kong-guard-ai.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network Policy
+networkPolicy:
+  enabled: true
+  ingress:
+    enabled: true
+    from: []
+  egress:
+    enabled: true
+    to: []
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Pod Security Policy
+podSecurityPolicy:
+  enabled: false
+
+# Migration job configuration
+migration:
+  enabled: true
+  image:
+    repository: kong-guard-ai
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  backoffLimit: 5
+
+# Deployment environment specific overrides
+environment:
+  # Development environment
+  development:
+    kong:
+      replicaCount: 1
+    kongGuardAI:
+      config:
+        dry_run_mode: true
+        threat_threshold: 9.0
+        log_level: "debug"
+        admin_api_enabled: false
+        ai_gateway_enabled: false
+    monitoring:
+      enabled: false
+  
+  # Staging environment
+  staging:
+    kong:
+      replicaCount: 2
+    kongGuardAI:
+      config:
+        dry_run_mode: false
+        threat_threshold: 8.0
+        enable_auto_blocking: false
+        enable_rate_limiting_response: true
+        admin_api_enabled: false
+    monitoring:
+      enabled: true
+  
+  # Production environment
+  production:
+    kong:
+      replicaCount: 3
+    kongGuardAI:
+      config:
+        dry_run_mode: false
+        threat_threshold: 7.0
+        enable_auto_blocking: true
+        enable_rate_limiting_response: true
+        admin_api_enabled: true
+        ai_gateway_enabled: true
+    monitoring:
+      enabled: true
+      grafana:
+        persistence:
+          enabled: true
+
+# Custom labels and annotations
+labels: {}
+annotations: {}
+
+# Node selection
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - kong-guard-ai
+          topologyKey: kubernetes.io/hostname

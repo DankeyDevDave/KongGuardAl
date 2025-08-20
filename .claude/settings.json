@@ -1,0 +1,65 @@
+{
+  "allowedTools": [
+    "Edit",
+    "Read", 
+    "Write",
+    "MultiEdit",
+    "Bash",
+    "Glob",
+    "Grep",
+    "LS",
+    "TodoWrite",
+    "Task",
+    "WebFetch",
+    "Bash(npx claude-flow@alpha *)",
+    "Bash(docker *)",
+    "Bash(docker-compose *)",
+    "Bash(git *)",
+    "Bash(curl *)",
+    "Bash(task-master *)",
+    "mcp__claude-flow__*",
+    "mcp__task-master-ai__*",
+    "mcp__context7__*"
+  ],
+  "tools": {
+    "bash": {
+      "enabled": true,
+      "allowedCommands": [
+        "npx claude-flow@alpha *",
+        "docker *",
+        "docker-compose *", 
+        "git *",
+        "curl *",
+        "task-master *",
+        "kong *",
+        "luac *"
+      ]
+    }
+  },
+  "integrations": {
+    "claudeFlow": {
+      "enabled": true,
+      "autoInit": false,
+      "defaultTopology": "hierarchical",
+      "maxAgents": 8,
+      "memoryNamespace": "kong-guard-ai"
+    },
+    "taskMaster": {
+      "enabled": true,
+      "autoGenerate": true,
+      "showProgress": true
+    },
+    "github": {
+      "enabled": true,
+      "autoCommit": false,
+      "conventionalCommits": true
+    }
+  },
+  "workflows": {
+    "security": {
+      "enabled": true,
+      "autoResponse": true,
+      "alertThreshold": 80
+    }
+  }
+}
