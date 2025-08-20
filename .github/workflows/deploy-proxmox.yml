@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: git-worker-01
+    runs-on: self-hosted
     
     steps:
     - name: Checkout code
