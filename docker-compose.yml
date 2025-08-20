@@ -67,7 +67,7 @@ services:
       - "8001:8001/tcp"    # Kong admin API (HTTP)
       - "8444:8444/tcp"    # Kong admin API (HTTPS)
     volumes:
-      - ./plugins:/usr/local/share/lua/5.1/kong/plugins/custom
+      - ./kong-guard-ai/kong/plugins:/usr/local/share/lua/5.1/kong/plugins
       - ./kong.conf:/etc/kong/kong.conf
     environment:
       KONG_DATABASE: postgres
