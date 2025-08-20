@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: proxmox-runner-201
+    runs-on: git-worker-01
     
     steps:
     - name: Checkout code

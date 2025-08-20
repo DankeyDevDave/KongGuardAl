@@ -1,0 +1,11 @@
+{
+  "defaultRunner": "git-worker-01",
+  "workflowDefaults": {
+    "runs-on": "git-worker-01"
+  },
+  "proxmoxConfig": {
+    "host": "192.168.0.200",
+    "container": "201",
+    "runnerName": "git-worker-01"
+  }
+}
