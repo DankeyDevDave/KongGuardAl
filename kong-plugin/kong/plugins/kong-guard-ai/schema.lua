@@ -191,8 +191,29 @@ return {
                         log_level = {
                             type = "string",
                             default = "info",
-                            one_of = {"debug", "info", "warn", "error"},
-                            description = "Logging level"
+                            one_of = {"debug", "info", "warn", "error", "critical"},
+                            description = "General logging level"
+                        }
+                    },
+                    {
+                        log_threats = {
+                            type = "boolean",
+                            default = true,
+                            description = "Log detected threats"
+                        }
+                    },
+                    {
+                        log_requests = {
+                            type = "boolean",
+                            default = false,
+                            description = "Log all requests (verbose)"
+                        }
+                    },
+                    {
+                        log_decisions = {
+                            type = "boolean",
+                            default = true,
+                            description = "Log blocking/rate-limiting decisions"
                         }
                     },
                     {

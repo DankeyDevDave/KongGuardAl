@@ -6,6 +6,37 @@ local KongGuardAIHandler = {
     PRIORITY = 2000
 }
 
+-- Log level constants
+local LOG_LEVELS = {
+    debug = 0,
+    info = 1,
+    warn = 2,
+    error = 3,
+    critical = 4
+}
+
+-- Helper function to check if logging is enabled for a level
+local function should_log(config_level, msg_level)
+    return LOG_LEVELS[msg_level] >= LOG_LEVELS[config_level]
+end
+
+-- Helper function for structured logging with level checks
+local function log_message(config, level, message, data)
+    if should_log(config.log_level, level) then
+        if level == "debug" then
+            kong.log.debug(message, data)
+        elseif level == "info" then
+            kong.log.info(message, data)
+        elseif level == "warn" then
+            kong.log.warn(message, data)
+        elseif level == "error" then
+            kong.log.err(message, data)
+        elseif level == "critical" then
+            kong.log.crit(message, data)
+        end
+    end
+end
+
 -- init_worker phase: Initialize ML models and caches
 function KongGuardAIHandler:init_worker()
     -- Initialize shared memory for threat tracking
@@ -32,18 +63,38 @@ function KongGuardAIHandler:access(config)
     -- Perform threat detection
     local threat_score, threat_type = self:detect_threat(features, config)
     
-    -- Log detection
-    kong.log.info("Kong Guard AI: Request analyzed", {
-        client_ip = client_ip,
-        path = path,
-        threat_score = threat_score,
-        threat_type = threat_type
-    })
+    -- Log request if enabled
+    if config.log_requests then
+        log_message(config, "debug", "Kong Guard AI: Request received", {
+            client_ip = client_ip,
+            path = path,
+            method = method,
+            headers = headers
+        })
+    end
+    
+    -- Log threat detection if threats logging is enabled
+    if config.log_threats and threat_score > 0 then
+        local log_level = threat_score > config.block_threshold and "warn" or "info"
+        log_message(config, log_level, "Kong Guard AI: Threat detected", {
+            client_ip = client_ip,
+            path = path,
+            threat_score = threat_score,
+            threat_type = threat_type
+        })
+    end
     
     -- Take action based on threat level
     if threat_score > config.block_threshold then
         -- Block request
         if not config.dry_run then
+            if config.log_decisions then
+                log_message(config, "warn", "Kong Guard AI: Blocking request", {
+                    threat_type = threat_type,
+                    client_ip = client_ip,
+                    threat_score = threat_score
+                })
+            end
             self:block_request(threat_type, client_ip)
             return kong.response.exit(403, {
                 message = "Request blocked by Kong Guard AI",
@@ -51,19 +102,31 @@ function KongGuardAIHandler:access(config)
                 incident_id = self:generate_incident_id()
             })
         else
-            kong.log.warn("Kong Guard AI: Would block request (dry-run mode)", {
-                threat_type = threat_type,
-                client_ip = client_ip
-            })
+            if config.log_decisions then
+                log_message(config, "info", "Kong Guard AI: Would block request (dry-run mode)", {
+                    threat_type = threat_type,
+                    client_ip = client_ip,
+                    threat_score = threat_score
+                })
+            end
         end
     elseif threat_score > config.rate_limit_threshold then
         -- Apply rate limiting
         if not config.dry_run then
+            if config.log_decisions then
+                log_message(config, "info", "Kong Guard AI: Applying rate limit", {
+                    client_ip = client_ip,
+                    threat_score = threat_score
+                })
+            end
             self:apply_rate_limit(client_ip, config)
         else
-            kong.log.warn("Kong Guard AI: Would rate-limit request (dry-run mode)", {
-                client_ip = client_ip
-            })
+            if config.log_decisions then
+                log_message(config, "info", "Kong Guard AI: Would rate-limit request (dry-run mode)", {
+                    client_ip = client_ip,
+                    threat_score = threat_score
+                })
+            end
         end
     end
     

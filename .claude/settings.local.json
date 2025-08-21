@@ -6,7 +6,10 @@
       "Bash(npx -y @upstash/context7-mcp:*)",
       "mcp__task-master-ai__get_tasks",
       "mcp__task-master-ai__analyze_project_complexity",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(cp:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

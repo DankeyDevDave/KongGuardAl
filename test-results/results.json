@@ -1,0 +1,247 @@
+{
+  "config": {
+    "configFile": "/Users/jacques/DevFolder/KongGuardAI/playwright.config.ts",
+    "rootDir": "/Users/jacques/DevFolder/KongGuardAI/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 3
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/jacques/DevFolder/KongGuardAI/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/jacques/DevFolder/KongGuardAI/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 7,
+    "webServer": {
+      "command": "python3 -m http.server 8080",
+      "port": 8080,
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "01-status-checks.spec.ts",
+      "file": "01-status-checks.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Kong Guard AI Dashboard - Status Checks",
+          "file": "01-status-checks.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load dashboard successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1799,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-21T05:40:49.210Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7a10b49e9fa489d8f1e2-d1aebeeddd3eb326bf9a",
+              "file": "01-status-checks.spec.ts",
+              "line": 12,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02-normal-traffic.spec.ts",
+      "file": "02-normal-traffic.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Kong Guard AI Dashboard - Normal Traffic Tests",
+          "file": "02-normal-traffic.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should send normal request successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 9393,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Response received: {\n  \"status\": 200,\n  \"statusText\": \"OK\",\n  \"threat\": \"None\",\n  \"action\": \"Allowed\",\n  \"data\": {\n    \"args\": {},\n    \"headers\": {\n      \"Accept\": \"*/*\",\n      \"Accept-Encoding\": \"gzip, deflate, br, zstd\",\n      \"Accept-Language\": \"en-US\",\n      \"Connection\": \"keep-alive\",\n      \"Host\": \"demo-api\",\n      \"Origin\": \"http://localhost:8080\",\n      \"Referer\": \"http://localhost:8080/\",\n      \"Sec-Ch-Ua\": \"\\\"Chromium\\\";v=\\\"140\\\", \\\"Not=A?Brand\\\";v=\\\"24\\\", \\\"HeadlessChrome\\\";v=\\\"140\\\"\",\n      \"Sec-Ch-Ua-Mobile\": \"?0\",\n      \"Sec-Ch-Ua-Platform\": \"\\\"Windows\\\"\",\n      \"Sec-Fetch-Dest\": \"empty\",\n      \"Sec-Fetch-Mode\": \"cors\",\n      \"Sec-Fetch-Site\": \"same-site\",\n      \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\",\n      \"X-Forwarded-Host\": \"localhost\",\n      \"X-Forwarded-Path\": \"/test/get\",\n      \"X-Forwarded-Prefix\": \"/test\",\n      \"X-Kong-Request-Id\": \"45c473760835d90129aa6a5fe6c43a75\"\n    },\n    \"origin\": \"192.168.65.1\",\n    \"url\": \"http://localhost/get\"\n  }\n}\n"
+                        }
+                      ],
+                      "stderr": [
+                        {
+                          "text": "Some services are not online, waiting...\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2025-08-21T05:40:49.210Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed46f295ab6d985c3e59-77b46a37f3e10d48d2da",
+              "file": "02-normal-traffic.spec.ts",
+              "line": 13,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03-attack-simulations.spec.ts",
+      "file": "03-attack-simulations.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Kong Guard AI Dashboard - Attack Simulations",
+          "file": "03-attack-simulations.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should detect and block SQL injection attack",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 9392,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "Some services are not online, waiting...\n"
+                        },
+                        {
+                          "text": "SQL Injection not blocked - plugin may need query parameter checking\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2025-08-21T05:40:49.209Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cc37a75ef9d0ba6f2bc6-7e37485a5f3c3b4cc21d",
+              "file": "03-attack-simulations.spec.ts",
+              "line": 13,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-21T05:40:48.701Z",
+    "duration": 12463.39,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
