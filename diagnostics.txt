@@ -1,0 +1,102 @@
+Kong Guard AI Launch Errors:
+========================
+
+Errors encountered:
+
+
+Docker container status:
+kong-gateway      Up 2 seconds (health: starting)
+kong-migrations   Exited (0) 2 seconds ago
+kong-database     Up 34 seconds (healthy)
+kong-redis        Up 34 seconds (healthy)
+mock-attacker     Up 34 seconds (healthy)
+demo-api          Up 34 seconds (health: starting)
+kong-gateway-db   Exited (1) 4 hours ago
+kong-migration    Exited (0) 17 hours ago
+mockbin-service   Exited (8) 17 hours ago
+
+Recent Docker logs:
+
+--- kong-gateway logs ---
+2025/08/21 08:17:39 [debug] 1402#0: *1932 [lua] broker.lua:83: broadcast_events(): event published to 4 workers
+2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
+2025/08/21 08:17:39 [debug] 1402#0: *2578 [lua] broker.lua:83: broadcast_events(): event published to 4 workers
+2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
+2025/08/21 08:17:39 [notice] 1402#0: *2578 [lua] broker.lua:270: run(): worker #0 connected to events broker (worker pid: 1402), client: unix:, server: kong_worker_events, request: "GET / HTTP/1.1", host: "localhost"
+2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
+2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
+2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
+2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
+2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
+2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
+2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
+2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
+2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
+2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
+2025/08/21 08:17:39 [debug] 1404#0: *5 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.0046875, runable_jobs_avg: 3, alive_threads_avg: 640
+2025/08/21 08:17:39 [debug] 1403#0: *11 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.0046875, runable_jobs_avg: 3, alive_threads_avg: 640
+2025/08/21 08:17:39 [debug] 1405#0: *970 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.0046875, runable_jobs_avg: 3, alive_threads_avg: 640
+2025/08/21 08:17:39 [debug] 1402#0: *1935 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.00625, runable_jobs_avg: 4, alive_threads_avg: 640
+2025/08/21 08:17:39 [debug] 1404#0: *9 [lua] upstreams.lua:108: no upstreams were specified
+2025/08/21 08:17:39 [debug] 1404#0: *9 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 08:17:39 [debug] 1405#0: *1043 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 08:17:39 [debug] 1402#0: *1941 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 08:17:39 [notice] 1402#0: *1939 [lua] warmup.lua:80: finished warming up DNS entries' into the cache (in 379ms), context: ngx.timer
+2025/08/21 08:17:39 [debug] 1403#0: *15 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:29: Loading Admin API endpoints
+2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:120: No API endpoints loaded for plugin: kong-guard-ai
+2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:08:17:40 +0000] "GET / HTTP/1.1" 200 13427 "-" "curl/8.7.1"
+2025/08/21 08:17:40 [info] 1402#0: *2585 client 192.168.65.1 closed keepalive connection
+192.168.65.1 - - [21/Aug/2025:08:17:40 +0000] "GET / HTTP/1.1" 404 103 "-" "curl/8.7.1" kong_request_id: "9d36372d0b77aa0999e7964acbad3e37"
+2025/08/21 08:17:40 [info] 1402#0: *2586 client 192.168.65.1 closed keepalive connection
+2025/08/21 08:17:40 [debug] 1402#0: *2587 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 08:17:40 [debug] 1402#0: *2587 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:08:17:40 +0000] "GET /plugins HTTP/1.1" 200 1173 "-" "curl/8.7.1"
+2025/08/21 08:17:40 [info] 1402#0: *2587 client 192.168.65.1 closed keepalive connection
+2025/08/21 08:17:41 [debug] 1402#0: *2588 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 08:17:41 [debug] 1402#0: *2588 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:08:17:41 +0000] "GET / HTTP/1.1" 200 13427 "-" "curl/8.7.1"
+2025/08/21 08:17:41 [info] 1402#0: *2588 client 192.168.65.1 closed keepalive connection
+192.168.65.1 - - [21/Aug/2025:08:17:41 +0000] "GET / HTTP/1.1" 404 103 "-" "curl/8.7.1" kong_request_id: "c388610dc04c5c61c29ce57f51bdb942"
+2025/08/21 08:17:41 [info] 1402#0: *2589 client 192.168.65.1 closed keepalive connection
+2025/08/21 08:17:41 [debug] 1402#0: *2591 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 08:17:41 [debug] 1402#0: *2591 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:08:17:41 +0000] "GET / HTTP/1.1" 200 13427 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+--- kong-database logs ---
+
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+
+2025-08-21 08:17:06.502 UTC [1] LOG:  starting PostgreSQL 13.22 (Debian 13.22-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2025-08-21 08:17:06.502 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-08-21 08:17:06.502 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2025-08-21 08:17:06.506 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2025-08-21 08:17:06.511 UTC [28] LOG:  database system was shut down at 2025-08-21 08:17:03 UTC
+2025-08-21 08:17:06.514 UTC [1] LOG:  database system is ready to accept connections
+--- kong-redis logs ---
+1:C 21 Aug 2025 08:17:06.443 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 21 Aug 2025 08:17:06.443 * Redis version=7.4.5, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 21 Aug 2025 08:17:06.443 * Configuration loaded
+1:M 21 Aug 2025 08:17:06.444 * monotonic clock: POSIX clock_gettime
+1:M 21 Aug 2025 08:17:06.445 * Running mode=standalone, port=6379.
+1:M 21 Aug 2025 08:17:06.445 * Server initialized
+1:M 21 Aug 2025 08:17:06.448 * Reading RDB base file on AOF loading...
+1:M 21 Aug 2025 08:17:06.448 * Loading RDB produced by version 7.4.5
+1:M 21 Aug 2025 08:17:06.448 * RDB age 77788 seconds
+1:M 21 Aug 2025 08:17:06.449 * RDB memory usage when created 0.93 Mb
+1:M 21 Aug 2025 08:17:06.449 * RDB is base AOF
+1:M 21 Aug 2025 08:17:06.449 * Done loading RDB, keys loaded: 0, keys expired: 0.
+1:M 21 Aug 2025 08:17:06.458 * DB loaded from base file appendonly.aof.1.base.rdb: 0.010 seconds
+1:M 21 Aug 2025 08:17:06.458 * DB loaded from append only file: 0.011 seconds
+1:M 21 Aug 2025 08:17:06.458 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+1:M 21 Aug 2025 08:17:06.458 * Ready to accept connections tcp
+--- demo-api logs ---
+[2025-08-21 08:17:06 +0000] [1] [INFO] Starting gunicorn 19.9.0
+[2025-08-21 08:17:06 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2025-08-21 08:17:06 +0000] [1] [INFO] Using worker: gevent
+[2025-08-21 08:17:06 +0000] [9] [INFO] Booting worker with pid: 9
