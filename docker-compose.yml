@@ -140,6 +140,54 @@ services:
       timeout: 10s
       retries: 3
 
+  # Konga - Kong Admin GUI
+  konga:
+    image: pantsel/konga:latest
+    container_name: konga
+    restart: on-failure
+    networks:
+      - kong-net
+    environment:
+      NODE_ENV: production
+      TOKEN_SECRET: km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb
+      DB_ADAPTER: postgres
+      DB_HOST: kong-database
+      DB_PORT: 5432
+      DB_USER: kong
+      DB_PASSWORD: kongpass
+      DB_DATABASE: konga
+    ports:
+      - "1337:1337"
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1337"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Konga DB prepare (initialize Konga database)
+  konga-prepare:
+    image: pantsel/konga:latest
+    container_name: konga-prepare
+    command: "-c prepare -a postgres -u postgresql://kong:kongpass@kong-database:5432/konga"
+    networks:
+      - kong-net
+    restart: on-failure
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    environment:
+      DB_ADAPTER: postgres
+      DB_HOST: kong-database
+      DB_PORT: 5432
+      DB_USER: kong
+      DB_PASSWORD: kongpass
+      DB_DATABASE: konga
+
   # Kong AI Gateway (Optional - for advanced AI features)
   # Uncomment if using AI Gateway features
   # kong-ai-gateway:

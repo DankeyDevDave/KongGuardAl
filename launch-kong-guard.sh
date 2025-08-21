@@ -31,6 +31,9 @@ DEMO_API_URL="http://localhost:18085"
 REDIS_URL="localhost:16379"
 POSTGRES_URL="localhost:15432"
 
+# Konga UI URL
+KONGA_URL="http://localhost:1337"
+
 # Kong Manager URL (if installed)
 KONG_MANAGER_URL="http://localhost:18002"
 
@@ -193,6 +196,7 @@ start_services() {
     echo "  ├─ PostgreSQL database"
     echo "  ├─ Redis cache"
     echo "  ├─ Kong Gateway"
+    echo "  ├─ Konga UI"
     echo "  ├─ Demo API service"
     echo "  └─ Mock attacker service"
     echo ""
@@ -290,6 +294,11 @@ check_demo_api() {
     wait_for_service "Demo API" "curl -s -o /dev/null -w '%{http_code}' $DEMO_API_URL/status/200 | grep -q '200'"
 }
 
+# Function: Check Konga UI
+check_konga() {
+    wait_for_service "Konga UI" "curl -s -o /dev/null -w '%{http_code}' $KONGA_URL | grep -q '200\|302'"
+}
+
 # Function: Configure Kong Guard AI plugin
 configure_plugin() {
     print_status "$BLUE" "🔧 Configuring Kong Guard AI plugin..."
@@ -360,14 +369,15 @@ show_status() {
     print_status "$BLUE" "\n📊 Service Status:"
     echo "-------------------"
     
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "kong|redis|demo|mock" || true
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "kong|redis|demo|mock|konga" || true
     
     echo -e "\n🔗 Service URLs:"
-    echo "  Kong Admin API: $KONG_ADMIN_URL"
-    echo "  Kong Proxy: $KONG_PROXY_URL"
-    echo "  Demo API: $DEMO_API_URL"
-    echo "  Redis: redis://localhost:16379"
-    echo "  PostgreSQL: postgresql://kong:kongpass@localhost:15432/kong"
+    echo "  🌐 Konga UI: $KONGA_URL"
+    echo "  📡 Kong Admin API: $KONG_ADMIN_URL"
+    echo "  🔌 Kong Proxy: $KONG_PROXY_URL"
+    echo "  🧪 Demo API: $DEMO_API_URL"
+    echo "  💾 Redis: redis://localhost:16379"
+    echo "  🗄️  PostgreSQL: postgresql://kong:kongpass@localhost:15432/kong"
     
     # Check if Kong Manager is available
     if curl -s -o /dev/null -w "%{http_code}" "$KONG_MANAGER_URL" | grep -q "200\|302"; then
@@ -378,12 +388,23 @@ show_status() {
 # Function: Open UI in browser
 open_ui() {
     if [ "$OPEN_UI" = true ]; then
-        print_status "$BLUE" "🌐 Opening Kong Admin UI..."
+        print_status "$BLUE" "🌐 Opening Konga UI in browser..."
+        
+        # Wait a moment for Konga to be fully ready
+        sleep 2
         
         # Detect OS and open browser
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            open "$KONG_ADMIN_URL"
+            # macOS - Open Konga UI
+            if curl -s -o /dev/null -w "%{http_code}" "$KONGA_URL" | grep -q "200\|302"; then
+                print_status "$GREEN" "🚀 Launching Konga UI at $KONGA_URL"
+                open "$KONGA_URL"
+            else
+                print_status "$YELLOW" "⚠️  Konga UI not ready yet. You can manually open: $KONGA_URL"
+                print_status "$BLUE" "   Opening Kong Admin API instead: $KONG_ADMIN_URL"
+                open "$KONG_ADMIN_URL"
+            fi
+            
             # If Kong Manager is available
             if curl -s -o /dev/null -w "%{http_code}" "$KONG_MANAGER_URL" | grep -q "200\|302"; then
                 open "$KONG_MANAGER_URL"
@@ -391,10 +412,23 @@ open_ui() {
         elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
             # Linux
             if command -v xdg-open &> /dev/null; then
-                xdg-open "$KONG_ADMIN_URL"
+                if curl -s -o /dev/null -w "%{http_code}" "$KONGA_URL" | grep -q "200\|302"; then
+                    print_status "$GREEN" "🚀 Launching Konga UI at $KONGA_URL"
+                    xdg-open "$KONGA_URL"
+                else
+                    xdg-open "$KONG_ADMIN_URL"
+                fi
             elif command -v gnome-open &> /dev/null; then
-                gnome-open "$KONG_ADMIN_URL"
+                if curl -s -o /dev/null -w "%{http_code}" "$KONGA_URL" | grep -q "200\|302"; then
+                    print_status "$GREEN" "🚀 Launching Konga UI at $KONGA_URL"
+                    gnome-open "$KONGA_URL"
+                else
+                    gnome-open "$KONG_ADMIN_URL"
+                fi
             fi
+        else
+            print_status "$BLUE" "📝 Please open your browser and navigate to:"
+            echo "   Konga UI: $KONGA_URL"
         fi
     fi
 }
@@ -436,6 +470,14 @@ run_health_checks() {
         all_healthy=false
     else
         print_status "$GREEN" "  ✅ Kong Proxy is healthy"
+    fi
+    
+    if ! curl -s -o /dev/null "$KONGA_URL"; then
+        print_status "$RED" "  ❌ Konga UI is unreachable"
+        echo "Konga UI unreachable" >> "$ERROR_LOG"
+        all_healthy=false
+    else
+        print_status "$GREEN" "  ✅ Konga UI is healthy"
     fi
     
     if [ "$all_healthy" = true ]; then
@@ -631,6 +673,7 @@ main() {
     check_kong_admin
     check_kong_proxy
     check_demo_api
+    check_konga
     
     # Configure plugin
     configure_plugin
@@ -651,11 +694,20 @@ main() {
     fi
     
     print_status "$GREEN" "\n✅ Kong Guard AI stack is ready!"
-    print_status "$BLUE" "\n📚 Quick commands:"
+    print_status "$BLUE" "\n🌐 Access Points:"
+    echo "  Konga UI:         http://localhost:1337"
+    echo "  Kong Admin API:   http://localhost:18001"
+    echo "  Kong Proxy:       http://localhost:18000"
+    echo ""
+    print_status "$BLUE" "📚 Quick commands:"
     echo "  View logs:        docker compose logs -f"
     echo "  Stop services:    docker compose down"
     echo "  Test endpoint:    curl http://localhost:18000/demo/status/200"
-    echo "  Admin API:        curl http://localhost:18001"
+    echo ""
+    print_status "$YELLOW" "💡 First time using Konga?"
+    echo "  1. Open http://localhost:1337"
+    echo "  2. Create an admin account"
+    echo "  3. Add connection: Name='Local Kong', Kong Admin URL='http://kong:8001'"
     echo ""
     
     # Mark script as successful to prevent false error triggers

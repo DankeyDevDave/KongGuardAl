@@ -65,11 +65,31 @@ CLAUDE_ASSIST=false ./launch-kong-guard.sh
 
 After launching, services are available at:
 
+- **Konga UI**: http://localhost:1337 (Web-based Kong Admin GUI)
 - **Kong Admin API**: http://localhost:18001
 - **Kong Proxy**: http://localhost:18000
 - **Demo API**: http://localhost:18085
 - **Redis**: redis://localhost:16379
 - **PostgreSQL**: postgresql://kong:kongpass@localhost:15432/kong
+
+## First Time Setup - Konga UI
+
+When you first access Konga at http://localhost:1337:
+
+1. **Create an Admin Account**:
+   - Username: admin (or your choice)
+   - Email: your-email@example.com
+   - Password: (choose a secure password)
+
+2. **Connect to Kong**:
+   - Click "Connections" → "New Connection"
+   - Name: `Local Kong`
+   - Kong Admin URL: `http://kong:8001` (internal Docker network)
+   - Click "Create Connection"
+
+3. **Activate Connection**:
+   - Click on your new connection to activate it
+   - You should now see the Kong dashboard with services, routes, and plugins
 
 ## Testing the Stack
 
