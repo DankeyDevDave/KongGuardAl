@@ -6,6 +6,7 @@ networks:
 
 volumes:
   kong-datastore:
+  konga-datastore:
   kong-plugins:
 
 services:
@@ -140,6 +141,44 @@ services:
       timeout: 10s
       retries: 3
 
+  # Konga Database (PostgreSQL 11 for compatibility)
+  konga-database:
+    image: postgres:11
+    container_name: konga-database
+    restart: on-failure
+    networks:
+      - kong-net
+    environment:
+      POSTGRES_USER: konga
+      POSTGRES_PASSWORD: kongapass
+      POSTGRES_DB: konga
+    volumes:
+      - konga-datastore:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "konga"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  # Konga DB prepare (initialize Konga database)
+  konga-prepare:
+    image: pantsel/konga:latest
+    container_name: konga-prepare
+    command: "-c prepare -a postgres -u postgresql://konga:kongapass@konga-database:5432/konga"
+    networks:
+      - kong-net
+    restart: on-failure
+    depends_on:
+      konga-database:
+        condition: service_healthy
+    environment:
+      DB_ADAPTER: postgres
+      DB_HOST: konga-database
+      DB_PORT: 5432
+      DB_USER: konga
+      DB_PASSWORD: kongapass
+      DB_DATABASE: konga
+
   # Konga - Kong Admin GUI
   konga:
     image: pantsel/konga:latest
@@ -151,16 +190,18 @@ services:
       NODE_ENV: production
       TOKEN_SECRET: km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb
       DB_ADAPTER: postgres
-      DB_HOST: kong-database
+      DB_HOST: konga-database
       DB_PORT: 5432
-      DB_USER: kong
-      DB_PASSWORD: kongpass
+      DB_USER: konga
+      DB_PASSWORD: kongapass
       DB_DATABASE: konga
     ports:
       - "1337:1337"
     depends_on:
-      kong-database:
+      konga-database:
         condition: service_healthy
+      konga-prepare:
+        condition: service_completed_successfully
       kong:
         condition: service_healthy
     healthcheck:
@@ -168,25 +209,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  # Konga DB prepare (initialize Konga database)
-  konga-prepare:
-    image: pantsel/konga:latest
-    container_name: konga-prepare
-    command: "-c prepare -a postgres -u postgresql://kong:kongpass@kong-database:5432/konga"
-    networks:
-      - kong-net
-    restart: on-failure
-    depends_on:
-      kong-database:
-        condition: service_healthy
-    environment:
-      DB_ADAPTER: postgres
-      DB_HOST: kong-database
-      DB_PORT: 5432
-      DB_USER: kong
-      DB_PASSWORD: kongpass
-      DB_DATABASE: konga
 
   # Kong AI Gateway (Optional - for advanced AI features)
   # Uncomment if using AI Gateway features

@@ -3,100 +3,144 @@ Kong Guard AI Launch Errors:
 
 Errors encountered:
 
+Konga UI health check failed
 
 Docker container status:
-kong-gateway      Up 2 seconds (health: starting)
-kong-migrations   Exited (0) 2 seconds ago
-kong-database     Up 34 seconds (healthy)
-kong-redis        Up 34 seconds (healthy)
-mock-attacker     Up 34 seconds (healthy)
-demo-api          Up 34 seconds (health: starting)
-kong-gateway-db   Exited (1) 4 hours ago
-kong-migration    Exited (0) 17 hours ago
-mockbin-service   Exited (8) 17 hours ago
+konga             Restarting (1) 2 seconds ago
+kong-gateway      Up About a minute (healthy)
+kong-migrations   Exited (0) About a minute ago
+konga-prepare     Restarting (1) 15 seconds ago
+kong-database     Up About a minute (healthy)
+mock-attacker     Up About a minute (healthy)
+kong-redis        Up About a minute (healthy)
+demo-api          Up About a minute (unhealthy)
+kong-gateway-db   Exited (1) 7 hours ago
+kong-migration    Exited (0) 19 hours ago
+mockbin-service   Exited (8) 19 hours ago
 
 Recent Docker logs:
 
 --- kong-gateway logs ---
-2025/08/21 08:17:39 [debug] 1402#0: *1932 [lua] broker.lua:83: broadcast_events(): event published to 4 workers
-2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
-2025/08/21 08:17:39 [debug] 1402#0: *2578 [lua] broker.lua:83: broadcast_events(): event published to 4 workers
-2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
-2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
-2025/08/21 08:17:39 [notice] 1402#0: *2578 [lua] broker.lua:270: run(): worker #0 connected to events broker (worker pid: 1402), client: unix:, server: kong_worker_events, request: "GET / HTTP/1.1", host: "localhost"
-2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
-2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
-2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
-2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
-2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
-2025/08/21 08:17:39 [debug] 1404#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
-2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
-2025/08/21 08:17:39 [debug] 1405#0: *1026 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
-2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
-2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
-2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
-2025/08/21 08:17:39 [debug] 1402#0: *1938 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
-2025/08/21 08:17:39 [debug] 1403#0: *14 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
-2025/08/21 08:17:39 [debug] 1404#0: *5 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.0046875, runable_jobs_avg: 3, alive_threads_avg: 640
-2025/08/21 08:17:39 [debug] 1403#0: *11 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.0046875, runable_jobs_avg: 3, alive_threads_avg: 640
-2025/08/21 08:17:39 [debug] 1405#0: *970 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.0046875, runable_jobs_avg: 3, alive_threads_avg: 640
-2025/08/21 08:17:39 [debug] 1402#0: *1935 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.00625, runable_jobs_avg: 4, alive_threads_avg: 640
-2025/08/21 08:17:39 [debug] 1404#0: *9 [lua] upstreams.lua:108: no upstreams were specified
-2025/08/21 08:17:39 [debug] 1404#0: *9 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
-2025/08/21 08:17:39 [debug] 1405#0: *1043 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
-2025/08/21 08:17:39 [debug] 1402#0: *1941 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
-2025/08/21 08:17:39 [notice] 1402#0: *1939 [lua] warmup.lua:80: finished warming up DNS entries' into the cache (in 379ms), context: ngx.timer
-2025/08/21 08:17:39 [debug] 1403#0: *15 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
-2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:24: poll(): worker-events: emulate poll method
-2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:29: Loading Admin API endpoints
-2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:120: No API endpoints loaded for plugin: kong-guard-ai
-2025/08/21 08:17:40 [debug] 1402#0: *2585 [lua] init.lua:24: poll(): worker-events: emulate poll method
-192.168.65.1 - - [21/Aug/2025:08:17:40 +0000] "GET / HTTP/1.1" 200 13427 "-" "curl/8.7.1"
-2025/08/21 08:17:40 [info] 1402#0: *2585 client 192.168.65.1 closed keepalive connection
-192.168.65.1 - - [21/Aug/2025:08:17:40 +0000] "GET / HTTP/1.1" 404 103 "-" "curl/8.7.1" kong_request_id: "9d36372d0b77aa0999e7964acbad3e37"
-2025/08/21 08:17:40 [info] 1402#0: *2586 client 192.168.65.1 closed keepalive connection
-2025/08/21 08:17:40 [debug] 1402#0: *2587 [lua] init.lua:24: poll(): worker-events: emulate poll method
-2025/08/21 08:17:40 [debug] 1402#0: *2587 [lua] init.lua:24: poll(): worker-events: emulate poll method
-192.168.65.1 - - [21/Aug/2025:08:17:40 +0000] "GET /plugins HTTP/1.1" 200 1173 "-" "curl/8.7.1"
-2025/08/21 08:17:40 [info] 1402#0: *2587 client 192.168.65.1 closed keepalive connection
-2025/08/21 08:17:41 [debug] 1402#0: *2588 [lua] init.lua:24: poll(): worker-events: emulate poll method
-2025/08/21 08:17:41 [debug] 1402#0: *2588 [lua] init.lua:24: poll(): worker-events: emulate poll method
-192.168.65.1 - - [21/Aug/2025:08:17:41 +0000] "GET / HTTP/1.1" 200 13427 "-" "curl/8.7.1"
-2025/08/21 08:17:41 [info] 1402#0: *2588 client 192.168.65.1 closed keepalive connection
-192.168.65.1 - - [21/Aug/2025:08:17:41 +0000] "GET / HTTP/1.1" 404 103 "-" "curl/8.7.1" kong_request_id: "c388610dc04c5c61c29ce57f51bdb942"
-2025/08/21 08:17:41 [info] 1402#0: *2589 client 192.168.65.1 closed keepalive connection
-2025/08/21 08:17:41 [debug] 1402#0: *2591 [lua] init.lua:24: poll(): worker-events: emulate poll method
-2025/08/21 08:17:41 [debug] 1402#0: *2591 [lua] init.lua:24: poll(): worker-events: emulate poll method
-192.168.65.1 - - [21/Aug/2025:08:17:41 +0000] "GET / HTTP/1.1" 200 13427 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+2025/08/21 11:08:42 [debug] 1402#0: *1943 [lua] broker.lua:83: broadcast_events(): event published to 4 workers
+2025/08/21 11:08:42 [debug] 1402#0: *8 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 11:08:42 [debug] 1403#0: *652 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 11:08:42 [debug] 1405#0: *1944 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 11:08:42 [debug] 1405#0: *1942 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=0
+2025/08/21 11:08:42 [debug] 1405#0: *1942 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=1
+2025/08/21 11:08:42 [debug] 1405#0: *1942 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=2
+2025/08/21 11:08:42 [debug] 1405#0: *1942 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 11:08:42 [debug] 1404#0: *660 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 11:08:42 [debug] 1404#0: *658 [lua] callback.lua:107: do_event(): worker-events: handling event; source=mlcache, event=mlcache:invalidations:kong_db_cache, wid=3
+2025/08/21 11:08:42 [debug] 1403#0: *654 [lua] upstreams.lua:270: update_balancer_state(): update proxy state timer scheduled
+2025/08/21 11:08:42 [notice] 1402#0: *9 [lua] warmup.lua:80: finished warming up DNS entries' into the cache (in 24ms), context: ngx.timer
+2025/08/21 11:08:43 [debug] 1402#0: *5 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.003125, runable_jobs_avg: 2, alive_threads_avg: 640
+2025/08/21 11:08:43 [debug] 1403#0: *649 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.003125, runable_jobs_avg: 2, alive_threads_avg: 640
+2025/08/21 11:08:43 [debug] 1404#0: *655 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.003125, runable_jobs_avg: 2, alive_threads_avg: 640
+2025/08/21 11:08:43 [debug] 1405#0: *1939 [lua] super.lua:161: scaling_log(): [timer-ng] load_avg: 0.003125, runable_jobs_avg: 2, alive_threads_avg: 640
+2025/08/21 11:08:47 [debug] 1402#0: *20 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:08:52 [debug] 1402#0: *43 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:08:53 [debug] 1402#0: *2583 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 11:08:53 [debug] 1402#0: *2583 [lua] init.lua:29: Loading Admin API endpoints
+2025/08/21 11:08:53 [debug] 1402#0: *2583 [lua] init.lua:120: No API endpoints loaded for plugin: kong-guard-ai
+2025/08/21 11:08:53 [debug] 1402#0: *2583 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:11:08:53 +0000] "GET / HTTP/1.1" 200 13427 "-" "curl/8.7.1"
+2025/08/21 11:08:53 [info] 1402#0: *2583 client 192.168.65.1 closed keepalive connection
+192.168.65.1 - - [21/Aug/2025:11:08:53 +0000] "GET / HTTP/1.1" 404 103 "-" "curl/8.7.1" kong_request_id: "a62da20ca087ee217318a300f8f7cb22"
+2025/08/21 11:08:53 [info] 1402#0: *2584 client 192.168.65.1 closed keepalive connection
+2025/08/21 11:08:57 [debug] 1402#0: *63 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:02 [debug] 1402#0: *82 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:07 [debug] 1404#0: *1391 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:12 [debug] 1403#0: *791 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:18 [debug] 1404#0: *1451 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:18 [debug] 1402#0: *2591 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 11:09:18 [debug] 1402#0: *2591 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:11:09:18 +0000] "GET / HTTP/1.1" 200 13427 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+2025/08/21 11:09:18 [debug] 1402#0: *2593 [lua] init.lua:1397: balancer(): setting address (try 1): 172.18.0.3:80
+2025/08/21 11:09:18 [debug] 1402#0: *2593 [lua] init.lua:1430: balancer(): enabled connection keepalive (pool=172.18.0.3|80, pool_size=512, idle_timeout=60, max_requests=10000)
+2025/08/21 11:09:18 [debug] 1402#0: *2592 [lua] init.lua:24: poll(): worker-events: emulate poll method
+2025/08/21 11:09:18 [debug] 1402#0: *2592 [lua] init.lua:24: poll(): worker-events: emulate poll method
+192.168.65.1 - - [21/Aug/2025:11:09:18 +0000] "GET / HTTP/1.1" 200 13427 "http://localhost:8080/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+192.168.65.1 - - [21/Aug/2025:11:09:18 +0000] "GET /test/get HTTP/1.1" 200 878 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" kong_request_id: "0f28d8597edffd3c3c18f219ffb73249"
+2025/08/21 11:09:18 [debug] 1402#0: *2595 [lua] init.lua:1397: balancer(): setting address (try 1): 172.18.0.3:80
+2025/08/21 11:09:18 [debug] 1402#0: *2595 [lua] init.lua:1430: balancer(): enabled connection keepalive (pool=172.18.0.3|80, pool_size=512, idle_timeout=60, max_requests=10000)
+192.168.65.1 - - [21/Aug/2025:11:09:18 +0000] "GET /test/get HTTP/1.1" 200 936 "http://localhost:8080/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" kong_request_id: "7a5e5616cd84fa1f6714882ad054280c"
+2025/08/21 11:09:23 [debug] 1404#0: *1505 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:28 [debug] 1402#0: *237 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:33 [debug] 1402#0: *294 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:38 [debug] 1402#0: *317 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:47 [debug] 1404#0: *1636 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:52 [debug] 1403#0: *1018 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
+2025/08/21 11:09:57 [debug] 1405#0: *2317 [lua] init.lua:283: [cluster_events] polling events from: 1755774522.921
 --- kong-database logs ---
-
-PostgreSQL Database directory appears to contain a database; Skipping initialization
-
-2025-08-21 08:17:06.502 UTC [1] LOG:  starting PostgreSQL 13.22 (Debian 13.22-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
-2025-08-21 08:17:06.502 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
-2025-08-21 08:17:06.502 UTC [1] LOG:  listening on IPv6 address "::", port 5432
-2025-08-21 08:17:06.506 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
-2025-08-21 08:17:06.511 UTC [28] LOG:  database system was shut down at 2025-08-21 08:17:03 UTC
-2025-08-21 08:17:06.514 UTC [1] LOG:  database system is ready to accept connections
+2025-08-21 11:09:30.847 UTC [257] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:30.847 UTC [254] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:30.847 UTC [252] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:30.848 UTC [251] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:30.849 UTC [253] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.356 UTC [269] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.356 UTC [269] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.356 UTC [269] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_api_health_checks' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.357 UTC [275] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.357 UTC [275] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.357 UTC [275] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_email_transports' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.357 UTC [274] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.357 UTC [274] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.357 UTC [274] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_kong_services' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.357 UTC [268] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.357 UTC [268] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.357 UTC [268] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_kong_nodes' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.358 UTC [270] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.358 UTC [270] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.358 UTC [270] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_netdata_connections' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.358 UTC [273] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.358 UTC [273] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.358 UTC [273] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_passports' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.358 UTC [276] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:45.358 UTC [276] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:45.358 UTC [276] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_settings' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:45.367 UTC [272] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.367 UTC [275] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.367 UTC [276] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.367 UTC [277] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.367 UTC [274] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.368 UTC [270] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.368 UTC [273] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.368 UTC [271] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:45.370 UTC [268] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.877 UTC [279] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:57.877 UTC [279] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:57.877 UTC [279] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_api_health_checks' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:57.883 UTC [279] ERROR:  column r.consrc does not exist at character 212
+2025-08-21 11:09:57.883 UTC [279] HINT:  Perhaps you meant to reference the column "r.conkey" or the column "r.conbin".
+2025-08-21 11:09:57.883 UTC [279] STATEMENT:  SELECT x.nspname || '.' || x.relname as "Table", x.attnum as "#", x.attname as "Column", x."Type", case x.attnotnull when true then 'NOT NULL' else '' end as "NULL", r.conname as "Constraint", r.contype as "C", r.consrc, fn.nspname || '.' || f.relname as "F Key", d.adsrc as "Default" FROM (SELECT c.oid, a.attrelid, a.attnum, n.nspname, c.relname, a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) as "Type", a.attnotnull FROM pg_catalog.pg_attribute a, pg_namespace n, pg_class c WHERE a.attnum > 0 AND NOT a.attisdropped AND a.attrelid = c.oid and c.relkind not in ('S','v') and c.relnamespace = n.oid and n.nspname not in ('pg_catalog','pg_toast','information_schema')) x left join pg_attrdef d on d.adrelid = x.attrelid and d.adnum = x.attnum left join pg_constraint r on r.conrelid = x.oid and r.conkey[1] = x.attnum left join pg_class f on r.confrelid = f.oid left join pg_namespace fn on f.relnamespace = fn.oid where x.relname = 'konga_email_transports' and x.nspname = 'public' order by 1,2;
+2025-08-21 11:09:57.893 UTC [288] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.893 UTC [286] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.893 UTC [285] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.893 UTC [287] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.893 UTC [284] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.894 UTC [279] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.894 UTC [283] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.895 UTC [280] LOG:  could not receive data from client: Connection reset by peer
+2025-08-21 11:09:57.895 UTC [282] LOG:  could not receive data from client: Connection reset by peer
 --- kong-redis logs ---
-1:C 21 Aug 2025 08:17:06.443 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-1:C 21 Aug 2025 08:17:06.443 * Redis version=7.4.5, bits=64, commit=00000000, modified=0, pid=1, just started
-1:C 21 Aug 2025 08:17:06.443 * Configuration loaded
-1:M 21 Aug 2025 08:17:06.444 * monotonic clock: POSIX clock_gettime
-1:M 21 Aug 2025 08:17:06.445 * Running mode=standalone, port=6379.
-1:M 21 Aug 2025 08:17:06.445 * Server initialized
-1:M 21 Aug 2025 08:17:06.448 * Reading RDB base file on AOF loading...
-1:M 21 Aug 2025 08:17:06.448 * Loading RDB produced by version 7.4.5
-1:M 21 Aug 2025 08:17:06.448 * RDB age 77788 seconds
-1:M 21 Aug 2025 08:17:06.449 * RDB memory usage when created 0.93 Mb
-1:M 21 Aug 2025 08:17:06.449 * RDB is base AOF
-1:M 21 Aug 2025 08:17:06.449 * Done loading RDB, keys loaded: 0, keys expired: 0.
-1:M 21 Aug 2025 08:17:06.458 * DB loaded from base file appendonly.aof.1.base.rdb: 0.010 seconds
-1:M 21 Aug 2025 08:17:06.458 * DB loaded from append only file: 0.011 seconds
-1:M 21 Aug 2025 08:17:06.458 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
-1:M 21 Aug 2025 08:17:06.458 * Ready to accept connections tcp
+1:C 21 Aug 2025 11:08:10.185 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 21 Aug 2025 11:08:10.185 * Redis version=7.4.5, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 21 Aug 2025 11:08:10.185 * Configuration loaded
+1:M 21 Aug 2025 11:08:10.185 * monotonic clock: POSIX clock_gettime
+1:M 21 Aug 2025 11:08:10.185 * Running mode=standalone, port=6379.
+1:M 21 Aug 2025 11:08:10.186 * Server initialized
+1:M 21 Aug 2025 11:08:10.188 * Reading RDB base file on AOF loading...
+1:M 21 Aug 2025 11:08:10.189 * Loading RDB produced by version 7.4.5
+1:M 21 Aug 2025 11:08:10.189 * RDB age 88052 seconds
+1:M 21 Aug 2025 11:08:10.189 * RDB memory usage when created 0.93 Mb
+1:M 21 Aug 2025 11:08:10.189 * RDB is base AOF
+1:M 21 Aug 2025 11:08:10.189 * Done loading RDB, keys loaded: 0, keys expired: 0.
+1:M 21 Aug 2025 11:08:10.190 * DB loaded from base file appendonly.aof.1.base.rdb: 0.003 seconds
+1:M 21 Aug 2025 11:08:10.191 * DB loaded from append only file: 0.004 seconds
+1:M 21 Aug 2025 11:08:10.192 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+1:M 21 Aug 2025 11:08:10.192 * Ready to accept connections tcp
 --- demo-api logs ---
-[2025-08-21 08:17:06 +0000] [1] [INFO] Starting gunicorn 19.9.0
-[2025-08-21 08:17:06 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
-[2025-08-21 08:17:06 +0000] [1] [INFO] Using worker: gevent
-[2025-08-21 08:17:06 +0000] [9] [INFO] Booting worker with pid: 9
+[2025-08-21 11:08:10 +0000] [1] [INFO] Starting gunicorn 19.9.0
+[2025-08-21 11:08:10 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2025-08-21 11:08:10 +0000] [1] [INFO] Using worker: gevent
+[2025-08-21 11:08:10 +0000] [8] [INFO] Booting worker with pid: 8

@@ -193,7 +193,8 @@ start_services() {
     cd "$SCRIPT_DIR"
     
     # Start with visual feedback
-    echo "  ├─ PostgreSQL database"
+    echo "  ├─ PostgreSQL database (Kong)"
+    echo "  ├─ PostgreSQL database (Konga)"
     echo "  ├─ Redis cache"
     echo "  ├─ Kong Gateway"
     echo "  ├─ Konga UI"
