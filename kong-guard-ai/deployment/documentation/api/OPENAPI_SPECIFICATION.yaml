@@ -43,6 +43,8 @@ tags:
     description: Security analytics and reporting
   - name: Monitoring
     description: Health and performance monitoring
+  - name: Enterprise Demo
+    description: Three-tier enterprise demonstration system
 
 paths:
   /plugins:
@@ -522,6 +524,132 @@ paths:
               schema:
                 $ref: '#/components/schemas/AnalyticsSummary'
 
+  /kong-guard-ai/enterprise/test-attack:
+    post:
+      tags:
+        - Enterprise Demo
+      summary: Execute three-tier attack testing
+      description: Test attack patterns across unprotected, cloud AI, and local AI protection tiers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                attack_type:
+                  type: string
+                  enum: [sql, xss, cmd, business, ransomware, normal]
+                  description: Type of attack to test
+                tier:
+                  type: string
+                  enum: [unprotected, cloud, local]
+                  description: Protection tier to test against
+                target_endpoint:
+                  type: string
+                  description: Target API endpoint
+                  example: "/api/users"
+              required:
+                - attack_type
+                - tier
+      responses:
+        '200':
+          description: Attack test executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttackTestResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /kong-guard-ai/enterprise/comparison:
+    get:
+      tags:
+        - Enterprise Demo
+      summary: Get attack comparison results
+      description: Retrieve comparison results across all three protection tiers
+      parameters:
+        - name: attack_type
+          in: query
+          schema:
+            type: string
+            enum: [sql, xss, cmd, business, ransomware, normal]
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Results since timestamp
+      responses:
+        '200':
+          description: Comparison results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttackComparisonResult'
+
+  /kong-guard-ai/enterprise/demo-status:
+    get:
+      tags:
+        - Enterprise Demo
+      summary: Get enterprise demo system status
+      description: Check status of all demo components and services
+      responses:
+        '200':
+          description: Demo system status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unprotected_kong:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      port:
+                        type: integer
+                        example: 8000
+                      endpoint:
+                        type: string
+                        example: "http://localhost:8000"
+                  cloud_protected_kong:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      port:
+                        type: integer
+                        example: 8004
+                      ai_service:
+                        type: string
+                        example: "Cloud AI (Port 18002)"
+                  local_protected_kong:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      port:
+                        type: integer
+                        example: 8006
+                      ai_service:
+                        type: string
+                        example: "Ollama AI (Port 18003)"
+                  ollama_service:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [healthy, unhealthy, loading]
+                      models:
+                        type: array
+                        items:
+                          type: string
+                        example: ["mistral:7b", "llama3.2:3b"]
+
 components:
   parameters:
     PluginIdParam:
@@ -977,6 +1105,116 @@ components:
               type: integer
             logged_only:
               type: integer
+
+    AttackTestResult:
+      type: object
+      properties:
+        attack_id:
+          type: string
+          format: uuid
+        attack_type:
+          type: string
+          enum: [sql, xss, cmd, business, ransomware, normal]
+        tier:
+          type: string
+          enum: [unprotected, cloud, local]
+        timestamp:
+          type: string
+          format: date-time
+        result:
+          type: object
+          properties:
+            blocked:
+              type: boolean
+            threat_score:
+              type: number
+              minimum: 0
+              maximum: 10
+            confidence:
+              type: number
+              minimum: 0
+              maximum: 1
+            processing_time_ms:
+              type: number
+            ai_analysis:
+              type: string
+            recommended_action:
+              type: string
+              enum: [allow, monitor, rate_limit, block]
+        request_details:
+          type: object
+          properties:
+            method:
+              type: string
+            path:
+              type: string
+            headers:
+              type: object
+            body:
+              type: string
+            query_params:
+              type: object
+
+    AttackComparisonResult:
+      type: object
+      properties:
+        attack_type:
+          type: string
+          enum: [sql, xss, cmd, business, ransomware, normal]
+        timestamp:
+          type: string
+          format: date-time
+        results:
+          type: object
+          properties:
+            unprotected:
+              $ref: '#/components/schemas/TierResult'
+            cloud:
+              $ref: '#/components/schemas/TierResult'
+            local:
+              $ref: '#/components/schemas/TierResult'
+        summary:
+          type: object
+          properties:
+            total_tests:
+              type: integer
+            vulnerabilities_found:
+              type: integer
+            attacks_blocked:
+              type: integer
+            protection_effectiveness:
+              type: object
+              properties:
+                cloud_ai:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                local_ai:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+
+    TierResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [passed, blocked, vulnerable]
+        threat_score:
+          type: number
+          minimum: 0
+          maximum: 10
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        processing_time_ms:
+          type: number
+        action_taken:
+          type: string
+          enum: [allow, monitor, rate_limit, block]
+        details:
+          type: string
 
     Error:
       type: object

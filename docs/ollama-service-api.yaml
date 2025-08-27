@@ -1,0 +1,464 @@
+openapi: 3.0.3
+info:
+  title: Kong Guard AI - Ollama Local AI Service API
+  description: |
+    Local AI service for Kong Guard AI using Ollama for privacy-focused threat detection.
+    
+    This service provides local AI-powered threat analysis without sending data to external
+    cloud services, ensuring complete data privacy and compliance with strict data policies.
+  version: 1.0.0
+  contact:
+    name: Kong Guard AI Team
+    email: support@kongguardai.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:18003
+    description: Local Ollama AI Service
+  - url: https://ollama.example.com
+    description: Remote Ollama deployment
+
+tags:
+  - name: Threat Analysis
+    description: AI-powered threat detection and analysis
+  - name: Models
+    description: Local AI model management
+  - name: Health
+    description: Service health and monitoring
+  - name: WebSocket
+    description: Real-time threat analysis streaming
+
+paths:
+  /analyze:
+    post:
+      tags:
+        - Threat Analysis
+      summary: Analyze request for threats using local AI
+      description: |
+        Analyze HTTP requests for security threats using local Ollama models.
+        Provides privacy-focused analysis without external API calls.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreatAnalysisRequest'
+            examples:
+              sql_injection:
+                summary: SQL Injection Analysis
+                value:
+                  features:
+                    method: "POST"
+                    path: "/api/users"
+                    client_ip: "192.168.1.100"
+                    user_agent: "AttackBot/1.0"
+                    requests_per_minute: 50
+                    content_length: 45
+                    query_param_count: 2
+                    header_count: 5
+                    hour_of_day: 14
+                    query: "id=1' OR '1'='1"
+                    body: "username=admin&password=' OR 1=1--"
+                    headers:
+                      Content-Type: "application/x-www-form-urlencoded"
+                  context:
+                    previous_requests: 10
+                    failed_attempts: 3
+                    anomaly_score: 0.8
+      responses:
+        '200':
+          description: Threat analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreatAnalysisResponse'
+              examples:
+                threat_detected:
+                  summary: High Threat Detected
+                  value:
+                    threat_score: 9.2
+                    confidence: 0.95
+                    threat_type: "sql_injection"
+                    analysis: "High-confidence SQL injection attack detected with multiple malicious patterns including OR statements and comment injection"
+                    recommended_action: "block"
+                    processing_time_ms: 45
+                    model_used: "mistral:7b"
+                    patterns_detected:
+                      - "SQL injection OR statement"
+                      - "Comment-based SQL injection"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          description: Local AI model unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Check service health
+      description: Health check endpoint for the local Ollama AI service
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  ollama_status:
+                    type: string
+                    enum: [connected, disconnected, error]
+                  available_models:
+                    type: array
+                    items:
+                      type: string
+                    example: ["mistral:7b", "llama3.2:3b"]
+                  uptime_seconds:
+                    type: integer
+                  memory_usage_mb:
+                    type: number
+                  total_requests:
+                    type: integer
+                  threats_analyzed:
+                    type: integer
+        '503':
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "unhealthy"
+                  error:
+                    type: string
+                    example: "Ollama connection failed"
+
+  /models:
+    get:
+      tags:
+        - Models
+      summary: List available local AI models
+      description: Get list of available Ollama models for threat analysis
+      responses:
+        '200':
+          description: Available models retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "mistral:7b"
+                        size:
+                          type: string
+                          example: "4.1GB"
+                        modified:
+                          type: string
+                          format: date-time
+                        status:
+                          type: string
+                          enum: [ready, loading, error]
+                        performance:
+                          type: object
+                          properties:
+                            avg_tokens_per_second:
+                              type: number
+                            avg_processing_time_ms:
+                              type: number
+                  current_model:
+                    type: string
+                    example: "mistral:7b"
+
+    post:
+      tags:
+        - Models
+      summary: Pull new model or switch active model
+      description: Download new Ollama model or switch to different model
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [pull, switch]
+                model_name:
+                  type: string
+                  example: "llama3.2:3b"
+              required:
+                - action
+                - model_name
+      responses:
+        '202':
+          description: Model operation initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "initiated"
+                  action:
+                    type: string
+                  model_name:
+                    type: string
+                  estimated_time_minutes:
+                    type: integer
+        '409':
+          description: Model operation already in progress
+
+  /ws:
+    get:
+      tags:
+        - WebSocket
+      summary: WebSocket connection for real-time threat analysis
+      description: |
+        WebSocket endpoint for streaming real-time threat analysis results.
+        Subscribe to receive live threat detection events and analysis updates.
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          description: Invalid WebSocket request
+
+  /metrics:
+    get:
+      tags:
+        - Health
+      summary: Get service metrics
+      description: Retrieve performance and usage metrics for the local AI service
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uptime_seconds:
+                    type: integer
+                  total_requests:
+                    type: integer
+                  successful_analyses:
+                    type: integer
+                  failed_analyses:
+                    type: integer
+                  average_processing_time_ms:
+                    type: number
+                  p95_processing_time_ms:
+                    type: number
+                  threats_detected:
+                    type: integer
+                  threat_types:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                  model_performance:
+                    type: object
+                    properties:
+                      current_model:
+                        type: string
+                      tokens_per_second:
+                        type: number
+                      memory_usage_mb:
+                        type: number
+
+components:
+  schemas:
+    ThreatAnalysisRequest:
+      type: object
+      required:
+        - features
+      properties:
+        features:
+          type: object
+          required:
+            - method
+            - path
+            - client_ip
+          properties:
+            method:
+              type: string
+              enum: [GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS]
+            path:
+              type: string
+              example: "/api/users"
+            client_ip:
+              type: string
+              format: ipv4
+              example: "192.168.1.100"
+            user_agent:
+              type: string
+              example: "Mozilla/5.0"
+            requests_per_minute:
+              type: integer
+              minimum: 0
+            content_length:
+              type: integer
+              minimum: 0
+            query_param_count:
+              type: integer
+              minimum: 0
+            header_count:
+              type: integer
+              minimum: 0
+            hour_of_day:
+              type: integer
+              minimum: 0
+              maximum: 23
+            query:
+              type: string
+              description: URL query parameters
+            body:
+              type: string
+              description: Request body content
+            headers:
+              type: object
+              additionalProperties:
+                type: string
+        context:
+          type: object
+          properties:
+            previous_requests:
+              type: integer
+              minimum: 0
+            failed_attempts:
+              type: integer
+              minimum: 0
+            anomaly_score:
+              type: number
+              minimum: 0.0
+              maximum: 1.0
+
+    ThreatAnalysisResponse:
+      type: object
+      properties:
+        threat_score:
+          type: number
+          minimum: 0.0
+          maximum: 10.0
+          description: Overall threat level (0-10)
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          description: Analysis confidence level
+        threat_type:
+          type: string
+          enum: [sql_injection, xss, command_injection, path_traversal, business_logic, rate_limit, none]
+          description: Primary threat type detected
+        analysis:
+          type: string
+          description: Human-readable analysis explanation
+        recommended_action:
+          type: string
+          enum: [allow, monitor, rate_limit, block]
+          description: Recommended response action
+        processing_time_ms:
+          type: number
+          description: Analysis processing time in milliseconds
+        model_used:
+          type: string
+          example: "mistral:7b"
+          description: Ollama model used for analysis
+        patterns_detected:
+          type: array
+          items:
+            type: string
+          description: List of threat patterns detected
+        risk_factors:
+          type: array
+          items:
+            type: object
+            properties:
+              factor:
+                type: string
+              severity:
+                type: string
+                enum: [low, medium, high, critical]
+              description:
+                type: string
+        technical_details:
+          type: object
+          properties:
+            pattern_matches:
+              type: array
+              items:
+                type: string
+            anomaly_indicators:
+              type: array
+              items:
+                type: string
+            payload_analysis:
+              type: object
+              properties:
+                suspicious_keywords:
+                  type: array
+                  items:
+                    type: string
+                encoding_detected:
+                  type: string
+                payload_entropy:
+                  type: number
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+          description: Unique request identifier for debugging
+
+  responses:
+    BadRequest:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "validation_error"
+            message: "Missing required field: features.method"
+            timestamp: "2024-01-15T10:30:00Z"
+            request_id: "req-123456"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service authentication
+
+security:
+  - ApiKeyAuth: []

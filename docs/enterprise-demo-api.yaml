@@ -1,0 +1,664 @@
+openapi: 3.0.3
+info:
+  title: Kong Guard AI - Enterprise Demo System API
+  description: |
+    Enterprise demonstration system for Kong Guard AI showcasing three-tier protection:
+    - Unprotected Kong Gateway (Port 8000)
+    - Cloud AI Protected Kong Gateway (Port 8004) 
+    - Local AI Protected Kong Gateway (Port 8006)
+    
+    This API provides endpoints for attack testing, comparison analysis, and video
+    presentation automation for enterprise client demonstrations.
+  version: 1.0.0
+  contact:
+    name: Kong Guard AI Team
+    email: support@kongguardai.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8090
+    description: Enterprise Demo System
+  - url: https://demo.kongguardai.com
+    description: Remote Demo Environment
+
+tags:
+  - name: Attack Testing
+    description: Multi-tier attack testing and comparison
+  - name: Demo Management
+    description: Demo system configuration and control
+  - name: Video Automation
+    description: Automated video presentation generation
+  - name: Analytics
+    description: Demo analytics and reporting
+
+paths:
+  /attack/test:
+    post:
+      tags:
+        - Attack Testing
+      summary: Execute attack test across all tiers
+      description: |
+        Execute a specific attack type across all three protection tiers simultaneously
+        and return comparative results for enterprise demonstration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                attack_type:
+                  type: string
+                  enum: [sql, xss, cmd, business, ransomware, normal]
+                  description: Type of attack to execute
+                custom_payload:
+                  type: object
+                  description: Optional custom attack payload
+                  properties:
+                    query:
+                      type: string
+                    body:
+                      type: string
+                    headers:
+                      type: object
+                    method:
+                      type: string
+                target_endpoint:
+                  type: string
+                  default: "/api/test"
+                  description: Target endpoint for testing
+                include_metrics:
+                  type: boolean
+                  default: true
+                  description: Include detailed performance metrics
+              required:
+                - attack_type
+            examples:
+              sql_injection_test:
+                summary: SQL Injection Test
+                value:
+                  attack_type: "sql"
+                  target_endpoint: "/api/users"
+                  include_metrics: true
+              business_logic_test:
+                summary: Business Logic Attack Test
+                value:
+                  attack_type: "business"
+                  custom_payload:
+                    body: '{"amount": -999999, "to_account": "attacker"}'
+                  target_endpoint: "/api/transfer"
+      responses:
+        '200':
+          description: Attack test completed across all tiers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttackTestResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          description: One or more protection tiers unavailable
+
+  /attack/compare/{attack_type}:
+    get:
+      tags:
+        - Attack Testing
+      summary: Get attack comparison results
+      description: Retrieve historical comparison data for a specific attack type
+      parameters:
+        - name: attack_type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [sql, xss, cmd, business, ransomware, normal]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Get results since this timestamp
+      responses:
+        '200':
+          description: Comparison results retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attack_type:
+                    type: string
+                  total_tests:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttackTestResult'
+                  summary:
+                    $ref: '#/components/schemas/AttackSummary'
+
+  /demo/status:
+    get:
+      tags:
+        - Demo Management
+      summary: Get demo system status
+      description: Check status of all demo components and protection tiers
+      responses:
+        '200':
+          description: Demo system status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall_status:
+                    type: string
+                    enum: [ready, degraded, error]
+                  tiers:
+                    type: object
+                    properties:
+                      unprotected:
+                        $ref: '#/components/schemas/TierStatus'
+                      cloud_ai:
+                        $ref: '#/components/schemas/TierStatus'
+                      local_ai:
+                        $ref: '#/components/schemas/TierStatus'
+                  services:
+                    type: object
+                    properties:
+                      cloud_ai_service:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [healthy, unhealthy]
+                          port:
+                            type: integer
+                            example: 18002
+                          response_time_ms:
+                            type: number
+                      ollama_service:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [healthy, unhealthy, loading]
+                          port:
+                            type: integer
+                            example: 18003
+                          active_models:
+                            type: array
+                            items:
+                              type: string
+                            example: ["mistral:7b", "llama3.2:3b"]
+                  uptime_seconds:
+                    type: integer
+                  total_tests_run:
+                    type: integer
+
+  /demo/start:
+    post:
+      tags:
+        - Demo Management
+      summary: Start demo session
+      description: Initialize demo environment and prepare all services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demo_type:
+                  type: string
+                  enum: [quick, comprehensive, custom]
+                  default: comprehensive
+                enable_video_recording:
+                  type: boolean
+                  default: false
+                auto_run:
+                  type: boolean
+                  default: false
+                  description: Run demo automatically without manual intervention
+                custom_attacks:
+                  type: array
+                  items:
+                    type: string
+                    enum: [sql, xss, cmd, business, ransomware, normal]
+      responses:
+        '200':
+          description: Demo session started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: "started"
+                  demo_type:
+                    type: string
+                  estimated_duration_minutes:
+                    type: integer
+
+  /demo/stop:
+    post:
+      tags:
+        - Demo Management
+      summary: Stop demo session
+      description: Stop current demo session and cleanup resources
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  format: uuid
+                generate_report:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Demo session stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: "stopped"
+                  duration_minutes:
+                    type: number
+                  tests_completed:
+                    type: integer
+                  report_url:
+                    type: string
+                    format: uri
+
+  /video/generate:
+    post:
+      tags:
+        - Video Automation
+      summary: Generate demo video
+      description: |
+        Automatically generate a comprehensive demo video showing the three-tier
+        protection system in action with enterprise attack scenarios.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  enum: [manual, automated]
+                  default: automated
+                  description: Video generation mode
+                resolution:
+                  type: string
+                  enum: ["1920x1080", "1280x720", "3840x2160"]
+                  default: "1920x1080"
+                duration_minutes:
+                  type: integer
+                  minimum: 5
+                  maximum: 60
+                  default: 10
+                include_attacks:
+                  type: array
+                  items:
+                    type: string
+                    enum: [sql, xss, cmd, business, ransomware, normal]
+                  default: ["sql", "xss", "cmd", "business", "ransomware"]
+                narration:
+                  type: boolean
+                  default: true
+                  description: Include automated narration
+                branding:
+                  type: object
+                  properties:
+                    company_name:
+                      type: string
+                    logo_url:
+                      type: string
+                      format: uri
+                    color_scheme:
+                      type: string
+                      enum: [default, corporate, dark]
+              required:
+                - mode
+      responses:
+        '202':
+          description: Video generation started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [queued, generating, completed, failed]
+                  estimated_completion_time:
+                    type: string
+                    format: date-time
+                  preview_url:
+                    type: string
+                    format: uri
+
+  /video/status/{job_id}:
+    get:
+      tags:
+        - Video Automation
+      summary: Get video generation status
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Video generation status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [queued, generating, completed, failed]
+                  progress_percent:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                  current_stage:
+                    type: string
+                    example: "Recording attack demonstrations"
+                  download_url:
+                    type: string
+                    format: uri
+                  file_size_mb:
+                    type: number
+                  duration_seconds:
+                    type: number
+
+  /analytics/summary:
+    get:
+      tags:
+        - Analytics
+      summary: Get demo analytics summary
+      description: Retrieve aggregated demo usage and effectiveness metrics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d]
+            default: 24h
+        - name: include_videos:
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                  total_demo_sessions:
+                    type: integer
+                  total_attacks_tested:
+                    type: integer
+                  attack_success_rates:
+                    type: object
+                    properties:
+                      unprotected_tier:
+                        type: number
+                        description: Percentage of attacks that succeeded
+                      cloud_ai_tier:
+                        type: number
+                      local_ai_tier:
+                        type: number
+                  popular_attack_types:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attack_type:
+                          type: string
+                        test_count:
+                          type: integer
+                        success_rate_unprotected:
+                          type: number
+                        block_rate_protected:
+                          type: number
+                  performance_metrics:
+                    type: object
+                    properties:
+                      avg_response_time_ms:
+                        type: object
+                        properties:
+                          unprotected:
+                            type: number
+                          cloud_ai:
+                            type: number
+                          local_ai:
+                            type: number
+                  videos_generated:
+                    type: integer
+                  avg_video_generation_time_minutes:
+                    type: number
+
+components:
+  schemas:
+    AttackTestResult:
+      type: object
+      properties:
+        test_id:
+          type: string
+          format: uuid
+        attack_type:
+          type: string
+          enum: [sql, xss, cmd, business, ransomware, normal]
+        timestamp:
+          type: string
+          format: date-time
+        target_endpoint:
+          type: string
+        results:
+          type: object
+          properties:
+            unprotected:
+              $ref: '#/components/schemas/TierTestResult'
+            cloud_ai:
+              $ref: '#/components/schemas/TierTestResult'
+            local_ai:
+              $ref: '#/components/schemas/TierTestResult'
+        comparison:
+          type: object
+          properties:
+            vulnerability_demonstrated:
+              type: boolean
+            protection_effectiveness:
+              type: object
+              properties:
+                cloud_ai_blocked:
+                  type: boolean
+                local_ai_blocked:
+                  type: boolean
+            performance_comparison:
+              type: object
+              properties:
+                fastest_response_ms:
+                  type: number
+                slowest_response_ms:
+                  type: number
+                accuracy_comparison:
+                  type: string
+        financial_impact:
+          type: object
+          properties:
+            potential_loss_prevented:
+              type: string
+              example: "$2.5M potential data breach prevented"
+            compliance_maintained:
+              type: boolean
+
+    TierTestResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [passed, blocked, vulnerable, error]
+        response_code:
+          type: integer
+        response_time_ms:
+          type: number
+        threat_detected:
+          type: boolean
+        threat_score:
+          type: number
+          minimum: 0
+          maximum: 10
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        action_taken:
+          type: string
+          enum: [allow, monitor, rate_limit, block]
+        ai_analysis:
+          type: string
+        error_message:
+          type: string
+        port:
+          type: integer
+
+    TierStatus:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Unprotected Kong"
+        status:
+          type: string
+          enum: [healthy, unhealthy, starting, stopping]
+        port:
+          type: integer
+        endpoint:
+          type: string
+          format: uri
+        protection_level:
+          type: string
+          enum: [none, cloud_ai, local_ai]
+        response_time_ms:
+          type: number
+        uptime_seconds:
+          type: integer
+        requests_processed:
+          type: integer
+
+    AttackSummary:
+      type: object
+      properties:
+        attack_type:
+          type: string
+        total_tests:
+          type: integer
+        success_rates:
+          type: object
+          properties:
+            unprotected:
+              type: number
+              description: Percentage of successful attacks (vulnerabilities)
+            cloud_ai_protected:
+              type: number
+              description: Percentage of attacks blocked
+            local_ai_protected:
+              type: number
+              description: Percentage of attacks blocked
+        avg_response_times:
+          type: object
+          properties:
+            unprotected:
+              type: number
+            cloud_ai:
+              type: number
+            local_ai:
+              type: number
+        protection_effectiveness:
+          type: object
+          properties:
+            cloud_ai:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: Protection effectiveness score (0-1)
+            local_ai:
+              type: number
+              minimum: 0
+              maximum: 1
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "validation_error"
+            message: "Invalid attack_type. Must be one of: sql, xss, cmd, business, ransomware, normal"
+            timestamp: "2024-01-15T10:30:00Z"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Demo-API-Key
+      description: Demo system API key
+
+security:
+  - ApiKeyAuth: []
