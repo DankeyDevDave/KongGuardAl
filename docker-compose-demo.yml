@@ -1,0 +1,298 @@
+version: '3.8'
+
+networks:
+  kong-demo-net:
+    driver: bridge
+
+volumes:
+  kong-datastore:
+  ollama-data:
+
+services:
+  # PostgreSQL Database for Kong
+  kong-database:
+    image: postgres:13
+    container_name: kong-demo-database
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    volumes:
+      - kong-datastore:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kongpass
+      POSTGRES_DB: kong
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kong Database Migration
+  kong-migrations:
+    image: kong:3.8.0
+    container_name: kong-demo-migrations
+    command: kong migrations bootstrap
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    networks:
+      - kong-demo-net
+    restart: "no"
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_PORT: 5432
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+
+  # Kong Gateway (Unprotected Tier)
+  kong-unprotected:
+    image: kong:3.8.0
+    container_name: kong-demo-unprotected
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_PORT: 5432
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      KONG_ADMIN_GUI_URL: "http://localhost:8002"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000"
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"  # Unprotected proxy port
+      - "8001:8001"  # Admin API
+      - "8002:8002"  # Admin GUI
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # Kong Gateway (Protected with Cloud AI)
+  kong-protected:
+    image: kong:3.8.0
+    container_name: kong-demo-protected
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_PORT: 5432
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8003"
+      KONG_PROXY_LISTEN: "0.0.0.0:8004"
+      KONG_LUA_PACKAGE_PATH: "/opt/?.lua;;"
+    volumes:
+      - ./kong-plugin:/opt
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    ports:
+      - "8004:8004"  # Protected proxy port
+      - "8003:8003"  # Protected admin API
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # Kong Gateway (Protected with Local AI)
+  kong-local:
+    image: kong:3.8.0
+    container_name: kong-demo-local
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_PORT: 5432
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8005"
+      KONG_PROXY_LISTEN: "0.0.0.0:8006"
+      KONG_LUA_PACKAGE_PATH: "/opt/?.lua;;"
+    volumes:
+      - ./kong-plugin:/opt
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    ports:
+      - "8006:8006"  # Local AI protected proxy port
+      - "8005:8005"  # Local AI protected admin API
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # Cloud AI Service (Gemini/GPT)
+  kong-guard-ai-cloud:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile.websocket
+    container_name: kong-guard-ai-cloud
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    environment:
+      - AI_PROVIDER=gemini
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PORT=18002
+    ports:
+      - "18002:18002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Ollama Service for Local AI
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kong-demo-ollama
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_ORIGINS=*
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Local AI Service (Ollama wrapper)
+  kong-guard-ai-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama-service
+    container_name: kong-guard-ai-local
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=mistral:7b
+      - PORT=18003
+    ports:
+      - "18003:18003"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mock Backend Service
+  mock-backend:
+    image: nginx:alpine
+    container_name: kong-demo-backend
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    volumes:
+      - ./mock-backend:/usr/share/nginx/html
+    ports:
+      - "8080:80"
+
+  # Demo Dashboard Web Server
+  demo-dashboard:
+    image: nginx:alpine
+    container_name: kong-demo-dashboard
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+      - ./nginx/demo.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8090:80"
+    depends_on:
+      - kong-guard-ai-cloud
+      - kong-guard-ai-local
+
+  # Ollama Model Initializer
+  ollama-init:
+    image: curlimages/curl:latest
+    container_name: kong-demo-ollama-init
+    networks:
+      - kong-demo-net
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+    command: >
+      sh -c "
+        echo 'Pulling Mistral 7B model...' &&
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\":\"mistral:7b\"}' &&
+        echo 'Mistral model pulled successfully!' &&
+        echo 'Pulling Llama 3.2 3B model as fallback...' &&
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\":\"llama3.2:3b\"}' &&
+        echo 'All models ready for local AI processing!'
+      "
+
+  # Demo Automation Service
+  demo-automation:
+    build:
+      context: .
+      dockerfile: Dockerfile.demo-automation
+    container_name: kong-demo-automation
+    restart: unless-stopped
+    networks:
+      - kong-demo-net
+    volumes:
+      - ./demo-results:/app/results
+    environment:
+      - CLOUD_AI_URL=http://kong-guard-ai-cloud:18002
+      - LOCAL_AI_URL=http://kong-guard-ai-local:18003
+      - UNPROTECTED_URL=http://kong-unprotected:8000
+    ports:
+      - "8091:8080"
+    depends_on:
+      - kong-guard-ai-cloud
+      - kong-guard-ai-local
+      - kong-unprotected
