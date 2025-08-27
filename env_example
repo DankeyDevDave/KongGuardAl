@@ -1,0 +1,117 @@
+# Kong Guard AI Environment Configuration
+
+# ===========================================
+# DATABASE CONFIGURATION
+# ===========================================
+
+# Self-hosted Supabase (Production)
+# Uncomment these lines to use your self-hosted Supabase instance
+# SUPABASE_URL=https://your-supabase-instance.com
+# SUPABASE_ANON_KEY=your_anon_key_here
+# SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# SQLite (Local Development) - Default
+# DATABASE_TYPE=sqlite
+# SQLITE_DB_PATH=attack_metrics.db
+
+# ===========================================
+# AI SERVICE CONFIGURATION  
+# ===========================================
+
+# OpenAI API (for cloud AI tier)
+# OPENAI_API_KEY=sk-your-openai-key-here
+
+# Groq API (fast inference alternative)
+# GROQ_API_KEY=gsk_your-groq-key-here
+
+# Google Gemini API (for advanced analysis)
+# GEMINI_API_KEY=your-gemini-key-here
+
+# Ollama (for local AI tier)
+# OLLAMA_URL=http://localhost:11434
+
+# ===========================================
+# ATTACK SIMULATION CONFIGURATION
+# ===========================================
+
+# Default attack flood settings
+DEFAULT_ATTACK_INTENSITY=medium
+DEFAULT_ATTACK_STRATEGY=wave
+DEFAULT_ATTACK_DURATION=30
+DEFAULT_TARGET_TIERS=unprotected,cloud,local
+
+# Rate limiting and safety
+MAX_ATTACK_DURATION=300
+MAX_CONCURRENT_ATTACKS=1000
+ENABLE_ATTACK_LOGGING=true
+
+# ===========================================
+# SECURITY CONFIGURATION
+# ===========================================
+
+# API Security
+API_RATE_LIMIT=100  # requests per minute
+ENABLE_CORS=true
+ALLOWED_ORIGINS=http://localhost:*,https://localhost:*
+
+# Input validation
+ENABLE_INPUT_SANITIZATION=true
+MAX_PAYLOAD_SIZE=10240  # bytes
+BLOCKED_PAYLOADS=<script>,javascript:,data:
+
+# ===========================================  
+# PERFORMANCE CONFIGURATION
+# ===========================================
+
+# Database connection pooling
+DB_POOL_SIZE=10
+DB_MAX_CONNECTIONS=50
+DB_CONNECTION_TIMEOUT=30
+
+# Attack simulation performance
+BATCH_INSERT_SIZE=1000
+METRICS_BUFFER_SIZE=5000
+ENABLE_REAL_TIME_UPDATES=true
+
+# ===========================================
+# MONITORING & LOGGING
+# ===========================================
+
+# Logging configuration
+LOG_LEVEL=INFO
+LOG_FILE=kong_guard.log
+ENABLE_STRUCTURED_LOGGING=true
+
+# Metrics and monitoring
+ENABLE_PROMETHEUS_METRICS=false
+PROMETHEUS_PORT=9090
+HEALTH_CHECK_ENDPOINT=/health
+
+# ===========================================
+# DEVELOPMENT CONFIGURATION
+# ===========================================
+
+# Development mode settings
+DEBUG_MODE=false
+ENABLE_MOCK_ATTACKS=false
+MOCK_RESPONSE_TIME=50
+
+# Testing configuration  
+TEST_DATABASE_PATH=test_attack_metrics.db
+ENABLE_TEST_ENDPOINTS=false
+
+# ===========================================
+# SELF-HOSTED SUPABASE SPECIFIC
+# ===========================================
+
+# If using self-hosted Supabase, these are typical settings:
+# SUPABASE_URL=http://localhost:54321  # Default local Supabase
+# SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Database connection (if direct PostgreSQL access needed)
+# POSTGRES_HOST=localhost
+# POSTGRES_PORT=54322
+# POSTGRES_DB=postgres  
+# POSTGRES_USER=postgres
+# POSTGRES_PASSWORD=your-postgres-password

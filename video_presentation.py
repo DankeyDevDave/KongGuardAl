@@ -151,36 +151,86 @@ class VideoPresentationAutomation:
             return False
 
     async def show_narration(self, text: str, duration: int = 5):
-        """Display narration text on screen"""
+        """Display narration text on screen with Kong Guard AI branding"""
         logger.info(f"Narration: {text}")
         
-        # Inject narration overlay
+        # Kong Guard AI brand colors
+        brand_colors = {
+            'bg': '#0f1113',
+            'surface': '#171a1f', 
+            'line': '#2a3037',
+            'txt': '#c8ccd3',
+            'silver': '#e6e8ec',
+            'steel': '#aeb4bd'
+        }
+        
+        # Inject narration overlay with Kong Guard AI styling
         await self.page.evaluate(f"""
             // Remove existing narration
             const existing = document.getElementById('video-narration');
             if (existing) existing.remove();
             
-            // Create narration overlay
+            // Create narration overlay with Kong Guard AI branding
             const narration = document.createElement('div');
             narration.id = 'video-narration';
             narration.style.cssText = `
                 position: fixed;
-                bottom: 50px;
+                bottom: 60px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.9);
-                color: white;
-                padding: 20px 40px;
-                border-radius: 15px;
-                font-size: 18px;
-                font-weight: bold;
+                background: linear-gradient(180deg, {brand_colors['surface']}, {brand_colors['bg']});
+                color: {brand_colors['silver']};
+                padding: 24px 48px;
+                border-radius: 8px;
+                font-family: 'Rajdhani', 'Inter', system-ui, sans-serif;
+                font-size: 20px;
+                font-weight: 600;
                 text-align: center;
-                max-width: 80%;
+                max-width: 85%;
                 z-index: 10000;
-                border: 2px solid #44aaff;
+                border: 1px solid {brand_colors['line']};
                 backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+                letter-spacing: 0.04em;
             `;
-            narration.textContent = `{text}`;
+            
+            // Add Kong Guard AI logo if available
+            const logoContainer = document.createElement('div');
+            logoContainer.style.cssText = `
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            `;
+            
+            const logo = document.createElement('img');
+            logo.src = 'kong-guard-logo.png';
+            logo.style.cssText = 'height: 24px; width: 24px; object-fit: contain;';
+            logo.onerror = () => logo.style.display = 'none';
+            
+            const brandText = document.createElement('span');
+            brandText.textContent = 'KONG GUARD AI';
+            brandText.style.cssText = `
+                color: {brand_colors['steel']};
+                font-size: 14px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+            `;
+            
+            logoContainer.appendChild(logo);
+            logoContainer.appendChild(brandText);
+            
+            const textContent = document.createElement('div');
+            textContent.textContent = `{text}`;
+            textContent.style.cssText = `
+                color: {brand_colors['txt']};
+                line-height: 1.4;
+            `;
+            
+            narration.appendChild(logoContainer);
+            narration.appendChild(textContent);
             document.body.appendChild(narration);
             
             // Auto-remove after duration
@@ -194,18 +244,22 @@ class VideoPresentationAutomation:
         await asyncio.sleep(duration)
 
     async def highlight_element(self, selector: str, duration: int = 3):
-        """Add visual highlight to an element"""
+        """Add visual highlight to an element with Kong Guard AI styling"""
         await self.page.evaluate(f"""
             const element = document.querySelector(`{selector}`);
             if (element) {{
-                element.style.outline = '3px solid #ff6600';
+                // Kong Guard AI brand highlight color
+                const highlightColor = '#aeb4bd'; // steel color from brand
+                element.style.outline = `3px solid ${{highlightColor}}`;
                 element.style.outlineOffset = '2px';
-                element.style.boxShadow = '0 0 15px rgba(255, 102, 0, 0.5)';
+                element.style.boxShadow = `0 0 20px rgba(174, 180, 189, 0.6)`;
+                element.style.borderRadius = '8px';
                 
                 setTimeout(() => {{
                     element.style.outline = '';
                     element.style.outlineOffset = '';
                     element.style.boxShadow = '';
+                    element.style.borderRadius = '';
                 }}, {duration * 1000});
             }}
         """)
@@ -221,14 +275,14 @@ class VideoPresentationAutomation:
         
         logger.info(f"Executing attack scenario: {title}")
         
-        # Show attack introduction
-        await self.show_narration(f"🎯 {title}: {description}", 6)
+        # Show attack introduction with Kong Guard AI branding
+        await self.show_narration(f"{title}: {description}", 6)
         
         # Click each tier button in sequence with narration
         tiers = [
-            ("unprotected", "🔓 Testing unprotected Kong gateway..."),
-            ("cloud", "☁️ Testing cloud AI protection..."),  
-            ("local", "🏠 Testing local AI protection...")
+            ("unprotected", "Testing unprotected Kong gateway..."),
+            ("cloud", "Testing cloud AI protection..."),  
+            ("local", "Testing local AI protection...")
         ]
         
         for tier, tier_narration in tiers:
@@ -260,9 +314,9 @@ class VideoPresentationAutomation:
         """Run the complete video demonstration"""
         logger.info("Starting comprehensive Kong Guard AI demonstration")
         
-        # Introduction scene
+        # Introduction scene with Kong Guard AI branding
         await self.show_narration(
-            "🛡️ Welcome to Kong Guard AI - Enterprise Three-Tier Protection Demonstration", 6
+            "Welcome to Kong Guard AI - Enterprise Three-Tier Protection Demonstration", 6
         )
         
         await self.show_narration(
@@ -289,12 +343,12 @@ class VideoPresentationAutomation:
             
             # Show financial impact
             await self.show_narration(
-                f"💰 Financial Impact Prevented: {scenario['financial_impact']}", 4
+                f"Financial Impact Prevented: {scenario['financial_impact']}", 4
             )
         
         # Summary and conclusion
         await self.show_narration(
-            "📊 Demo Complete! Kong Guard AI successfully blocked all attacks across both AI tiers", 6
+            "Demo Complete! Kong Guard AI successfully blocked all attacks across both AI tiers", 6
         )
         
         await self.show_narration(
@@ -302,11 +356,11 @@ class VideoPresentationAutomation:
         )
         
         await self.show_narration(
-            "💡 Key Benefits: Real-time AI detection, Cloud & Local options, 99%+ accuracy, Sub-second response", 8
+            "Key Benefits: Real-time AI detection, Cloud & Local options, 99%+ accuracy, Sub-second response", 8
         )
         
         await self.show_narration(
-            "🎯 Ready to protect your APIs with Kong Guard AI? Contact us for implementation!", 6
+            "Ready to protect your APIs with Kong Guard AI? Contact us for implementation!", 6
         )
 
     async def run_automated_presentation(self):
@@ -402,18 +456,18 @@ async def main():
         video_path = await presenter.create_demo_video(mode=args.mode)
         
         if video_path:
-            print(f"\n🎬 Demo video created successfully!")
-            print(f"📁 Location: {video_path}")
-            print(f"🎯 Mode: {args.mode}")
-            print(f"\n💡 You can now use this video for enterprise presentations!")
+            print(f"\nDemo video created successfully!")
+            print(f"Location: {video_path}")
+            print(f"Mode: {args.mode}")
+            print(f"\nYou can now use this video for enterprise presentations!")
         else:
-            print("\n❌ Failed to create demo video. Check the logs for details.")
+            print("\nFailed to create demo video. Check the logs for details.")
             
     except KeyboardInterrupt:
-        print("\n🛑 Video creation interrupted by user")
+        print("\nVideo creation interrupted by user")
         await presenter.close()
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\nUnexpected error: {e}")
         await presenter.close()
 
 if __name__ == "__main__":

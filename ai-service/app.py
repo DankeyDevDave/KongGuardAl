@@ -8,6 +8,8 @@ import os
 import json
 import time
 import hashlib
+import subprocess
+import threading
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
@@ -756,6 +758,278 @@ async def get_statistics():
         "false_positives": len(threat_intel.false_positives),
         "ai_provider": AI_PROVIDER
     }
+
+# ============================================================================
+# Attack Flood Simulation API
+# ============================================================================
+
+class AttackFloodRequest(BaseModel):
+    intensity: str = Field(..., description="Attack intensity: low, medium, high, extreme")
+    strategy: str = Field(..., description="Attack strategy: wave, sustained, stealth, blended, escalation")
+    duration: int = Field(60, description="Attack duration in seconds")
+    targets: List[str] = Field(["unprotected", "cloud", "local"], description="Target tiers")
+    record_metrics: bool = Field(True, description="Record detailed metrics to database")
+
+class AttackFloodResponse(BaseModel):
+    run_id: int
+    status: str
+    message: str
+    config: dict
+
+class AttackStatsResponse(BaseModel):
+    run_id: int
+    total_attacks: int
+    duration: float
+    results_summary: dict
+
+# Global attack flood management
+attack_processes = {}
+
+@app.post("/api/attack/flood", response_model=AttackFloodResponse)
+async def launch_attack_flood(request: AttackFloodRequest, background_tasks: BackgroundTasks):
+    """Launch comprehensive attack flood simulation"""
+    try:
+        # Generate unique run ID
+        run_id = int(time.time() * 1000)  # Timestamp-based ID
+        
+        # Validate inputs to prevent command injection
+        allowed_intensities = {"low", "medium", "high", "extreme"}
+        allowed_strategies = {"wave", "sustained", "stealth", "blended", "escalation"}
+        allowed_targets = {"unprotected", "cloud", "local"}
+        
+        if request.intensity not in allowed_intensities:
+            raise HTTPException(status_code=400, detail="Invalid intensity parameter")
+        if request.strategy not in allowed_strategies:
+            raise HTTPException(status_code=400, detail="Invalid strategy parameter")
+        if not all(target in allowed_targets for target in request.targets):
+            raise HTTPException(status_code=400, detail="Invalid target parameter")
+        if not (5 <= request.duration <= 300):  # 5 seconds to 5 minutes
+            raise HTTPException(status_code=400, detail="Invalid duration parameter")
+        
+        # Prepare attack command with validated inputs
+        cmd = [
+            "python3", 
+            "attack_flood_simulator.py",
+            "--intensity", request.intensity,
+            "--strategy", request.strategy,
+            "--duration", str(request.duration),
+            "--targets"
+        ] + request.targets
+        
+        if not request.record_metrics:
+            cmd.append("--no-record")
+        
+        # Launch attack flood in background
+        logger.info(f"Launching attack flood (Run ID: {run_id})")
+        logger.info(f"Sanitized command with validated parameters")
+        
+        # Start process in background
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd="..",  # Run from parent directory
+            text=True
+        )
+        
+        attack_processes[run_id] = process
+        
+        # Send WebSocket notification
+        await manager.broadcast(json.dumps({
+            "type": "attack_flood_started",
+            "run_id": run_id,
+            "config": request.dict(),
+            "timestamp": datetime.now().isoformat()
+        }))
+        
+        return AttackFloodResponse(
+            run_id=run_id,
+            status="launched",
+            message=f"Attack flood simulation launched with {request.intensity} intensity",
+            config=request.dict()
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to launch attack flood: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to launch attack flood: {str(e)}")
+
+@app.post("/api/attack/flood/stop/{run_id}")
+async def stop_attack_flood(run_id: int):
+    """Stop ongoing attack flood simulation"""
+    try:
+        if run_id in attack_processes:
+            process = attack_processes[run_id]
+            process.terminate()
+            
+            # Wait for process to terminate
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()  # Force kill if not terminated
+            
+            del attack_processes[run_id]
+            
+            # Send WebSocket notification
+            await manager.broadcast(json.dumps({
+                "type": "attack_flood_stopped",
+                "run_id": run_id,
+                "timestamp": datetime.now().isoformat()
+            }))
+            
+            return {"status": "stopped", "run_id": run_id}
+        else:
+            raise HTTPException(status_code=404, detail="Attack flood not found")
+            
+    except Exception as e:
+        logger.error(f"Failed to stop attack flood: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to stop attack flood: {str(e)}")
+
+@app.get("/api/attack/flood/status/{run_id}")
+async def get_attack_flood_status(run_id: int):
+    """Get status of attack flood simulation"""
+    try:
+        if run_id in attack_processes:
+            process = attack_processes[run_id]
+            
+            # Check if process is still running
+            poll = process.poll()
+            if poll is None:
+                status = "running"
+            else:
+                status = "completed" if poll == 0 else "failed"
+                # Clean up completed process
+                del attack_processes[run_id]
+            
+            return {
+                "run_id": run_id,
+                "status": status,
+                "return_code": poll
+            }
+        else:
+            return {
+                "run_id": run_id,
+                "status": "not_found",
+                "return_code": None
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to get attack flood status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get attack flood status: {str(e)}")
+
+@app.get("/api/attack/flood/results/{run_id}", response_model=AttackStatsResponse)
+async def get_attack_flood_results(run_id: int):
+    """Get results from completed attack flood simulation"""
+    try:
+        # Import SQLite to read results
+        import sqlite3
+        
+        # Connect to attack metrics database
+        db_path = "../attack_metrics.db"
+        if not os.path.exists(db_path):
+            raise HTTPException(status_code=404, detail="Attack metrics database not found")
+        
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Get run metadata
+        cursor.execute('SELECT * FROM attack_runs WHERE run_id = ?', (run_id,))
+        run_data = cursor.fetchone()
+        
+        if not run_data:
+            raise HTTPException(status_code=404, detail="Attack run not found")
+        
+        # Get tier statistics
+        cursor.execute('''
+            SELECT tier, total_requests, attacks_blocked, detection_rate, avg_response_time
+            FROM tier_statistics WHERE run_id = ?
+        ''', (run_id,))
+        tier_stats = cursor.fetchall()
+        
+        # Get attack type summary
+        cursor.execute('''
+            SELECT attack_type, COUNT(*) as count, 
+                   AVG(threat_score) as avg_score,
+                   SUM(CASE WHEN blocked = 1 THEN 1 ELSE 0 END) as blocked_count
+            FROM attack_metrics WHERE run_id = ?
+            GROUP BY attack_type
+        ''', (run_id,))
+        attack_summary = cursor.fetchall()
+        
+        conn.close()
+        
+        # Format results
+        results_summary = {
+            "tier_performance": {
+                row[0]: {
+                    "total_requests": row[1],
+                    "attacks_blocked": row[2], 
+                    "detection_rate": row[3],
+                    "avg_response_time": row[4]
+                } for row in tier_stats
+            },
+            "attack_breakdown": {
+                row[0]: {
+                    "count": row[1],
+                    "avg_threat_score": row[2],
+                    "blocked_count": row[3]
+                } for row in attack_summary
+            }
+        }
+        
+        # Calculate duration
+        start_time = datetime.fromisoformat(run_data[1]) if run_data[1] else datetime.now()
+        end_time = datetime.fromisoformat(run_data[2]) if run_data[2] else datetime.now()
+        duration = (end_time - start_time).total_seconds()
+        
+        return AttackStatsResponse(
+            run_id=run_id,
+            total_attacks=run_data[3] or 0,
+            duration=duration,
+            results_summary=results_summary
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get attack flood results: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get attack flood results: {str(e)}")
+
+@app.get("/api/attack/flood/list")
+async def list_attack_runs():
+    """List all attack flood simulation runs"""
+    try:
+        import sqlite3
+        
+        db_path = "../attack_metrics.db"
+        if not os.path.exists(db_path):
+            return {"runs": []}
+        
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT run_id, start_time, end_time, total_attacks, intensity_level, strategy, duration
+            FROM attack_runs 
+            ORDER BY start_time DESC 
+            LIMIT 20
+        ''')
+        
+        runs = cursor.fetchall()
+        conn.close()
+        
+        return {
+            "runs": [{
+                "run_id": run[0],
+                "start_time": run[1],
+                "end_time": run[2],
+                "total_attacks": run[3],
+                "intensity": run[4],
+                "strategy": run[5],
+                "duration": run[6]
+            } for run in runs]
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to list attack runs: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list attack runs: {str(e)}")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

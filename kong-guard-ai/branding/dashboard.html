@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KongGuard AI — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="kongguard.css">
+</head>
+<body>
+  <div class="topbar card">
+    <div class="brand">
+      <!-- Put your silver wordmark here -->
+      <img src="/static/brand/kongguard-mark-silver.svg" alt="KongGuard AI" onerror="this.style.display='none'">
+      <h1>KongGuard AI</h1>
+    </div>
+    <div class="status" id="hdr-status">Connecting…</div>
+  </div>
+
+  <div class="container">
+    <!-- KPI Row -->
+    <section class="grid kpis">
+      <div class="kpi"><div class="label">Total Analyzed</div><div class="value" id="kpi-total">0</div></div>
+      <div class="kpi"><div class="label">Attacks Blocked</div><div class="value" id="kpi-blocked">0</div></div>
+      <div class="kpi"><div class="label">Avg Confidence</div><div class="value" id="kpi-conf">0%</div></div>
+      <div class="kpi"><div class="label">Avg Processing</div><div class="value" id="kpi-proc">0ms</div></div>
+      <div class="kpi"><div class="label">AI Accuracy</div><div class="value" id="kpi-acc">—</div></div>
+    </section>
+
+    <section class="grid panels">
+      <!-- Left: Current AI Analysis -->
+      <div class="card panel">
+        <div class="panel-title">Current AI Analysis</div>
+        <hr class="hr">
+        <div class="progress"><div class="bar" id="analysis-progress" style="width:0%"></div></div>
+        <div class="subcards" style="margin-top:12px;">
+          <div class="subcard">
+            <div class="sub-label">AI Reasoning</div>
+            <div id="ai-reasoning" class="value" style="font-size:14px; color:var(--txt-muted);">Waiting…</div>
+          </div>
+          <div class="subcard">
+            <div class="sub-label">Threat Indicators</div>
+            <div id="ai-indicators" style="font-size:14px; color:var(--txt-muted);">None detected</div>
+          </div>
+          <div class="subcard">
+            <div class="sub-label">Recommendation</div>
+            <div id="ai-reco" style="font-size:14px; color:var(--txt-muted);">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Test Attacks -->
+      <div class="card panel">
+        <div class="panel-title">Test Attacks</div>
+        <hr class="hr">
+        <div class="list" id="attack-list">
+          <div class="list-item critical"><span class="name">SQL Injection</span><span class="meta">/api/v1/login</span></div>
+          <div class="list-item caution"><span class="name">XSS</span><span class="meta">/search</span></div>
+          <div class="list-item caution"><span class="name">Path Traversal</span><span class="meta">/files</span></div>
+          <div class="list-item normal"><span class="name">Normal Traffic</span><span class="meta">baseline</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Analysis -->
+    <div class="card panel" style="margin-top:14px;">
+      <div class="panel-title">Recent Analysis</div>
+      <hr class="hr">
+      <div class="table-wrap">
+        <table class="table" id="recent-table">
+          <thead><tr>
+            <th>Time</th><th>Path</th><th>Verdict</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            <tr><td colspan="4" style="color:var(--txt-subtle);">No analysis yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer-note">© KongGuard AI</div>
+  </div>
+
+  <script>
+    // Minimal fetch wiring. Set via environment or window.__KONG_BASE__.
+    const BASE = window.__KONG_BASE__ || (new URLSearchParams(location.search).get('base') || '');
+    const HDR = document.getElementById('hdr-status');
+
+    async function sx(url, opts={}) {
+      const headers = Object.assign({'Accept':'application/json'}, opts.headers||{});
+      const res = await fetch(BASE + url, Object.assign({}, opts, {headers}));
+      if (!res.ok) throw new Error(await res.text());
+      // text/plain for /metrics
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('text/plain')) return res.text();
+      return res.json();
+    }
+
+    async function init() {
+      try {
+        const h = await sx('/kong-guard-ai/health');
+        HDR.textContent = (h.status === 'healthy' ? 'Connected' : 'Degraded') + (h.version ? ' • v'+h.version : '');
+      } catch(e) { HDR.textContent = 'Offline'; }
+
+      try {
+        const a = await sx('/kong-guard-ai/analytics/summary?period=24h&group_by=hour');
+        document.getElementById('kpi-total').textContent  = a.total_requests ?? 0;
+        const blocked = a.response_actions?.blocked ?? 0;
+        const rateLimited = a.response_actions?.rate_limited ?? 0;
+        document.getElementById('kpi-blocked').textContent = blocked;
+        document.getElementById('kpi-conf').textContent = (a.avg_confidence ?? 0) + '%';
+        document.getElementById('kpi-proc').textContent = (a.average_processing_time ?? 0) + 'ms';
+        document.getElementById('kpi-acc').textContent = a.ai_accuracy ? a.ai_accuracy.toFixed(1) + '%' : '—';
+      } catch(e) {}
+
+      try {
+        const list = await sx('/kong-guard-ai/threats?limit=20');
+        const rows = (list.threats || []).map(t => {
+          const klass = t.threat_level >= 80 ? 'dot-critical' : (t.threat_level >= 50 ? 'dot-caution' : 'dot-normal');
+          const time = new Date(t.timestamp).toLocaleTimeString();
+          return `<tr>
+            <td>${time}</td>
+            <td>${t.request_path || t.request_method}</td>
+            <td><span class="status-dot ${klass}"></span>${t.threat_type || '—'}</td>
+            <td>${t.action_taken || '—'}</td>
+          </tr>`;
+        }).join('');
+        const tb = document.querySelector('#recent-table tbody');
+        tb.innerHTML = rows || `<tr><td colspan="4" style="color:var(--txt-subtle);">No analysis yet</td></tr>`;
+
+        // Also fill "Current AI Analysis" from first row
+        if (list.threats && list.threats[0]) {
+          const d = await sx('/kong-guard-ai/threats/' + list.threats[0].id);
+          document.getElementById('ai-reasoning').textContent = d.ai_analysis?.result || '—';
+          document.getElementById('ai-indicators').textContent = (d.pattern_matches || []).map(p=>p.pattern).join(', ') || 'None detected';
+          document.getElementById('ai-reco').textContent = d.action_taken || '—';
+          document.getElementById('analysis-progress').style.width = (d.confidence || 0) + '%';
+        }
+      } catch(e) {}
+    }
+    init();
+  </script>
+</body>
+</html>
