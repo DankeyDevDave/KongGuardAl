@@ -585,7 +585,8 @@ class EnterpriseAttackEngine:
         print(f"📱 Dashboard: http://localhost:8080/simple-ai-dashboard.html")
         print()
         
-        input("🚨 Press ENTER to begin the enterprise attack demonstration... ")
+        print("🚨 Starting enterprise attack demonstration in 2 seconds...")
+        await asyncio.sleep(2)
         print()
         
         critical_attacks = 0
