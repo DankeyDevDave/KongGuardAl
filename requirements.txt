@@ -1,0 +1,50 @@
+# Kong Guard AI - Requirements
+# Core Web Framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+httpx==0.27.2
+pydantic==2.10.3
+python-multipart==0.0.20
+python-dotenv==1.0.0
+aiofiles==23.2.0
+websockets==12.0
+jinja2==3.1.2
+
+# Machine Learning & Data Science
+scikit-learn==1.3.2
+numpy==1.26.2
+pandas==2.1.3
+joblib==1.3.2
+scipy==1.11.4
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+
+# Database
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+alembic==1.13.0
+
+# Time Series & Advanced ML (Optional)
+# tensorflow==2.14.0
+# prophet==1.1.5
+# statsmodels==0.14.0
+
+# Utilities
+pytz==2023.3
+influxdb-client==1.38.0
+redis==5.0.1
+celery==5.3.4
+
+# Security & Monitoring
+cryptography==41.0.7
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Development & Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.0

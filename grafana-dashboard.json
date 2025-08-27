@@ -1,0 +1,307 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "kongguard-soc",
+    "title": "Kong Guard AI - Security Operations Center",
+    "tags": ["security", "kong", "ai", "attack-monitoring"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "id": 1,
+        "title": "🛡️ Threats Blocked Today",
+        "type": "stat",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) FROM kongguard.attack_metrics WHERE blocked = true AND timestamp >= CURRENT_DATE",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "red", "value": 100}
+              ]
+            },
+            "unit": "short",
+            "displayName": "Blocked Attacks"
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "id": 2,
+        "title": "⚡ Response Time (1h avg)",
+        "type": "gauge",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT ROUND(AVG(response_time_ms)::numeric, 2) FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '1 hour'",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms",
+            "max": 500,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100},
+                {"color": "red", "value": 300}
+              ]
+            },
+            "displayName": "Avg Response"
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "id": 3,
+        "title": "🎯 Protection Rate",
+        "type": "gauge",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT ROUND((SUM(CASE WHEN blocked THEN 1 ELSE 0 END)::float / NULLIF(COUNT(*), 0) * 100)::numeric, 1) FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '24 hours'",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 80},
+                {"color": "green", "value": 95}
+              ]
+            },
+            "displayName": "Block Rate"
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "id": 4,
+        "title": "🔥 Active Threat Level",
+        "type": "stat",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT CASE WHEN AVG(threat_score) > 0.8 THEN 'CRITICAL' WHEN AVG(threat_score) > 0.6 THEN 'HIGH' WHEN AVG(threat_score) > 0.4 THEN 'MEDIUM' ELSE 'LOW' END FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '1 hour'",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "value"},
+            "mappings": [
+              {"type": "value", "value": "CRITICAL", "color": {"fixedColor": "red", "mode": "fixed"}},
+              {"type": "value", "value": "HIGH", "color": {"fixedColor": "orange", "mode": "fixed"}},
+              {"type": "value", "value": "MEDIUM", "color": {"fixedColor": "yellow", "mode": "fixed"}},
+              {"type": "value", "value": "LOW", "color": {"fixedColor": "green", "mode": "fixed"}}
+            ]
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5},
+        "id": 5,
+        "title": "📊 Attack Types Distribution",
+        "type": "piechart",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT attack_type, COUNT(*) as attacks FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '24 hours' AND attack_type IS NOT NULL GROUP BY attack_type ORDER BY attacks DESC",
+          "refId": "A"
+        }],
+        "options": {
+          "pieType": "donut",
+          "displayLabels": ["name", "percent"],
+          "legendDisplayMode": "table",
+          "legendPlacement": "right",
+          "legendShowLegend": true,
+          "legendValues": ["value", "percent"]
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5},
+        "id": 6,
+        "title": "🔥 Threat Score Timeline",
+        "type": "timeseries",
+        "targets": [{
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, tier, AVG(threat_score) AS threat_score FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '6 hours' GROUP BY timestamp, tier ORDER BY timestamp",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 20,
+              "spanNulls": true
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+        "id": 7,
+        "title": "🏢 Protection by Tier",
+        "type": "barchart",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT tier, COUNT(*) as total, SUM(CASE WHEN blocked THEN 1 ELSE 0 END) as blocked FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '24 hours' AND tier IS NOT NULL GROUP BY tier",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "barAlignment": 0,
+              "drawStyle": "bars",
+              "fillOpacity": 80
+            }
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+        "id": 8,
+        "title": "📍 Top Attack Sources",
+        "type": "table",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT source_ip, COUNT(*) as attacks, ROUND(AVG(threat_score)::numeric, 2) as avg_threat, ARRAY_AGG(DISTINCT attack_type) as types FROM kongguard.attack_metrics WHERE timestamp > NOW() - INTERVAL '24 hours' AND source_ip IS NOT NULL GROUP BY source_ip ORDER BY attacks DESC LIMIT 10",
+          "refId": "A"
+        }],
+        "options": {
+          "showHeader": true,
+          "cellHeight": "sm"
+        }
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "${datasource}"
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 23},
+        "id": 9,
+        "title": "🚨 Live Attack Feed",
+        "type": "table",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT timestamp, tier, attack_type, threat_score, CASE WHEN blocked THEN '✅ Blocked' ELSE '⚠️ Allowed' END as status, response_time_ms, source_ip FROM kongguard.attack_metrics ORDER BY timestamp DESC LIMIT 50",
+          "refId": "A"
+        }],
+        "options": {
+          "showHeader": true,
+          "cellHeight": "sm",
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "timestamp"
+            }
+          ]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "inspect": false
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "threat_score"},
+              "properties": [
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "color-background",
+                    "mode": "gradient"
+                  }
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "continuous-GrYlRd"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "Kong Guard Supabase",
+            "value": "cewa01tr2kwlcf"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": "Data Source",
+          "multi": false,
+          "name": "datasource",
+          "options": [],
+          "query": "postgres",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "type": "datasource"
+        }
+      ]
+    }
+  },
+  "overwrite": true
+}
