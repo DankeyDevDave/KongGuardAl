@@ -32,9 +32,13 @@ node_modules/
 redis-data/
 kong-datastore/
 postgres-data/
+kong-data/
 *.db-shm
 *.db-wal
 
 # GitHub Actions runner artifacts
 _work/
 .runner/ 
+
+# GitHub secrets configuration
+.github-secrets.env

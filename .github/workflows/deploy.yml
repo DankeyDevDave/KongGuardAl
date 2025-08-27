@@ -1,0 +1,336 @@
+name: Deploy Kong Guard AI
+
+on:
+  push:
+    branches:
+      - main
+      - production
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy'
+        required: false
+        default: 'latest'
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/poetry.lock') }}
+          
+      - name: Install Lua dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 luarocks
+          sudo luarocks install busted
+          sudo luarocks install luacheck
+          
+      - name: Run Lua tests
+        run: |
+          cd kong-guard-ai
+          busted spec/
+          luacheck kong/plugins/kong-guard-ai/*.lua
+          
+      - name: Install Python dependencies
+        run: |
+          cd fastapi-generated
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+      - name: Run Python tests
+        run: |
+          cd fastapi-generated
+          pytest tests/ -v --cov=app --cov-report=xml
+          
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./fastapi-generated/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Run Snyk security scan
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  build:
+    name: Build Docker Images
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        target: [kong-production, fastapi-production]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ matrix.target }}-${{ github.run_id }}-latest,enable={{is_default_branch}}
+            type=raw,value=${{ matrix.target }}-latest,enable=${{ github.ref == 'refs/heads/main' && matrix.target == 'kong-production' }}
+            
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.production
+          target: ${{ matrix.target }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.kongguard.ai
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/staging_key
+          chmod 600 ~/.ssh/staging_key
+          echo "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
+      - name: Create secrets
+        run: |
+          mkdir -p secrets
+          echo "${{ secrets.KONG_POSTGRES_PASSWORD }}" > secrets/kong_postgres_password.txt
+          echo "${{ secrets.API_POSTGRES_PASSWORD }}" > secrets/api_postgres_password.txt
+          echo "${{ secrets.REDIS_PASSWORD }}" > secrets/redis_password.txt
+          echo "${{ secrets.API_SECRET_KEY }}" > secrets/api_secret_key.txt
+          echo "${{ secrets.AI_GATEWAY_KEY }}" > secrets/ai_gateway_key.txt
+          echo "${{ secrets.GRAFANA_PASSWORD }}" > secrets/grafana_password.txt
+          
+      - name: Deploy to staging
+        env:
+          REMOTE_HOST: ${{ secrets.STAGING_HOST }}
+          REMOTE_USER: ${{ secrets.STAGING_USER }}
+          SSH_KEY: ~/.ssh/staging_key
+          DEPLOYMENT_ENV: staging
+        run: |
+          chmod +x scripts/deploy.sh
+          ./scripts/deploy.sh deploy
+          
+      - name: Run smoke tests
+        run: |
+          sleep 30
+          curl -f https://staging.kongguard.ai/health || exit 1
+          curl -f https://staging.kongguard.ai/v1/monitoring/health || exit 1
+          
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://kongguard.ai
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_SSH_KEY }}" > ~/.ssh/production_key
+          chmod 600 ~/.ssh/production_key
+          echo "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
+      - name: Create secrets
+        run: |
+          mkdir -p secrets
+          echo "${{ secrets.KONG_POSTGRES_PASSWORD }}" > secrets/kong_postgres_password.txt
+          echo "${{ secrets.API_POSTGRES_PASSWORD }}" > secrets/api_postgres_password.txt
+          echo "${{ secrets.REDIS_PASSWORD }}" > secrets/redis_password.txt
+          echo "${{ secrets.API_SECRET_KEY }}" > secrets/api_secret_key.txt
+          echo "${{ secrets.AI_GATEWAY_KEY }}" > secrets/ai_gateway_key.txt
+          echo "${{ secrets.GRAFANA_PASSWORD }}" > secrets/grafana_password.txt
+          echo "${{ secrets.SSL_CERT }}" > secrets/server.crt
+          echo "${{ secrets.SSL_KEY }}" > secrets/server.key
+          
+      - name: Backup production
+        env:
+          REMOTE_HOST: ${{ secrets.PRODUCTION_HOST }}
+          REMOTE_USER: ${{ secrets.PRODUCTION_USER }}
+          SSH_KEY: ~/.ssh/production_key
+        run: |
+          ssh -i ~/.ssh/production_key ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} \
+            "cd /opt/kong-guard-ai && ./scripts/backup.sh"
+            
+      - name: Deploy to production
+        env:
+          REMOTE_HOST: ${{ secrets.PRODUCTION_HOST }}
+          REMOTE_USER: ${{ secrets.PRODUCTION_USER }}
+          SSH_KEY: ~/.ssh/production_key
+          DEPLOYMENT_ENV: production
+          DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          chmod +x scripts/deploy.sh
+          ./scripts/deploy.sh deploy
+          
+      - name: Run health checks
+        run: |
+          sleep 60
+          for i in {1..10}; do
+            if curl -f https://kongguard.ai/health && \
+               curl -f https://kongguard.ai/v1/monitoring/health; then
+              echo "Health checks passed"
+              exit 0
+            fi
+            echo "Health check attempt $i failed, retrying..."
+            sleep 30
+          done
+          echo "Health checks failed"
+          exit 1
+          
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            CHANGELOG.md
+            docker-compose.production.yml
+          generate_release_notes: true
+          
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production deployment ${{ job.status }} for version ${{ github.ref_name }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+        
+      - name: Rollback on failure
+        if: failure()
+        env:
+          REMOTE_HOST: ${{ secrets.PRODUCTION_HOST }}
+          REMOTE_USER: ${{ secrets.PRODUCTION_USER }}
+          SSH_KEY: ~/.ssh/production_key
+        run: |
+          ./scripts/deploy.sh rollback
+          
+  monitoring:
+    name: Post-Deployment Monitoring
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check metrics
+        run: |
+          # Check Prometheus metrics
+          curl -s https://monitoring.kongguard.ai/api/v1/query?query=up | jq '.data.result'
+          
+          # Check error rates
+          ERROR_RATE=$(curl -s "https://monitoring.kongguard.ai/api/v1/query?query=rate(kong_http_requests_total{status=~'5..'}[5m])" | jq '.data.result[0].value[1]')
+          if (( $(echo "$ERROR_RATE > 0.01" | bc -l) )); then
+            echo "High error rate detected: $ERROR_RATE"
+            exit 1
+          fi
+          
+      - name: Check logs
+        run: |
+          # Check for critical errors in logs
+          curl -s "https://monitoring.kongguard.ai/loki/api/v1/query_range?query={job=\"kong-guard-ai\"}|~\"ERROR|CRITICAL\"&limit=100" | \
+            jq '.data.result' | \
+            grep -q "ERROR\|CRITICAL" && echo "Critical errors found in logs" && exit 1 || echo "No critical errors"

@@ -1,0 +1,1225 @@
+openapi: 3.1.0
+info:
+  title: Kong Guard AI API
+  version: 1.0.0
+  description: |
+    Autonomous API Threat Response Agent for Kong Gateway
+    
+    This API provides comprehensive threat detection, analysis, and automated remediation
+    capabilities for Kong Gateway deployments. It includes real-time threat monitoring,
+    AI-powered analysis, incident management, and performance optimization.
+  contact:
+    name: Kong Guard AI Support
+    email: support@kongguard.ai
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.kongguard.ai/v1
+    description: Production server
+  - url: https://staging.kongguard.ai/v1
+    description: Staging server
+  - url: http://localhost:8000/v1
+    description: Development server
+
+tags:
+  - name: Configuration
+    description: Plugin configuration management
+  - name: Threats
+    description: Threat detection and analysis
+  - name: Incidents
+    description: Incident management and response
+  - name: Analytics
+    description: Analytics and reporting
+  - name: Monitoring
+    description: Health and performance monitoring
+  - name: Remediation
+    description: Automated remediation actions
+
+paths:
+  /config:
+    get:
+      summary: Get current configuration
+      operationId: getConfiguration
+      tags:
+        - Configuration
+      responses:
+        '200':
+          description: Current plugin configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginConfiguration'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    put:
+      summary: Update configuration
+      operationId: updateConfiguration
+      tags:
+        - Configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginConfiguration'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    patch:
+      summary: Partially update configuration
+      operationId: patchConfiguration
+      tags:
+        - Configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialConfiguration'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationResponse'
+
+  /threats:
+    get:
+      summary: List detected threats
+      operationId: listThreats
+      tags:
+        - Threats
+      parameters:
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for threat query
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for threat query
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+          description: Filter by threat severity
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [detected, analyzing, mitigated, blocked]
+          description: Filter by threat status
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of detected threats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  threats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Threat'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /threats/{threat_id}:
+    get:
+      summary: Get threat details
+      operationId: getThreat
+      tags:
+        - Threats
+      parameters:
+        - name: threat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Threat details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreatDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /threats/{threat_id}/analyze:
+    post:
+      summary: Trigger AI analysis for threat
+      operationId: analyzeThreat
+      tags:
+        - Threats
+      parameters:
+        - name: threat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  default: gpt-4o-mini
+                  description: AI model to use for analysis
+                deep_analysis:
+                  type: boolean
+                  default: false
+                  description: Enable deep analysis mode
+      responses:
+        '202':
+          description: Analysis initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /incidents:
+    get:
+      summary: List security incidents
+      operationId: listIncidents
+      tags:
+        - Incidents
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, investigating, mitigated, resolved]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of incidents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incidents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Incident'
+                  total:
+                    type: integer
+
+    post:
+      summary: Create new incident
+      operationId: createIncident
+      tags:
+        - Incidents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIncident'
+      responses:
+        '201':
+          description: Incident created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+
+  /incidents/{incident_id}:
+    get:
+      summary: Get incident details
+      operationId: getIncident
+      tags:
+        - Incidents
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Incident details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update incident status
+      operationId: updateIncident
+      tags:
+        - Incidents
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [open, investigating, mitigated, resolved]
+                notes:
+                  type: string
+                assignee:
+                  type: string
+      responses:
+        '200':
+          description: Incident updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+
+  /analytics/dashboard:
+    get:
+      summary: Get analytics dashboard data
+      operationId: getAnalyticsDashboard
+      tags:
+        - Analytics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1h, 6h, 24h, 7d, 30d]
+            default: 24h
+      responses:
+        '200':
+          description: Dashboard analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardData'
+
+  /analytics/reports:
+    get:
+      summary: List available reports
+      operationId: listReports
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: List of available reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Report'
+
+    post:
+      summary: Generate new report
+      operationId: generateReport
+      tags:
+        - Analytics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - period
+              properties:
+                type:
+                  type: string
+                  enum: [threat_summary, incident_analysis, performance, compliance]
+                period:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      format: date-time
+                    end:
+                      type: string
+                      format: date-time
+                format:
+                  type: string
+                  enum: [json, pdf, csv]
+                  default: json
+      responses:
+        '202':
+          description: Report generation initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  report_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [pending, generating, ready]
+                  estimated_completion:
+                    type: string
+                    format: date-time
+
+  /monitoring/health:
+    get:
+      summary: Health check endpoint
+      operationId: healthCheck
+      tags:
+        - Monitoring
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /monitoring/metrics:
+    get:
+      summary: Get performance metrics
+      operationId: getMetrics
+      tags:
+        - Monitoring
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, prometheus]
+            default: json
+      responses:
+        '200':
+          description: Performance metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metrics'
+            text/plain:
+              schema:
+                type: string
+                description: Prometheus format metrics
+
+  /remediation/ip-blacklist:
+    get:
+      summary: Get IP blacklist
+      operationId: getIpBlacklist
+      tags:
+        - Remediation
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 100
+      responses:
+        '200':
+          description: Current IP blacklist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  ips:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BlacklistedIP'
+
+    post:
+      summary: Add IP to blacklist
+      operationId: addIpToBlacklist
+      tags:
+        - Remediation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ip
+              properties:
+                ip:
+                  type: string
+                  oneOf:
+                    - format: ipv4
+                    - format: ipv6
+                  description: IP address (IPv4 or IPv6) or CIDR block
+                ttl:
+                  type: integer
+                  minimum: 60
+                  maximum: 86400
+                  default: 3600
+                  description: TTL in seconds
+                reason:
+                  type: string
+                  description: Reason for blacklisting
+      responses:
+        '201':
+          description: IP added to blacklist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlacklistedIP'
+        '409':
+          description: IP already blacklisted
+
+  /remediation/ip-blacklist/{ip}:
+    delete:
+      summary: Remove IP from blacklist
+      operationId: removeIpFromBlacklist
+      tags:
+        - Remediation
+      parameters:
+        - name: ip
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: IP removed from blacklist
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /remediation/rate-limits:
+    get:
+      summary: Get current rate limit rules
+      operationId: getRateLimits
+      tags:
+        - Remediation
+      responses:
+        '200':
+          description: Current rate limit rules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RateLimitRule'
+
+    post:
+      summary: Create rate limit rule
+      operationId: createRateLimitRule
+      tags:
+        - Remediation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRateLimitRule'
+      responses:
+        '201':
+          description: Rate limit rule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitRule'
+
+components:
+  schemas:
+    PluginConfiguration:
+      type: object
+      properties:
+        dry_run_mode:
+          type: boolean
+          default: true
+          description: Enable dry run mode - logs threats but doesn't take action
+        threat_threshold:
+          type: number
+          minimum: 1.0
+          maximum: 10.0
+          default: 8.0
+          description: Threat level threshold for triggering responses
+        max_processing_time_ms:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 5
+          description: Maximum processing time per request in milliseconds
+        enable_rate_limiting_detection:
+          type: boolean
+          default: true
+        rate_limit_window_seconds:
+          type: integer
+          minimum: 1
+          maximum: 3600
+          default: 60
+        rate_limit_threshold:
+          type: integer
+          minimum: 1
+          maximum: 10000
+          default: 150
+        enable_ip_reputation:
+          type: boolean
+          default: true
+        ip_whitelist:
+          type: array
+          items:
+            type: string
+          default: []
+          description: Whitelisted IP addresses or CIDR blocks
+        ip_blacklist:
+          type: array
+          items:
+            type: string
+          default: []
+          description: Blacklisted IP addresses or CIDR blocks
+        enable_payload_analysis:
+          type: boolean
+          default: true
+        max_payload_size:
+          type: integer
+          minimum: 1024
+          maximum: 10485760
+          default: 262144
+        suspicious_patterns:
+          type: array
+          items:
+            type: string
+          default:
+            - "union.*select"
+            - "drop.*table"
+            - "<script"
+            - "javascript:"
+            - "eval\\("
+        ai_gateway_enabled:
+          type: boolean
+          default: false
+        ai_gateway_model:
+          type: string
+          default: gpt-4o-mini
+        ai_analysis_threshold:
+          type: number
+          minimum: 1.0
+          maximum: 10.0
+          default: 6.0
+        enable_auto_blocking:
+          type: boolean
+          default: false
+        block_duration_seconds:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          default: 1800
+
+    PartialConfiguration:
+      type: object
+      description: Partial configuration update
+      additionalProperties: true
+
+    ConfigurationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        message:
+          type: string
+        configuration:
+          $ref: '#/components/schemas/PluginConfiguration'
+        timestamp:
+          type: string
+          format: date-time
+
+    Threat:
+      type: object
+      required:
+        - id
+        - timestamp
+        - type
+        - severity
+        - source_ip
+      properties:
+        id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [sql_injection, xss, rate_limit, ip_reputation, path_traversal, suspicious_payload]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        threat_score:
+          type: number
+          minimum: 0
+          maximum: 10
+        source_ip:
+          type: string
+          oneOf:
+            - format: ipv4
+            - format: ipv6
+          description: Source IP address (IPv4 or IPv6)
+        path:
+          type: string
+        method:
+          type: string
+          enum: [GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS]
+        status:
+          type: string
+          enum: [detected, analyzing, mitigated, blocked]
+        action_taken:
+          type: string
+          enum: [logged, rate_limited, blocked, none]
+
+    ThreatDetail:
+      allOf:
+        - $ref: '#/components/schemas/Threat'
+        - type: object
+          properties:
+            request_headers:
+              type: object
+              additionalProperties:
+                type: string
+            request_body:
+              type: string
+            response_status:
+              type: integer
+            analysis:
+              type: object
+              properties:
+                ai_analysis:
+                  type: string
+                confidence:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                patterns_matched:
+                  type: array
+                  items:
+                    type: string
+                recommendations:
+                  type: array
+                  items:
+                    type: string
+
+    AIAnalysisResult:
+      type: object
+      properties:
+        analysis:
+          type: string
+          description: AI-generated analysis text
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confidence score of the analysis
+        patterns_matched:
+          type: array
+          items:
+            type: string
+          description: List of threat patterns matched
+        recommendations:
+          type: array
+          items:
+            type: string
+          description: Recommended remediation actions
+
+    AnalysisResponse:
+      type: object
+      properties:
+        analysis_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        estimated_completion:
+          type: string
+          format: date-time
+        model:
+          type: string
+
+    Incident:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [open, investigating, mitigated, resolved]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        description:
+          type: string
+        affected_services:
+          type: array
+          items:
+            type: string
+        threat_count:
+          type: integer
+        assignee:
+          type: string
+
+    CreateIncident:
+      type: object
+      required:
+        - title
+        - priority
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        affected_services:
+          type: array
+          items:
+            type: string
+        threat_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    IncidentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Incident'
+        - type: object
+          properties:
+            threats:
+              type: array
+              items:
+                $ref: '#/components/schemas/Threat'
+            timeline:
+              type: array
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  event:
+                    type: string
+                  user:
+                    type: string
+            remediation_actions:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: string
+                  details:
+                    type: object
+
+    DashboardData:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total_requests:
+              type: integer
+            threats_detected:
+              type: integer
+            threats_blocked:
+              type: integer
+            active_incidents:
+              type: integer
+            average_response_time_ms:
+              type: number
+        threat_distribution:
+          type: object
+          additionalProperties:
+            type: integer
+        top_attacking_ips:
+          type: array
+          items:
+            type: object
+            properties:
+              ip:
+                type: string
+              count:
+                type: integer
+              last_seen:
+                type: string
+                format: date-time
+        time_series:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              requests:
+                type: integer
+              threats:
+                type: integer
+              blocked:
+                type: integer
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+        status:
+          type: string
+          enum: [pending, generating, ready, failed]
+        download_url:
+          type: string
+          format: uri
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        uptime_seconds:
+          type: integer
+        components:
+          type: object
+          properties:
+            detector:
+              type: string
+              enum: [healthy, unhealthy]
+            responder:
+              type: string
+              enum: [healthy, unhealthy]
+            notifier:
+              type: string
+              enum: [healthy, unhealthy]
+            ai_gateway:
+              type: string
+              enum: [healthy, unhealthy, disabled]
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+              message:
+                type: string
+
+    Metrics:
+      type: object
+      properties:
+        requests:
+          type: object
+          properties:
+            total:
+              type: integer
+            rate_per_second:
+              type: number
+        threats:
+          type: object
+          properties:
+            detected:
+              type: integer
+            blocked:
+              type: integer
+            by_type:
+              type: object
+              additionalProperties:
+                type: integer
+        performance:
+          type: object
+          properties:
+            average_latency_ms:
+              type: number
+            p95_latency_ms:
+              type: number
+            p99_latency_ms:
+              type: number
+        resources:
+          type: object
+          properties:
+            memory_usage_mb:
+              type: number
+            cpu_usage_percent:
+              type: number
+            worker_count:
+              type: integer
+
+    BlacklistedIP:
+      type: object
+      properties:
+        ip:
+          type: string
+          oneOf:
+            - format: ipv4
+            - format: ipv6
+          description: IP address (IPv4 or IPv6)
+        added_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+        threat_count:
+          type: integer
+        last_seen:
+          type: string
+          format: date-time
+
+    RateLimitRule:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        path_pattern:
+          type: string
+        method:
+          type: string
+        limit:
+          type: integer
+        window_seconds:
+          type: integer
+        action:
+          type: string
+          enum: [throttle, block, log]
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    CreateRateLimitRule:
+      type: object
+      required:
+        - name
+        - limit
+        - window_seconds
+      properties:
+        name:
+          type: string
+        path_pattern:
+          type: string
+          default: "/*"
+        method:
+          type: string
+          default: "*"
+        limit:
+          type: integer
+          minimum: 1
+        window_seconds:
+          type: integer
+          minimum: 1
+        action:
+          type: string
+          enum: [throttle, block, log]
+          default: throttle
+        enabled:
+          type: boolean
+          default: true
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+        has_more:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.kongguard.ai/oauth/authorize
+          tokenUrl: https://auth.kongguard.ai/oauth/token
+          scopes:
+            read:config: Read configuration
+            write:config: Modify configuration
+            read:threats: View threats
+            write:threats: Manage threats
+            read:incidents: View incidents
+            write:incidents: Manage incidents
+            admin: Full administrative access
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - OAuth2: []

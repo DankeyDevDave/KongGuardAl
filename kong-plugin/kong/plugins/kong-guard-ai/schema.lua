@@ -50,7 +50,7 @@ return {
                     
                     -- ML Configuration
                     {
-                        enable_ml = {
+                        enable_ml_detection = {
                             type = "boolean",
                             default = true,
                             required = true,
@@ -72,6 +72,13 @@ return {
                             type = "boolean",
                             default = false,
                             description = "Enable Kong AI Gateway integration for advanced analysis"
+                        }
+                    },
+                    {
+                        ai_service_url = {
+                            type = "string",
+                            default = "http://ai-service:8000",
+                            description = "URL of the AI threat analysis service"
                         }
                     },
                     {

@@ -1,0 +1,112 @@
+# Production Multi-stage Dockerfile for Kong Guard AI
+# Optimized for security and minimal image size
+
+# Stage 1: Build Kong with plugin
+FROM kong:3.7-alpine AS kong-builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    git \
+    gcc \
+    musl-dev \
+    luarocks \
+    openssl-dev \
+    pcre-dev \
+    zlib-dev
+
+# Copy plugin source
+WORKDIR /tmp/build
+COPY kong-guard-ai/ ./kong-guard-ai/
+
+# Build and install plugin
+WORKDIR /tmp/build/kong-guard-ai
+RUN luarocks make kong-plugin-kong-guard-ai-*.rockspec
+
+# Stage 2: Production Kong image
+FROM kong:3.7-alpine AS kong-production
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    curl \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/cache/apk/*
+
+# Copy plugin from builder
+COPY --from=kong-builder /usr/local/share/lua/5.1/kong/plugins/kong-guard-ai /usr/local/share/lua/5.1/kong/plugins/kong-guard-ai
+COPY --from=kong-builder /usr/local/lib/luarocks/rocks-5.1/kong-plugin-kong-guard-ai /usr/local/lib/luarocks/rocks-5.1/kong-plugin-kong-guard-ai
+
+# Set environment variables
+ENV KONG_DATABASE=postgres \
+    KONG_PLUGINS=bundled,kong-guard-ai \
+    KONG_NGINX_DAEMON=off \
+    KONG_NGINX_WORKER_PROCESSES=auto \
+    KONG_LOG_LEVEL=warn \
+    KONG_PROXY_ACCESS_LOG=/dev/stdout \
+    KONG_ADMIN_ACCESS_LOG=/dev/stdout \
+    KONG_PROXY_ERROR_LOG=/dev/stderr \
+    KONG_ADMIN_ERROR_LOG=/dev/stderr
+
+# Ensure kong directory exists and has proper ownership
+RUN mkdir -p /usr/local/kong && \
+    chown -R kong:kong /usr/local/kong
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD kong health || exit 1
+
+USER kong
+
+EXPOSE 8000 8443 8001 8444
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["kong", "docker-start"]
+
+# Stage 3: FastAPI production image
+FROM python:3.11-slim AS fastapi-production
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=1.7.1 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PATH="$POETRY_HOME/bin:$PATH"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Create app directory
+WORKDIR /app
+
+# Copy dependency files
+COPY fastapi-generated/pyproject.toml fastapi-generated/poetry.lock* ./
+
+# Install dependencies
+RUN poetry install --no-dev --no-interaction --no-ansi
+
+# Copy application code
+COPY fastapi-generated/app ./app
+COPY fastapi-generated/alembic.ini ./
+COPY fastapi-generated/alembic ./alembic
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+
+CMD ["gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]

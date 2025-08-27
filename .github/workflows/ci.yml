@@ -1,0 +1,97 @@
+name: Kong Guard AI CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Kong Guard AI
+    runs-on: [self-hosted, proxmox]
+    
+    steps:
+      - name: Clean workspace
+        run: |
+          # Clean up persistent directories safely
+          sudo rm -rf redis-data postgres-data kong-data _work || true
+          # Use git-based cleanup to preserve .git metadata
+          git clean -fdx || true
+          git restore --source=HEAD --worktree --staged . || true
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Compose
+        run: |
+          docker --version
+          docker-compose --version || docker compose version
+          
+      - name: Build Kong Guard AI
+        run: |
+          docker-compose build
+          
+      - name: Start services
+        run: |
+          docker-compose up -d
+          sleep 30  # Wait for services to be ready
+          
+      - name: Test Kong connectivity
+        run: |
+          curl -i http://localhost:8000/ || true
+          curl -i http://localhost:8001/ || true
+          
+      - name: Test Kong Guard AI plugin
+        run: |
+          # Configure test service
+          curl -i -X POST http://localhost:8001/services/ \
+            --data "name=test-service" \
+            --data "url=http://httpbin.org" || true
+            
+          # Add route
+          curl -i -X POST http://localhost:8001/services/test-service/routes \
+            --data "paths[]=/test" || true
+            
+          # Enable Kong Guard AI plugin
+          curl -i -X POST http://localhost:8001/services/test-service/plugins/ \
+            --data "name=kong-guard-ai" \
+            --data "config.ai_provider=local" \
+            --data "config.log_level=info" || true
+            
+      - name: Check logs
+        if: always()
+        run: |
+          docker-compose logs --tail=50
+          
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose down -v
+          # Clean up persistent directories to avoid permission issues
+          sudo rm -rf redis-data postgres-data kong-data || true
+
+  deploy:
+    name: Deploy Kong Guard AI
+    runs-on: [self-hosted, proxmox]
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Clean workspace
+        run: |
+          # Clean up persistent directories safely
+          sudo rm -rf redis-data postgres-data kong-data _work || true
+          # Use git-based cleanup to preserve .git metadata
+          git clean -fdx || true
+          git restore --source=HEAD --worktree --staged . || true
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy to production
+        run: |
+          echo "Deploying Kong Guard AI to production..."
+          # Add your deployment commands here
+          # Example: ssh user@server "cd /path/to/app && git pull && docker-compose up -d"

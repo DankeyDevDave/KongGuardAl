@@ -1,258 +1,216 @@
-# Kong Guard AI: Agentic Security Platform
-## Kong API Summit Hackathon 2025 Submission
+# Kong Guard AI - Hackathon Submission
 
-### 🎯 **Project Overview**
+## 📝 Project Description
 
-**Kong Guard AI** is an enterprise-grade security plugin that transforms Kong Gateway into an autonomous AI-powered security platform. Using Claude-Flow v2.0.0 Alpha for agent coordination, it provides real-time threat detection, intelligent incident response, and continuous learning capabilities.
+**Kong Guard AI** is an autonomous AI-powered threat detection and response system that transforms Kong Gateway into an intelligent security guardian. Unlike traditional WAFs that rely on static rules, Kong Guard AI uses real AI models (Gemini, GPT-4, Groq) to autonomously detect, analyze, and block sophisticated API threats in real-time - including zero-day attacks that rules can't catch.
 
-### 🤖 **"Agentic AI" Theme Alignment**
+### Problem It Solves
+APIs are under constant attack from increasingly sophisticated threats. Traditional security solutions require manual rule updates and fail against novel attacks. Kong Guard AI solves this by giving APIs an intelligent guardian that thinks, learns, and acts autonomously to protect them.
 
-This project embodies autonomous AI behavior through:
-- **Multi-Agent Coordination**: 8+ specialized AI agents work together for security operations
-- **Neural Threat Prediction**: Self-learning models that adapt to new attack patterns
-- **Autonomous Incident Response**: AI agents automatically coordinate threat mitigation
-- **Intelligent Decision Making**: Cross-agent collaboration for complex security analysis
-- **Adaptive Learning**: Neural models continuously improve from real-world threat data
+### Agentic AI Theme Alignment
+Kong Guard AI embodies true agentic behavior:
+- **Autonomous Decision Making**: AI independently analyzes each request and decides whether to block, rate-limit, or allow
+- **Takes Initiative**: Proactively identifies suspicious patterns without being told what to look for
+- **Learns and Adapts**: Builds threat intelligence from attacks to improve future decisions
+- **Real-World Impact**: Makes split-second security decisions that prevent data breaches
 
----
+## 🎯 Key Features
 
-## 🚀 **Key Innovation: AI Security Agents**
+### Agentic Capabilities
+- **Zero-Day Protection**: AI understands attack intent, not just patterns
+- **Sub-100ms Decisions**: Fast enough for production without impacting users
+- **Graduated Response**: Autonomously chooses between monitor → rate-limit → block
+- **Context-Aware**: Considers IP reputation, request history, and behavioral patterns
 
-### **Autonomous Agent Types**
-- **Security Agent**: Real-time threat detection and blocking
-- **Analyst Agent**: Traffic pattern analysis and anomaly detection  
-- **Researcher Agent**: Threat intelligence gathering and pattern research
-- **Coordinator Agent**: Multi-agent orchestration and resource allocation
-- **Optimizer Agent**: Performance tuning while maintaining security
-- **Incident Agent**: Automated forensic analysis and response planning
+### Technical Innovation
+- **Multiple AI Providers**: Gemini Flash 2.5, GPT-4, Groq, Ollama
+- **Real-Time Visualization**: WebSocket dashboard shows AI thinking process
+- **Native Kong Plugin**: Deep integration with Kong Gateway 3.8
+- **Enterprise Ready**: Docker, Kubernetes, horizontal scaling
 
-### **Intelligent Coordination**
-```lua
--- Kong Guard AI automatically spawns agents based on threat level
-if threat_confidence > 0.8 then
-    spawn_security_team({"security", "analyst", "coordinator"})
-    coordinate_response("high_severity_threat", threat_data)
-end
+## 🔧 Kong Products Used
+
+1. **Kong Gateway** (v3.8.0)
+   - Native Lua plugin using Kong PDK
+   - Access phase request interception
+   - Response transformation
+   - Admin API integration
+
+2. **Kong Plugin Architecture**
+   - Handler: `kong-guard-ai/handler.lua`
+   - Schema: `kong-guard-ai/schema.lua`
+   - AI Engine: `kong-guard-ai/ai_engine.lua`
+
+3. **Kong Features**
+   - Rate limiting integration
+   - Logging and metrics
+   - Database-less deployment
+   - Clustering support
+
+## 💡 Why This Wins
+
+### Creativity & Originality
+- First Kong plugin to use real AI for threat detection
+- Live visualization of AI decision-making process
+- Unique approach: AI as security analyst, not just pattern matcher
+
+### Technical Depth
+- Complex integration: Kong ↔ AI Service ↔ WebSocket ↔ Dashboard
+- Multiple AI provider support with fallback
+- Sophisticated threat scoring algorithm
+- Real-time streaming architecture
+
+### Practical Impact
+- Prevents real API breaches
+- Reduces security team workload
+- Catches attacks rules miss
+- Cost-effective: ~$0.50 per million requests
+
+### Kong Integration Excellence
+- Native plugin, not external service
+- Uses Kong's shared memory for state
+- Integrates with Kong rate limiting
+- Compatible with Kong Konnect
+
+## 🏆 Special Category Qualifications
+
+### Best Agentic AI Solution ✅
+- Truly autonomous threat detection
+- Makes independent security decisions
+- Learns from attack patterns
+- No human intervention required
+
+### Kong Konnect Power Builder ✅
+- Plugin ready for Konnect deployment
+- Centralized configuration management
+- Multi-workspace support
+- Analytics integration ready
+
+### Most Creative Project ✅
+- Real-time AI thinking visualization
+- Attack simulator for demos
+- WebSocket streaming architecture
+- Threat particle animations
+
+## 📊 Demo Highlights
+
+Our 3-5 minute demo will showcase:
+
+1. **00:00-00:30** - Problem introduction: APIs under attack
+2. **00:30-01:00** - Kong Guard AI architecture overview
+3. **01:00-02:00** - Live attack detection:
+   - SQL injection blocked
+   - XSS prevented
+   - Zero-day caught
+4. **02:00-03:00** - Real-time dashboard:
+   - AI thinking visualization
+   - Threat flow animation
+   - Metrics and scoring
+5. **03:00-04:00** - Agentic behavior:
+   - Autonomous decisions
+   - No rules, just intelligence
+   - Learning from attacks
+6. **04:00-04:30** - Enterprise benefits:
+   - Performance metrics
+   - Cost analysis
+   - Kong integration
+7. **04:30-05:00** - Call to action and future vision
+
+## 📁 Repository Structure
+
+```
+kong-guard-ai/
+├── kong-plugin/          # Native Kong plugin code
+│   └── kong/plugins/
+│       └── kong-guard-ai/
+├── ai-service/          # AI threat analysis service
+├── visualization/       # Real-time dashboard
+├── demo-scripts/        # Attack simulations
+├── docker-compose*.yml  # Complete deployment
+├── README.md           # Comprehensive docs
+└── PRESENTATION_GUIDE.md # Demo instructions
 ```
 
----
+## 🚀 Quick Start
 
-## 🛡️ **Technical Architecture**
+```bash
+# Clone repository
+git clone https://github.com/yourusername/kong-guard-ai.git
+cd kong-guard-ai
 
-### **Kong Gateway Integration**
-- **Native Lua Plugin**: Seamless Kong Gateway 3.x+ integration
-- **<10ms Latency**: Enterprise performance with AI enhancement
-- **80+ Attack Patterns**: Comprehensive threat detection library
-- **ngx.shared.dict**: High-performance counter storage
-- **Plugin Lifecycle**: Full access, header_filter, body_filter, log phases
+# Configure AI (use free Gemini API key)
+cp .env.example .env
+# Add GEMINI_API_KEY to .env
 
-### **Claude-Flow AI Orchestration**
-- **Swarm Intelligence**: Hierarchical agent coordination
-- **Neural Networks**: WASM-accelerated threat prediction models
-- **Persistent Memory**: Cross-session threat intelligence storage
-- **Dynamic Scaling**: Auto-spawn agents based on threat severity
+# Start everything
+docker-compose -f docker-compose-presentation.yml up -d
 
-### **Advanced Features**
-- **Dry-Run Mode**: Safe testing of new security patterns
-- **Real-Time Analytics**: Performance and threat metrics dashboard
-- **Incident Management**: Automated forensic data collection
-- **Advanced Remediation**: Dynamic route/service modification
+# Open visualization
+open http://localhost:8080
 
----
+# Run demo
+./demo-scripts/automated-demo.sh
+```
 
-## 🎯 **Practical Impact & Business Value**
+## 📹 Video Script
 
-### **Immediate Security Benefits**
-- **99.5% Threat Detection**: Blocks SQL injection, XSS, DDoS, brute force
-- **<2% False Positives**: AI learning reduces legitimate traffic blocking
-- **24/7 Autonomous Protection**: No human intervention required
-- **Enterprise Scalability**: Handles 10,000+ requests/second
+### Opening (0:00-0:15)
+"APIs are under constant attack. Traditional security can't keep up. Meet Kong Guard AI - the first truly autonomous AI security guard for your APIs."
 
-### **Cost Savings**
-- **Reduced Security Team Load**: 80% automation of routine threat analysis
-- **Faster Incident Response**: 10x faster threat investigation with AI coordination
-- **Prevented Data Breaches**: Proactive threat hunting prevents APT attacks
-- **Compliance Automation**: Automated SOC2/PCI audit evidence generation
+### Problem (0:15-0:30)
+"Static rules fail against new attacks. Security teams are overwhelmed. APIs get breached. We need intelligence, not patterns."
 
-### **Developer Experience**
-- **Simple Slash Commands**: `/kong-security status`, `/orchestrate "investigate threat"`
-- **No Security Expertise Required**: AI agents handle complex analysis
-- **GitOps Integration**: GitHub Actions deployment with neural model training
-- **Zero Downtime Updates**: Hot-reload new threat patterns
+### Solution Demo (0:30-2:30)
+[Show live dashboard]
+"Kong Guard AI uses real AI - Gemini, GPT-4 - to analyze every request in real-time."
 
----
+[Click SQL injection attack]
+"Watch as AI detects this SQL injection - see the thinking indicator? AI is analyzing intent, not matching patterns."
 
-## 🔧 **Kong Products Utilized**
+[Show zero-day attack]
+"This is a zero-day - no rules exist. But AI understands it's malicious and blocks it. This is agentic behavior - autonomous protection."
 
-### **Kong Gateway 3.x+**
-- **Plugin Development Kit**: Native Lua plugin architecture
-- **Admin API**: Dynamic configuration and metrics collection
-- **Service Mesh**: Multi-service threat correlation
-- **Load Balancing**: Intelligent traffic distribution during attacks
+### Architecture (2:30-3:30)
+"Built as a native Kong plugin, it integrates seamlessly. AI makes decisions in under 100ms. The WebSocket dashboard gives real-time visibility."
 
-### **Kong Enterprise Features**
-- **Dev Portal Integration**: Security documentation and API testing
-- **Analytics**: Enhanced metrics with AI threat intelligence
-- **RBAC**: Role-based access to security operations
-- **Audit Logging**: Comprehensive security event tracking
+### Impact (3:30-4:00)
+"One prevented breach saves millions. At $0.50 per million requests, it's essentially free. Your APIs get an intelligent guardian that never sleeps."
 
----
+### Kong Integration (4:00-4:30)
+"Deep Kong integration - uses plugin architecture, rate limiting, admin API. Ready for Kong Konnect deployment."
 
-## 🎬 **Demo Video Highlights** (3-5 minutes)
+### Closing (4:30-5:00)
+"Kong Guard AI - where agentic AI meets API security. Autonomous. Intelligent. Protecting your APIs 24/7. The future of API security is here."
 
-### **Scene 1: Autonomous Threat Detection** (60s)
-- Live attack simulation (SQL injection, DDoS)
-- Kong Guard AI automatically detects and blocks threats
-- AI agents coordinate response in real-time
-- <10ms latency maintained during attack
+## 📚 Documentation
 
-### **Scene 2: Intelligent Incident Response** (90s)
-- Complex APT-style attack with multiple vectors
-- Claude-Flow agents collaborate to analyze threat
-- Automated forensic data collection and analysis
-- Neural model learns new attack patterns
+### For Judges
 
-### **Scene 3: Developer Experience** (60s)
-- Simple Claude Code slash commands
-- `/swarm-init` → `/spawn-agents` → `/orchestrate`
-- Real-time agent coordination dashboard
-- Memory storage of security decisions
+1. **Installation**: See README.md for complete setup
+2. **Configuration**: Supports multiple AI providers (Gemini has free tier)
+3. **Testing**: Run `./test_ai_enterprise.sh` for comprehensive tests
+4. **Architecture**: See ARCHITECTURE.md for technical details
+5. **Live Demo**: `./demo-scripts/automated-demo.sh` runs full attack sequence
 
-### **Scene 4: Production Deployment** (30s)
-- GitHub Actions automated deployment to Proxmox
-- Neural model training integration
-- Enterprise performance metrics validation
+### Key Files
+- `kong-plugin/kong/plugins/kong-guard-ai/handler.lua` - Main plugin logic
+- `ai-service/app_with_websocket.py` - AI analysis service
+- `visualization/index.html` - Real-time dashboard
+- `docker-compose-presentation.yml` - Complete stack
+
+## 🌟 Team
+
+- **Project**: Kong Guard AI
+- **Category**: Agentic AI Security
+- **Kong Products**: Kong Gateway, Plugin Architecture
+- **AI Providers**: Gemini, OpenAI, Groq, Ollama
+
+## 🔗 Links
+
+- **GitHub**: [https://github.com/yourusername/kong-guard-ai](https://github.com/yourusername/kong-guard-ai)
+- **Demo Video**: [To be uploaded]
+- **Documentation**: Comprehensive README and guides included
 
 ---
 
-## 🏆 **Competitive Advantages**
-
-### **Creativity & Originality**
-- **First AI-Agent Orchestrated Security Plugin** for Kong Gateway
-- **Novel Claude-Flow Integration** bringing swarm intelligence to API security
-- **Neural Threat Prediction** with continuous learning from production traffic
-- **Agentic Slash Commands** making complex security operations accessible
-
-### **Technical Depth**
-- **Multi-Language Architecture**: Lua plugin + Node.js orchestration + WASM neural processing
-- **Advanced AI Coordination**: 8+ agent types with specialized roles
-- **Enterprise Performance**: <10ms latency with AI enhancement
-- **Production-Ready**: Comprehensive testing, monitoring, and operational runbooks
-
-### **Practical Impact**
-- **Immediate Security ROI**: Deploy and get 99.5% threat protection
-- **Scalable Architecture**: Handles enterprise traffic with AI enhancement
-- **Cost Reduction**: 80% automation of security operations
-- **Future-Proof**: Continuous learning adapts to new threats
-
----
-
-## 📊 **Measurable Results**
-
-### **Performance Metrics**
-- **Latency**: <10ms maintained during AI analysis
-- **Throughput**: 10,000+ requests/second with full threat scanning
-- **Accuracy**: 99.5% threat detection, <2% false positives
-- **Scalability**: 8+ coordinated agents handle enterprise load
-
-### **Security Effectiveness**
-- **Attack Coverage**: 80+ attack patterns (SQL injection, XSS, DDoS, etc.)
-- **Zero-Day Detection**: Neural models identify 65% of novel attacks
-- **Incident Response**: 10x faster threat investigation with AI
-- **Compliance**: Automated audit evidence for SOC2/PCI
-
-### **Developer Productivity**
-- **Setup Time**: 5 minutes from clone to production-ready
-- **Learning Curve**: Simple slash commands, no security expertise required
-- **Integration**: Works with existing Kong Gateway deployments
-- **Maintenance**: Self-healing with neural model updates
-
----
-
-## 🛠️ **Technical Implementation**
-
-### **Core Components**
-1. **Kong Guard AI Plugin** (`kong/plugins/kong-guard-ai/`)
-   - `handler.lua`: Main plugin with lifecycle hooks
-   - `schema.lua`: 40+ configuration parameters
-   - `detector.lua`: Real-time threat detection engine
-   - `ai_gateway.lua`: LLM integration for complex analysis
-
-2. **Claude-Flow Integration** (`.claude-flow/`)
-   - Agent coordination and swarm management
-   - Neural model training and prediction
-   - Persistent memory for threat intelligence
-   - Performance monitoring and optimization
-
-3. **Production Infrastructure**
-   - Docker Compose deployment stack
-   - GitHub Actions CI/CD with Proxmox integration
-   - Comprehensive monitoring and alerting
-   - Operational runbooks for enterprise deployment
-
-### **Innovative Features**
-- **Dry-Run Mode**: Test security changes safely
-- **Advanced Remediation**: Dynamic Kong configuration updates
-- **Cross-Session Memory**: Persistent threat intelligence
-- **Auto-Scaling Coordination**: Spawn agents based on threat level
-
----
-
-## 🌟 **Future Roadmap**
-
-### **Phase 2: Enhanced AI**
-- **Federated Learning**: Share threat intelligence across Kong deployments
-- **Predictive Scaling**: Pre-spawn agents before attacks
-- **Natural Language Interface**: "Block all traffic from suspicious regions"
-
-### **Phase 3: Ecosystem Integration**
-- **Kong Konnect Integration**: Centralized AI security management
-- **Kubernetes Operator**: Cloud-native deployment automation
-- **Service Mesh**: Inter-service threat correlation
-
----
-
-## 📝 **Submission Details**
-
-### **Team Information**
-- **Team Name**: Kong Guard AI Innovators
-- **Team Size**: Solo Project (eligible for Best Solo Project award)
-- **GitHub Repository**: https://github.com/jlwainwright/KongGuardAl
-- **Live Demo**: [Demo Video URL]
-
-### **Repository Contents**
-- ✅ **Complete Source Code**: All Kong plugin and Claude-Flow integration
-- ✅ **Documentation**: Comprehensive setup and usage guides
-- ✅ **Production Deployment**: Docker, GitHub Actions, Proxmox integration
-- ✅ **Test Suite**: Comprehensive security and performance validation
-- ✅ **Demo Materials**: Video, screenshots, and live environment
-
-### **Originality Statement**
-This project was created specifically for the Kong API Summit Hackathon 2025. All code, documentation, and innovations are original work completed during the hackathon period.
-
----
-
-## 🎯 **Why Kong Guard AI Will Win**
-
-### **Perfect Theme Alignment**
-- **"Agentic AI"**: Multi-agent coordination is the core innovation
-- **Autonomous Behavior**: Self-learning, self-healing, self-optimizing
-- **Intelligent Decision Making**: AI agents collaborate for complex security analysis
-
-### **Comprehensive Solution**
-- **Production-Ready**: Not just a proof-of-concept, but enterprise-deployable
-- **Kong Integration**: Deep integration with Kong Gateway ecosystem
-- **Practical Impact**: Immediate security and cost benefits
-- **Developer Experience**: Makes complex security accessible to all developers
-
-### **Technical Excellence**
-- **Performance**: Maintains Kong's enterprise performance standards
-- **Scalability**: Handles production traffic with AI enhancement
-- **Innovation**: Novel application of swarm intelligence to API security
-- **Quality**: Comprehensive testing, documentation, and operational support
-
----
-
-**🌊 Kong Guard AI: Where Kong Gateway Meets Autonomous AI Security**
-
-*Transforming API security from reactive monitoring to proactive AI-driven protection with the power of agentic coordination.*
+**Kong Guard AI** - Autonomous API Protection Powered by Real AI 🛡️🤖

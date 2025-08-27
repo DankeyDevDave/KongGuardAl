@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Service Direct Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1a1a1a; color: white; }
+        .box { background: #2a2a2a; padding: 20px; margin: 10px; border-radius: 10px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        .danger { background: #dc3545; color: white; }
+        .success { background: #28a745; color: white; }
+        .result { background: #333; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .threat-high { border-left: 5px solid #ff4444; }
+        .threat-safe { border-left: 5px solid #44ff44; }
+    </style>
+</head>
+<body>
+    <h1>🧠 Kong Guard AI - Direct API Test</h1>
+    <p>This tests the AI service directly without WebSocket</p>
+    
+    <div class="box">
+        <h2>Click to Send Attack:</h2>
+        <button class="danger" onclick="testAttack('sql')">SQL Injection</button>
+        <button class="danger" onclick="testAttack('xss')">XSS Attack</button>
+        <button class="success" onclick="testAttack('normal')">Normal Traffic</button>
+    </div>
+    
+    <div class="box">
+        <h2>AI Response:</h2>
+        <div id="result">Click a button to test...</div>
+    </div>
+    
+    <script>
+        async function testAttack(type) {
+            const attacks = {
+                sql: {
+                    query: "SELECT * FROM users WHERE id=1 OR 1=1; DROP TABLE users;--",
+                    path: "/api/users", 
+                    method: "GET"
+                },
+                xss: {
+                    query: "<script>alert('XSS')</script>",
+                    path: "/comment",
+                    method: "POST"
+                },
+                normal: {
+                    query: "page=1&limit=10",
+                    path: "/api/products",
+                    method: "GET"
+                }
+            };
+            
+            const attack = attacks[type];
+            document.getElementById('result').innerHTML = 'AI is analyzing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        features: {
+                            method: attack.method,
+                            path: attack.path,
+                            client_ip: '192.168.1.100',
+                            user_agent: type === 'normal' ? 'Mozilla/5.0' : 'AttackBot',
+                            requests_per_minute: type === 'normal' ? 10 : 100,
+                            content_length: 0,
+                            query_param_count: 2,
+                            header_count: 5,
+                            hour_of_day: 14,
+                            query: attack.query,
+                            headers: {}
+                        },
+                        context: {
+                            previous_requests: 10,
+                            failed_attempts: type === 'normal' ? 0 : 5,
+                            anomaly_score: type === 'normal' ? 0.1 : 0.8
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                const threatClass = data.threat_score > 0.5 ? 'threat-high' : 'threat-safe';
+                document.getElementById('result').className = 'result ' + threatClass;
+                document.getElementById('result').innerHTML = `
+                    <h3>AI Analysis Complete!</h3>
+                    <p><strong>Threat Score:</strong> ${(data.threat_score * 100).toFixed(1)}%</p>
+                    <p><strong>Threat Type:</strong> ${data.threat_type}</p>
+                    <p><strong>AI Reasoning:</strong> ${data.reasoning}</p>
+                    <p><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%</p>
+                    <p><strong>Recommended Action:</strong> ${data.recommended_action}</p>
+                    <p><strong>Processing Time:</strong> ${data.processing_time.toFixed(2)}ms</p>
+                    <p><strong>AI Model:</strong> ${data.ai_model}</p>
+                    <hr>
+                    <small>Raw Response: ${JSON.stringify(data)}</small>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
