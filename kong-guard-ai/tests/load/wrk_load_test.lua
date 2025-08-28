@@ -98,7 +98,7 @@ function request()
         
         -- Add malicious headers
         headers["User-Agent"] = "AttackBot/1.0"
-        headers["X-Forwarded-For"] = "192.168.1." .. math.random(100, 200)
+        headers["X-Forwarded-For"] = "203.0.113." .. math.random(100, 200)
         
     else
         -- Generate normal request

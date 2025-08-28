@@ -82,7 +82,7 @@ return {
                         type = "array",
                         elements = { type = "string" },
                         default = {},
-                        description = "List of blacklisted IP addresses or CIDR blocks (supports IPv4 CIDR notation like 192.168.1.0/24)"
+                        description = "List of blacklisted IP addresses or CIDR blocks (supports IPv4 CIDR notation like 203.0.113.0/24)"
                     }
                 },
                 {

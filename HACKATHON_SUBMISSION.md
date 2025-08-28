@@ -1,5 +1,12 @@
 # Kong Guard AI - Hackathon Submission
 
+## 🏆 Kong Agentic AI Hackathon 2025
+
+**Event**: Kong API Summit 2025 Hackathon  
+**Theme**: Agentic AI - Solutions that take initiative and make autonomous decisions  
+**Prize Pool**: $10,000  
+**Status**: Submission Ready
+
 ## 📝 Project Description
 
 **Kong Guard AI** is an autonomous AI-powered threat detection and response system that transforms Kong Gateway into an intelligent security guardian. Unlike traditional WAFs that rely on static rules, Kong Guard AI uses real AI models (Gemini, GPT-4, Groq) to autonomously detect, analyze, and block sophisticated API threats in real-time - including zero-day attacks that rules can't catch.
@@ -200,16 +207,26 @@ open http://localhost:8080
 
 ## 🌟 Team
 
+- **Developer**: Jacques Francois Coetzee
 - **Project**: Kong Guard AI
 - **Category**: Agentic AI Security
 - **Kong Products**: Kong Gateway, Plugin Architecture
 - **AI Providers**: Gemini, OpenAI, Groq, Ollama
 
+## 📜 Licensing & IP
+
+- **Code Ownership**: Retained by developer (Jacques Francois Coetzee)
+- **Hackathon License**: Evaluation and demonstration purposes only
+- **IP Protection**: Proprietary ML models and algorithms protected
+- **Open Source Components**: Basic plugin structure available under MIT
+- **Commercial Licensing**: Available post-hackathon
+
 ## 🔗 Links
 
-- **GitHub**: [https://github.com/yourusername/kong-guard-ai](https://github.com/yourusername/kong-guard-ai)
+- **GitHub**: Private repository (demo access available for judges)
 - **Demo Video**: [To be uploaded]
 - **Documentation**: Comprehensive README and guides included
+- **Live Demo**: Available upon request
 
 ---
 

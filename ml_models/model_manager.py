@@ -1,5 +1,11 @@
 """
 Kong Guard AI - Model Management Module
+Copyright (c) 2024 Jacques Francois Coetzee. All Rights Reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+This module contains proprietary ML orchestration and threat scoring algorithms.
+Unauthorized use, reproduction, or distribution is prohibited.
+
 Orchestrates all ML models for comprehensive threat detection
 """
 

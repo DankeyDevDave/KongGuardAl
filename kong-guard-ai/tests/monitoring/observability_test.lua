@@ -101,7 +101,7 @@ local function run_tests(framework, config)
             kong_id,
             "GET",
             path,
-            {["X-Forwarded-For"] = "192.168.1.100"},
+            {["X-Forwarded-For"] = "203.0.113.100"},
             nil,
             403  -- Should be blocked
         )
@@ -148,7 +148,7 @@ local function run_tests(framework, config)
     local test5 = framework.create_test("Monitoring - Incident Analytics", framework.TEST_MODES.INTEGRATION)
     
     -- Generate incidents
-    local incident_ips = {"10.0.0.50", "10.0.0.51", "10.0.0.52"}
+    local incident_ips = {"198.51.100.50", "198.51.100.51", "198.51.100.52"}
     for _, ip in ipairs(incident_ips) do
         framework.execute_request(
             kong_id,
@@ -287,7 +287,7 @@ local function run_tests(framework, config)
     local test10 = framework.create_test("Monitoring - Alerting System", framework.TEST_MODES.INTEGRATION)
     
     -- Generate high-threat events that should trigger alerts
-    local high_threat_ips = {"192.168.50.10", "192.168.50.11", "192.168.50.12"}
+    local high_threat_ips = {"203.0.113.10", "203.0.113.11", "203.0.113.12"}
     
     for _, ip in ipairs(high_threat_ips) do
         -- Multiple high-threat requests from same IP

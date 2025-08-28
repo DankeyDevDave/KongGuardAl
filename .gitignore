@@ -9,8 +9,15 @@ dev-debug.log
 # Dependency directories
 node_modules/
 
-# Environment variables
+# Environment variables and sensitive data
 .env
+.env.*
+*.key
+*.pem
+*.cert
+*_credentials.json
+supabase_config.py
+api_keys.json
 
 # Editor directories and files
 .idea
@@ -42,3 +49,100 @@ _work/
 
 # GitHub secrets configuration
 .github-secrets.env
+
+# ML Model binaries (if compiled)
+*.pyc
+*.pyo
+__pycache__/
+models/trained/
+*.joblib
+*.pkl
+*.h5
+
+# Proprietary documentation
+INTERNAL_NOTES.md
+TRADE_SECRETS.md
+
+# Test data with sensitive info
+test_data/
+*.test.json
+
+# Virtual environments
+venv/
+env/
+supabase_env/
+ml_env/
+
+# Security - Environment files
+.env
+.env.local
+.env.production
+.env.staging
+
+# Security - Database files
+*.db
+*.sqlite
+*.sqlite3
+attack_metrics.db
+
+# Security - Log files
+*.log
+logs/
+attack_flood.log
+
+# Security - Certificate files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Security - Configuration files with secrets
+supabase_config.py
+config.json
+secrets.json
+
+# Security - Backup files
+*.bak
+*.backup
+backup/
+
+# Security - Test results with sensitive data
+test-results/
+validation-report-*.md
+
+# Security - Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Security - IDE files that might contain sensitive data
+.vscode/settings.json
+.idea/workspace.xml
+*.swp
+*.swo
+
+# Security - OS files
+.DS_Store
+Thumbs.db
+
+# Security - Package manager files
+package-lock.json
+yarn.lock
+poetry.lock
+
+# Large files and archives
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.bz2
+*.xz
+*.tgz
+
+# Additional sensitive files
+diagnostics.txt
+errors.log
+*.html
+*.json

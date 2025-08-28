@@ -7,7 +7,7 @@ set -Eeuo pipefail
 
 # Configuration
 REPO="jlwainwright/KongGuardAl"
-RUNNER_HOST="192.168.0.200"
+RUNNER_HOST="203.0.113.200"
 RUNNER_CONTAINER="201"
 RUNNER_NAME="proxmox-runner-201"
 RUNNER_VERSION="2.319.1"

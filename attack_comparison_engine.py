@@ -197,7 +197,7 @@ class AttackComparisonEngine:
                         "features": {
                             "method": pattern.method,
                             "path": pattern.path,
-                            "client_ip": "192.168.1.100",
+                            "client_ip": "203.0.113.100",
                             "user_agent": "ComparisonEngine/1.0",
                             "requests_per_minute": 10,
                             "content_length": len(pattern.body or pattern.query or ""),

@@ -1,5 +1,11 @@
 """
 Kong Guard AI - Anomaly Detection Module
+Copyright (c) 2024 Jacques Francois Coetzee. All Rights Reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+This module contains proprietary anomaly detection algorithms.
+Unauthorized use, reproduction, or distribution is prohibited.
+
 Real-time anomaly detection using Isolation Forest
 """
 

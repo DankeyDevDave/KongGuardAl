@@ -106,7 +106,7 @@ Access dry-run status via: `GET /_guard_ai/status`
       "latest_simulation": {
         "action_type": "block_request",
         "timestamp": 1703875180,
-        "summary": "Block request from IP 192.168.1.100 (reason: threat_detected)"
+        "summary": "Block request from IP 203.0.113.100 (reason: threat_detected)"
       }
     }
   },

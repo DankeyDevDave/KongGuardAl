@@ -20,9 +20,9 @@ services:
     volumes:
       - kong-datastore:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: kong
-      POSTGRES_PASSWORD: kongpass
-      POSTGRES_DB: kong
+      POSTGRES_USER: ${KONG_PG_USER:-kong}
+      POSTGRES_PASSWORD: ${KONG_PG_PASSWORD:-kongpass}
+      POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
     ports:
       - "15432:5432"  # Non-standard port to avoid conflicts
     healthcheck:
@@ -43,12 +43,12 @@ services:
       - kong-net
     restart: on-failure
     environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_PORT: 5432
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kongpass
-      KONG_PG_DATABASE: kong
+      KONG_DATABASE: ${KONG_DATABASE:-postgres}
+      KONG_PG_HOST: ${KONG_PG_HOST:-kong-database}
+      KONG_PG_PORT: ${KONG_PG_PORT:-5432}
+      KONG_PG_USER: ${KONG_PG_USER:-kong}
+      KONG_PG_PASSWORD: ${KONG_PG_PASSWORD:-kongpass}
+      KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
 
   # Kong Gateway
   kong:
@@ -71,12 +71,12 @@ services:
       - ./kong-plugin/kong/plugins:/usr/local/share/lua/5.1/kong/plugins
       # - ./kong.conf:/etc/kong/kong.conf
     environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_PORT: 5432
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kongpass
-      KONG_PG_DATABASE: kong
+      KONG_DATABASE: ${KONG_DATABASE:-postgres}
+      KONG_PG_HOST: ${KONG_PG_HOST:-kong-database}
+      KONG_PG_PORT: ${KONG_PG_PORT:-5432}
+      KONG_PG_USER: ${KONG_PG_USER:-kong}
+      KONG_PG_PASSWORD: ${KONG_PG_PASSWORD:-kongpass}
+      KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
@@ -85,7 +85,7 @@ services:
       KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
       KONG_PLUGINS: "kong-guard-ai"
       # KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/kong/plugins/custom/?.lua;;"
-      KONG_LOG_LEVEL: debug
+      KONG_LOG_LEVEL: ${KONG_LOG_LEVEL:-debug}
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 10s
@@ -149,9 +149,9 @@ services:
     networks:
       - kong-net
     environment:
-      POSTGRES_USER: konga
-      POSTGRES_PASSWORD: kongapass
-      POSTGRES_DB: konga
+      POSTGRES_USER: ${KONGA_DB_USER:-konga}
+      POSTGRES_PASSWORD: ${KONGA_DB_PASSWORD:-kongapass}
+      POSTGRES_DB: ${KONGA_DB_DATABASE:-konga}
     volumes:
       - konga-datastore:/var/lib/postgresql/data
     healthcheck:
@@ -164,7 +164,7 @@ services:
   konga-prepare:
     image: pantsel/konga:latest
     container_name: konga-prepare
-    command: "-c prepare -a postgres -u postgresql://konga:kongapass@konga-database:5432/konga"
+    command: "-c prepare -a postgres -u postgresql://${KONGA_DB_USER:-konga}:${KONGA_DB_PASSWORD:-kongapass}@${KONGA_DB_HOST:-konga-database}:${KONGA_DB_PORT:-5432}/${KONGA_DB_DATABASE:-konga}"
     networks:
       - kong-net
     restart: on-failure
@@ -188,13 +188,13 @@ services:
       - kong-net
     environment:
       NODE_ENV: production
-      TOKEN_SECRET: km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb
-      DB_ADAPTER: postgres
-      DB_HOST: konga-database
-      DB_PORT: 5432
-      DB_USER: konga
-      DB_PASSWORD: kongapass
-      DB_DATABASE: konga
+      TOKEN_SECRET: ${KONGA_TOKEN_SECRET:-km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb}
+      DB_ADAPTER: ${KONGA_DB_ADAPTER:-postgres}
+      DB_HOST: ${KONGA_DB_HOST:-konga-database}
+      DB_PORT: ${KONGA_DB_PORT:-5432}
+      DB_USER: ${KONGA_DB_USER:-konga}
+      DB_PASSWORD: ${KONGA_DB_PASSWORD:-kongapass}
+      DB_DATABASE: ${KONGA_DB_DATABASE:-konga}
     ports:
       - "1337:1337"
     depends_on:

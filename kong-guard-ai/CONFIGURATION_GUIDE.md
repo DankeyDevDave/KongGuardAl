@@ -107,7 +107,7 @@ Kong Guard AI uses security-first defaults to ensure safe deployment. This guide
     "threat_threshold": 8.0,
     "max_processing_time_ms": 8,
     "rate_limit_threshold": 150,
-    "ip_whitelist": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+    "ip_whitelist": ["198.51.100.0/8", "233.252.0.0/12", "203.0.113.0/16"],
     "enable_auto_blocking": false,
     "enable_rate_limiting_response": true,
     "block_duration_seconds": 1800,

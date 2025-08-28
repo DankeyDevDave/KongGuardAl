@@ -66,7 +66,7 @@ async def test_integration():
     print("\nNotes:")
     print("- If tests failed, ensure ai-service is running")
     print("- Run: cd ai-service && python3 app.py")
-    print("- Supabase is at 192.168.0.201")
+    print("- Supabase is at 198.51.100.201")
 
 if __name__ == "__main__":
     asyncio.run(test_integration())

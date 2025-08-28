@@ -19,7 +19,7 @@ describe("Kong Guard AI Path Filter", function()
     
     local test_request_context = {
         method = "GET",
-        client_ip = "192.168.1.100",
+        client_ip = "203.0.113.100",
         correlation_id = "test-123"
     }
     
@@ -80,7 +80,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/search?q=test' UNION SELECT password FROM users--",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-sql-1"
             }
             
@@ -94,7 +94,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/login?username=admin' OR 1=1--",
                 method = "POST",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-sql-2"
             }
             
@@ -107,7 +107,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/api/data?query='; DROP TABLE users; --",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-sql-3"
             }
             
@@ -122,7 +122,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/profile?name=<script>alert('xss')</script>",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-xss-1"
             }
             
@@ -135,7 +135,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/redirect?url=javascript:alert(document.cookie)",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-xss-2"
             }
             
@@ -147,7 +147,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/search?q=test\" onload=alert('xss')",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-xss-3"
             }
             
@@ -161,7 +161,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/download?file=../../../etc/passwd",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-traversal-1"
             }
             
@@ -174,7 +174,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/file?path=%2e%2e%2fetc%2fpasswd",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-traversal-2"
             }
             
@@ -186,7 +186,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/logs?file=..\\..\\windows\\system32\\config\\sam",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-traversal-3"
             }
             
@@ -200,7 +200,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/admin/",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-admin-1"
             }
             
@@ -213,7 +213,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/wp-admin/admin.php",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-admin-2"
             }
             
@@ -225,7 +225,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/phpmyadmin/index.php",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-admin-3"
             }
             
@@ -239,7 +239,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/.env",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-config-1"
             }
             
@@ -252,7 +252,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/.htaccess",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-config-2"
             }
             
@@ -264,7 +264,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/.git/config",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-config-3"
             }
             
@@ -278,7 +278,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/api/v1/users/select",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-fp-1"
             }
             
@@ -299,7 +299,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/admin/dashboard",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-fp-2"
             }
             
@@ -312,7 +312,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/assets/admin.css",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-fp-3"
             }
             
@@ -332,7 +332,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/admin/config",
                 method = "OPTIONS",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-method-1"
             }
             
@@ -344,7 +344,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/admin/config",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-method-2"
             }
             
@@ -358,7 +358,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/test/path",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-analytics-1"
             }
             
@@ -376,7 +376,7 @@ describe("Kong Guard AI Path Filter", function()
             local malicious_request = {
                 path = "/test' UNION SELECT * FROM users--",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-analytics-2"
             }
             
@@ -384,7 +384,7 @@ describe("Kong Guard AI Path Filter", function()
             local benign_request = {
                 path = "/test/normal",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-analytics-3"
             }
             
@@ -413,7 +413,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/test/custom_malicious_pattern/attack",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-custom-1"
             }
             
@@ -428,7 +428,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/api/v1/users",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-perf-1"
             }
             
@@ -453,7 +453,7 @@ describe("Kong Guard AI Path Filter", function()
             local request = {
                 path = "/admin/login?username=admin' OR 1=1--&redirect=<script>alert('xss')</script>",
                 method = "GET",
-                client_ip = "192.168.1.100",
+                client_ip = "203.0.113.100",
                 correlation_id = "test-multi-1"
             }
             

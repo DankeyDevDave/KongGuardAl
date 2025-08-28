@@ -28,7 +28,7 @@ describe("Kong Guard AI Log Format", function()
                         ["user-agent"] = "curl/7.68.0",
                         ["content-type"] = "application/json",
                         ["authorization"] = "Bearer abc123xyz789",
-                        ["x-forwarded-for"] = "203.0.113.1, 192.168.1.1",
+                        ["x-forwarded-for"] = "203.0.113.1, 203.0.113.1",
                         ["x-real-ip"] = "203.0.113.1",
                         ["content-length"] = "156",
                         ["host"] = "api.example.com"
@@ -96,7 +96,7 @@ describe("Kong Guard AI Log Format", function()
         it("should extract first IP from X-Forwarded-For when X-Real-IP missing", function()
             mock_kong.request.get_headers = function()
                 return {
-                    ["x-forwarded-for"] = "203.0.113.5, 192.168.1.1, 10.0.0.1"
+                    ["x-forwarded-for"] = "203.0.113.5, 203.0.113.1, 198.51.100.1"
                 }
             end
             

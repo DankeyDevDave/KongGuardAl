@@ -175,7 +175,7 @@ GET /_guard_ai/performance
   "timestamp": 1645123456,
   "event_type": "path_filter_match",
   "severity": "high",
-  "source_ip": "192.168.1.100",
+  "source_ip": "203.0.113.100",
   "method": "GET",
   "path": "/admin/config",
   "normalized_path": "/admin/config",

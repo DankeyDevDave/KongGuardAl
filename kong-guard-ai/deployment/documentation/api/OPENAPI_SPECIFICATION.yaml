@@ -321,7 +321,7 @@ paths:
                     items:
                       type: string
                       format: ipv4
-                    example: ["192.168.1.0/24", "10.0.0.0/8"]
+                    example: ["203.0.113.0/24", "198.51.100.0/8"]
 
     post:
       tags:
@@ -338,7 +338,7 @@ paths:
                 ip:
                   type: string
                   description: IP address or CIDR block to whitelist
-                  example: "192.168.1.100"
+                  example: "203.0.113.100"
                 reason:
                   type: string
                   description: Reason for whitelisting

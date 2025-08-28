@@ -20,7 +20,7 @@ describe("Kong Guard AI IP Blacklist", function()
                 error = function() end
             },
             client = {
-                get_ip = function() return "192.168.1.100" end
+                get_ip = function() return "203.0.113.100" end
             },
             request = {
                 get_headers = function() return {} end,
@@ -50,7 +50,7 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should convert valid IPv4 addresses to integers", function()
             assert.equal(0, ip_blacklist.ipv4_to_int("0.0.0.0"))
             assert.equal(16777216, ip_blacklist.ipv4_to_int("1.0.0.0"))
-            assert.equal(3232235876, ip_blacklist.ipv4_to_int("192.168.1.100"))
+            assert.equal(3232235876, ip_blacklist.ipv4_to_int("203.0.113.100"))
             assert.equal(4294967295, ip_blacklist.ipv4_to_int("255.255.255.255"))
         end)
 
@@ -65,25 +65,25 @@ describe("Kong Guard AI IP Blacklist", function()
 
     describe("CIDR Parsing", function()
         it("should parse valid CIDR blocks", function()
-            local result = ip_blacklist.parse_cidr("192.168.1.0/24")
+            local result = ip_blacklist.parse_cidr("203.0.113.0/24")
             assert.is_not_nil(result)
             assert.equal(24, result.prefix_len)
-            assert.equal(3232235776, result.network_int)  -- 192.168.1.0
+            assert.equal(3232235776, result.network_int)  -- 203.0.113.0
             assert.is_false(result.is_ipv6)
         end)
 
         it("should parse single IPs as /32 CIDR", function()
-            local result = ip_blacklist.parse_cidr("192.168.1.100")
+            local result = ip_blacklist.parse_cidr("203.0.113.100")
             assert.is_not_nil(result)
             assert.equal(32, result.prefix_len)
-            assert.equal(3232235876, result.network_int)  -- 192.168.1.100
+            assert.equal(3232235876, result.network_int)  -- 203.0.113.100
             assert.is_false(result.is_ipv6)
         end)
 
         it("should return nil for invalid CIDR blocks", function()
-            assert.is_nil(ip_blacklist.parse_cidr("192.168.1.0/33"))  -- Invalid prefix
+            assert.is_nil(ip_blacklist.parse_cidr("203.0.113.0/33"))  -- Invalid prefix
             assert.is_nil(ip_blacklist.parse_cidr("256.1.1.0/24"))    -- Invalid IP
-            assert.is_nil(ip_blacklist.parse_cidr("192.168.1.0/"))    -- Missing prefix
+            assert.is_nil(ip_blacklist.parse_cidr("203.0.113.0/"))    -- Missing prefix
             assert.is_nil(ip_blacklist.parse_cidr(""))
             assert.is_nil(ip_blacklist.parse_cidr(nil))
         end)
@@ -91,13 +91,13 @@ describe("Kong Guard AI IP Blacklist", function()
 
     describe("IPv4 CIDR Matching", function()
         it("should match IPs in CIDR blocks correctly", function()
-            local ip_int = ip_blacklist.ipv4_to_int("192.168.1.100")
-            local network_int = ip_blacklist.ipv4_to_int("192.168.1.0")
+            local ip_int = ip_blacklist.ipv4_to_int("203.0.113.100")
+            local network_int = ip_blacklist.ipv4_to_int("203.0.113.0")
             
             -- Should match /24 network
             assert.is_true(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 24))
             
-            -- Should not match /25 network (192.168.1.0-127)
+            -- Should not match /25 network (203.0.113.0-127)
             assert.is_false(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 25))
             
             -- Should match /16 network
@@ -107,7 +107,7 @@ describe("Kong Guard AI IP Blacklist", function()
             assert.is_true(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 0))
             
             -- Should not match different /24 network
-            local other_network = ip_blacklist.ipv4_to_int("192.168.2.0")
+            local other_network = ip_blacklist.ipv4_to_int("203.0.113.0")
             assert.is_false(ip_blacklist.ipv4_in_cidr(ip_int, other_network, 24))
         end)
     end)
@@ -122,10 +122,10 @@ describe("Kong Guard AI IP Blacklist", function()
         end)
 
         it("should add single IPs to blacklist", function()
-            local success = ip_blacklist.add_ip_to_blacklist("192.168.1.100", "test_reason", 3600)
+            local success = ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test_reason", 3600)
             assert.is_true(success)
             
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.100")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_not_nil(block_result)
             assert.is_true(block_result.blocked)
             assert.equal("test_reason", block_result.reason)
@@ -133,60 +133,60 @@ describe("Kong Guard AI IP Blacklist", function()
         end)
 
         it("should add CIDR blocks to blacklist", function()
-            local success = ip_blacklist.add_ip_to_blacklist("192.168.1.0/24", "network_block", 3600)
+            local success = ip_blacklist.add_ip_to_blacklist("203.0.113.0/24", "network_block", 3600)
             assert.is_true(success)
             
             -- Should block IPs in the CIDR range
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.50")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_not_nil(block_result)
             assert.is_true(block_result.blocked)
             assert.equal("network_block", block_result.reason)
             assert.equal("cidr_block", block_result.match_type)
-            assert.equal("192.168.1.0/24", block_result.cidr)
+            assert.equal("203.0.113.0/24", block_result.cidr)
             
             -- Should not block IPs outside the CIDR range
-            local no_block = ip_blacklist.check_ip_blacklist("192.168.2.50")
+            local no_block = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_nil(no_block)
         end)
 
         it("should handle whitelist overrides", function()
             -- Add IP to blacklist
-            ip_blacklist.add_ip_to_blacklist("192.168.1.100", "test_block", 3600)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test_block", 3600)
             
             -- Add same IP to whitelist
-            ip_blacklist.add_ip_to_whitelist("192.168.1.100")
+            ip_blacklist.add_ip_to_whitelist("203.0.113.100")
             
             -- Should not block whitelisted IP
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.100")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_nil(block_result)
         end)
 
         it("should handle CIDR whitelist overrides", function()
             -- Add CIDR to blacklist
-            ip_blacklist.add_ip_to_blacklist("192.168.0.0/16", "network_block", 3600)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.0/16", "network_block", 3600)
             
             -- Add more specific CIDR to whitelist
-            ip_blacklist.add_ip_to_whitelist("192.168.1.0/24")
+            ip_blacklist.add_ip_to_whitelist("203.0.113.0/24")
             
             -- Should not block IPs in whitelisted subnet
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.50")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_nil(block_result)
             
             -- Should still block IPs outside whitelisted subnet
-            local should_block = ip_blacklist.check_ip_blacklist("192.168.2.50")
+            local should_block = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_not_nil(should_block)
             assert.is_true(should_block.blocked)
         end)
 
         it("should remove IPs from blacklist", function()
             -- Add and verify IP is blocked
-            ip_blacklist.add_ip_to_blacklist("192.168.1.100", "test", 3600)
-            assert.is_not_nil(ip_blacklist.check_ip_blacklist("192.168.1.100"))
+            ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 3600)
+            assert.is_not_nil(ip_blacklist.check_ip_blacklist("203.0.113.100"))
             
             -- Remove and verify IP is no longer blocked
-            local removed = ip_blacklist.remove_from_blacklist("192.168.1.100")
+            local removed = ip_blacklist.remove_from_blacklist("203.0.113.100")
             assert.is_true(removed)
-            assert.is_nil(ip_blacklist.check_ip_blacklist("192.168.1.100"))
+            assert.is_nil(ip_blacklist.check_ip_blacklist("203.0.113.100"))
         end)
 
         it("should handle invalid IP formats gracefully", function()
@@ -205,12 +205,12 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should extract client IP from Kong by default", function()
             local conf = {}
             local client_ip = ip_blacklist.get_real_client_ip(conf)
-            assert.equal("192.168.1.100", client_ip)
+            assert.equal("203.0.113.100", client_ip)
         end)
 
         it("should extract IP from X-Forwarded-For header", function()
             mock_kong.request.get_headers = function()
-                return { ["x-forwarded-for"] = "203.0.113.45, 192.168.1.100" }
+                return { ["x-forwarded-for"] = "203.0.113.45, 203.0.113.100" }
             end
             
             local conf = { trust_proxy_headers = true }
@@ -262,12 +262,12 @@ describe("Kong Guard AI IP Blacklist", function()
 
         it("should track blacklist statistics", function()
             -- Add some IPs and test blocking
-            ip_blacklist.add_ip_to_blacklist("192.168.1.100", "test", 3600)
-            ip_blacklist.add_ip_to_blacklist("10.0.0.0/8", "network", 3600)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 3600)
+            ip_blacklist.add_ip_to_blacklist("198.51.100.0/8", "network", 3600)
             
             -- Test some IPs
-            ip_blacklist.check_ip_blacklist("192.168.1.100")  -- Should hit
-            ip_blacklist.check_ip_blacklist("10.0.0.50")      -- Should hit
+            ip_blacklist.check_ip_blacklist("203.0.113.100")  -- Should hit
+            ip_blacklist.check_ip_blacklist("198.51.100.50")      -- Should hit
             ip_blacklist.check_ip_blacklist("203.0.113.45")   -- Should miss
             
             local stats = ip_blacklist.get_blacklist_stats()
@@ -292,17 +292,17 @@ describe("Kong Guard AI IP Blacklist", function()
             _G.ngx.time = function() return current_time end
             
             -- Add IP with short TTL
-            ip_blacklist.add_ip_to_blacklist("192.168.1.100", "test", 10)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 10)
             
             -- Should be blocked initially
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.100")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_not_nil(block_result)
             
             -- Advance time past TTL
             current_time = current_time + 20
             
             -- Should no longer be blocked
-            local no_block = ip_blacklist.check_ip_blacklist("192.168.1.100")
+            local no_block = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_nil(no_block)
         end)
 
@@ -311,8 +311,8 @@ describe("Kong Guard AI IP Blacklist", function()
             _G.ngx.time = function() return current_time end
             
             -- Add entries with different TTLs
-            ip_blacklist.add_ip_to_blacklist("192.168.1.100", "short", 10)
-            ip_blacklist.add_ip_to_blacklist("192.168.1.101", "long", 3600)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.100", "short", 10)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.101", "long", 3600)
             
             -- Advance time to expire first entry
             current_time = current_time + 20
@@ -333,9 +333,9 @@ describe("Kong Guard AI IP Blacklist", function()
         end)
 
         it("should provide response time metrics", function()
-            ip_blacklist.add_ip_to_blacklist("192.168.1.100", "test", 3600)
+            ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 3600)
             
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.100")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_not_nil(block_result)
             assert.is_number(block_result.response_time_us)
             assert.is_true(block_result.response_time_us >= 0)
@@ -344,7 +344,7 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should handle large blacklists efficiently", function()
             -- Add many IPs to test performance characteristics
             for i = 1, 100 do
-                ip_blacklist.add_ip_to_blacklist("192.168.1." .. i, "bulk_test", 3600)
+                ip_blacklist.add_ip_to_blacklist("203.0.113." .. i, "bulk_test", 3600)
             end
             
             -- Add CIDR blocks
@@ -354,7 +354,7 @@ describe("Kong Guard AI IP Blacklist", function()
             
             -- Test lookup performance
             local start_time = _G.ngx.now()
-            local block_result = ip_blacklist.check_ip_blacklist("192.168.1.50")
+            local block_result = ip_blacklist.check_ip_blacklist("203.0.113.50")
             local end_time = _G.ngx.now()
             
             assert.is_not_nil(block_result)
@@ -428,12 +428,12 @@ describe("Kong Guard AI IP Blacklist", function()
 
         it("should integrate with enforcement gate for blocking", function()
             local test_conf = {
-                ip_blacklist = { "192.168.1.100" },
+                ip_blacklist = { "203.0.113.100" },
                 dry_run_mode = false
             }
             ip_blacklist.init_worker(test_conf)
             
-            mock_kong.client.get_ip = function() return "192.168.1.100" end
+            mock_kong.client.get_ip = function() return "203.0.113.100" end
             
             local enforcement_result = ip_blacklist.enforce_ip_blacklist(test_conf)
             assert.is_not_nil(enforcement_result)
@@ -443,12 +443,12 @@ describe("Kong Guard AI IP Blacklist", function()
 
         it("should respect dry-run mode", function()
             local test_conf = {
-                ip_blacklist = { "192.168.1.100" },
+                ip_blacklist = { "203.0.113.100" },
                 dry_run_mode = true
             }
             ip_blacklist.init_worker(test_conf)
             
-            mock_kong.client.get_ip = function() return "192.168.1.100" end
+            mock_kong.client.get_ip = function() return "203.0.113.100" end
             
             local enforcement_result = ip_blacklist.enforce_ip_blacklist(test_conf)
             assert.is_not_nil(enforcement_result)

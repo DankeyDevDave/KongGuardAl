@@ -23,7 +23,7 @@ def test_feature_extraction():
     normal_request = {
         'method': 'GET',
         'path': '/api/users/123',
-        'client_ip': '192.168.1.100',
+        'client_ip': '203.0.113.100',
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
         'requests_per_minute': 5,
         'content_length': 0,
@@ -42,7 +42,7 @@ def test_feature_extraction():
     malicious_request = {
         'method': 'POST',
         'path': '/api/login',
-        'client_ip': '10.0.0.1',
+        'client_ip': '198.51.100.1',
         'user_agent': 'curl/7.64.1',
         'requests_per_minute': 150,
         'content_length': 500,
@@ -69,7 +69,7 @@ def test_anomaly_detection():
         training_data.append({
             'method': 'GET',
             'path': f'/api/resource/{i}',
-            'client_ip': f'192.168.1.{i % 255}',
+            'client_ip': f'203.0.113.{i % 255}',
             'user_agent': 'Normal Browser',
             'requests_per_minute': 10,
             'content_length': 100,
@@ -198,7 +198,7 @@ def test_model_manager():
         {
             'method': 'GET',
             'path': '/api/health',
-            'client_ip': '192.168.1.1',
+            'client_ip': '203.0.113.1',
             'user_agent': 'Mozilla/5.0',
             'requests_per_minute': 5,
             'content_length': 0,
@@ -208,7 +208,7 @@ def test_model_manager():
         {
             'method': 'POST',
             'path': '/api/admin',
-            'client_ip': '10.0.0.1',
+            'client_ip': '198.51.100.1',
             'user_agent': 'curl',
             'requests_per_minute': 200,
             'content_length': 1000,

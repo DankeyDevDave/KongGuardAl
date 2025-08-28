@@ -1,5 +1,5 @@
 -- Kong Guard AI - Supabase PostgreSQL Schema Setup
--- Run this script on your Supabase instance at 192.168.0.201
+-- Run this script on your Supabase instance at 198.51.100.201
 
 -- Create database for Kong Guard AI (if needed)
 -- CREATE DATABASE kongguardai;

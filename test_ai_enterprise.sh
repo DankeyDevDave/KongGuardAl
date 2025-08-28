@@ -64,7 +64,7 @@ test_ai_request() {
             "features": {
                 "method": "GET",
                 "path": "'$url'",
-                "client_ip": "192.168.1.100",
+                "client_ip": "203.0.113.100",
                 "user_agent": "TestClient/1.0",
                 "requests_per_minute": 10,
                 "content_length": 0,
@@ -85,7 +85,7 @@ test_ai_request() {
             "features": {
                 "method": "POST",
                 "path": "'$url'",
-                "client_ip": "192.168.1.100",
+                "client_ip": "203.0.113.100",
                 "user_agent": "TestClient/1.0",
                 "requests_per_minute": 10,
                 "content_length": '${#data}',

@@ -42,7 +42,7 @@ def get_sqlite_data(db_path: str) -> Dict[str, List]:
     conn.close()
     return data
 
-def migrate_to_supabase(data: Dict[str, List], host: str = "192.168.0.201", container: str = "122"):
+def migrate_to_supabase(data: Dict[str, List], host: str = "198.51.100.201", container: str = "122"):
     """Migrate data to Supabase PostgreSQL"""
     
     print("🔄 Starting migration to Supabase...")
@@ -179,7 +179,7 @@ def main():
     
     # Verify migration
     print("\n🔍 Verifying migration...")
-    cmd = 'ssh root@192.168.0.201 \'pct exec 122 -- docker exec supabase-db psql -U supabase_admin -d postgres -c "SELECT COUNT(*) as runs FROM kongguard.attack_runs; SELECT COUNT(*) as metrics FROM kongguard.attack_metrics;"\''
+    cmd = 'ssh root@198.51.100.201 \'pct exec 122 -- docker exec supabase-db psql -U supabase_admin -d postgres -c "SELECT COUNT(*) as runs FROM kongguard.attack_runs; SELECT COUNT(*) as metrics FROM kongguard.attack_metrics;"\''
     
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)

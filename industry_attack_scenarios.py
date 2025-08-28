@@ -175,7 +175,7 @@ class IndustryAttackScenarios:
                     "features": {
                         "method": "POST",
                         "path": "/api/devices/insulin-pump/commands",
-                        "client_ip": "10.0.0.50",  # Internal lateral movement
+                        "client_ip": "198.51.100.50",  # Internal lateral movement
                         "user_agent": "MedDeviceControl/2.0",
                         "requests_per_minute": 10,
                         "content_length": 200,
@@ -202,7 +202,7 @@ class IndustryAttackScenarios:
                     "features": {
                         "method": "PUT",
                         "path": "/api/prescriptions/modify",
-                        "client_ip": "172.16.0.25",
+                        "client_ip": "233.252.0.25",
                         "user_agent": "PharmacySystem/4.1",
                         "requests_per_minute": 15,
                         "content_length": 300,

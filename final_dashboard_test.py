@@ -21,7 +21,7 @@ async def final_dashboard_test():
             "features": {
                 "method": "GET",
                 "path": "/files",
-                "client_ip": "10.0.0.50",
+                "client_ip": "198.51.100.50",
                 "user_agent": "curl/7.68.0",
                 "requests_per_minute": 15,
                 "content_length": 0,
@@ -38,7 +38,7 @@ async def final_dashboard_test():
             "features": {
                 "method": "POST",
                 "path": "/api/system",
-                "client_ip": "172.16.0.25",
+                "client_ip": "233.252.0.25",
                 "user_agent": "PostmanRuntime/7.29.0",
                 "requests_per_minute": 8,
                 "content_length": 50,
@@ -55,7 +55,7 @@ async def final_dashboard_test():
             "features": {
                 "method": "GET",
                 "path": "/api/data",
-                "client_ip": "192.168.100.200",
+                "client_ip": "203.0.113.200",
                 "user_agent": "PythonRequests/2.28.1",
                 "requests_per_minute": 200,
                 "content_length": 0,

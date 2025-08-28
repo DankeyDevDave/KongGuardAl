@@ -1,0 +1,9 @@
+"""
+Kong Guard AI - Proprietary Software
+Copyright (c) 2024 Jacques Francois Coetzee. All Rights Reserved.
+
+NOTICE: This is proprietary software developed for the Kong Agentic AI Hackathon.
+Unauthorized use, reproduction, or distribution is prohibited.
+
+For licensing inquiries: [contact information]
+"""

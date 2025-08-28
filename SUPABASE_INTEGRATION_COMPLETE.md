@@ -7,7 +7,7 @@ Kong Guard AI has been successfully integrated with Supabase PostgreSQL for scal
 ## 📊 What Was Accomplished
 
 ### ✅ Database Infrastructure
-- **Connected to Supabase** at 192.168.0.201 (Docker container 122)
+- **Connected to Supabase** at 198.51.100.201 (Docker container 122)
 - **Created Kong Guard schema** (`kongguard`) in PostgreSQL
 - **Set up attack metrics tables** with proper indexing for performance
 - **Verified data persistence** across sessions
@@ -62,7 +62,7 @@ kongguard.attack_metrics    -- Individual attack records
 # Import the production interface
 from supabase_production import SupabaseProduction
 
-# Initialize (automatically connects to 192.168.0.201)
+# Initialize (automatically connects to 198.51.100.201)
 db = SupabaseProduction()
 
 # Create attack run
@@ -85,7 +85,7 @@ db.insert_attack_metric(
     action_taken="block",
     blocked=True,
     status_code=403,
-    source_ip="192.168.1.100",
+    source_ip="203.0.113.100",
     user_agent="AttackBot/1.0"
 )
 
@@ -137,6 +137,6 @@ The Supabase integration is complete and ready for production deployment. Kong G
 ---
 
 **Integration completed**: August 27, 2025
-**Database**: Supabase PostgreSQL at 192.168.0.201:5432
+**Database**: Supabase PostgreSQL at 198.51.100.201:5432
 **Schema**: `kongguard` 
 **Status**: ✅ OPERATIONAL

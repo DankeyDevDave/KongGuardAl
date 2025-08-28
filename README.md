@@ -3,10 +3,16 @@
 
 [![Kong Version](https://img.shields.io/badge/Kong-3.8.0-blue)](https://konghq.com)
 [![Plugin Version](https://img.shields.io/badge/Plugin-1.0.0-green)](https://github.com/yourusername/kong-guard-ai)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production_Ready-success)](https://github.com/yourusername/kong-guard-ai)
 
 > Transform your Kong Gateway into an intelligent, self-healing security system that autonomously detects, classifies, and responds to API threats in real-time.
+
+## ⚠️ PROPRIETARY SOFTWARE NOTICE
+
+This is proprietary software developed for the Kong Agentic AI Hackathon 2025. The ML models and core algorithms are protected intellectual property. See [LICENSE](LICENSE) and [PROPRIETARY_NOTICE.md](PROPRIETARY_NOTICE.md) for details.
+
+**Copyright © 2024 Jacques Francois Coetzee. All Rights Reserved.**
 
 ## 🚀 Quick Start
 
@@ -156,7 +162,7 @@ plugins:
       
       # IP Management
       blocked_ips:
-        - "192.168.1.100"
+        - "203.0.113.100"
       whitelist_ips:
         - "10.0.0.0/8"
       

@@ -234,7 +234,7 @@ curl -X POST /api/ai-feedback \
     "path": "/api/users",
     "headers": {...},
     "body": "...",
-    "client_ip": "192.168.1.100"
+    "client_ip": "203.0.113.100"
   },
   "threat_result": {
     "threat_type": "sql_injection",

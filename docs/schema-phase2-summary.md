@@ -10,12 +10,12 @@ This document summarizes the comprehensive schema enhancements implemented in Ph
 - **Description**: Permanent IP blocking with CIDR support
 - **Features**:
   - IPv4 and IPv6 support
-  - CIDR notation support (e.g., `10.0.0.0/8`, `2001:db8::/32`)
+  - CIDR notation support (e.g., `198.51.100.0/8`, `2001:db8::/32`)
   - Custom validation function
   - Default: Empty array
 - **Example**:
   ```json
-  "ip_blacklist": ["192.168.1.1", "10.0.0.0/8", "2001:db8::/32"]
+  "ip_blacklist": ["203.0.113.1", "198.51.100.0/8", "2001:db8::/32"]
   ```
 
 ### 2. Method Denylist (`method_denylist`)
@@ -188,7 +188,7 @@ This document summarizes the comprehensive schema enhancements implemented in Ph
 ```yaml
 kong-guard-ai:
   dry_run: false
-  ip_blacklist: ["192.168.1.100", "10.0.0.0/8"]
+  ip_blacklist: ["203.0.113.100", "198.51.100.0/8"]
   method_denylist: ["TRACE", "CONNECT"]
   rate_limit:
     requests_per_minute: 60

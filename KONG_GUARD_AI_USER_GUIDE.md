@@ -49,7 +49,7 @@ You now have a production-ready Kong Gateway security plugin enhanced with Claud
 ### **Threat Investigation**
 ```bash
 # When you detect suspicious activity
-/orchestrate "Investigate suspicious traffic from IP range 192.168.1.0/24"
+/orchestrate "Investigate suspicious traffic from IP range 203.0.113.0/24"
 
 # Store findings
 /memory-store "threat-analysis-$(date +%s)" "SQL injection attempts blocked" incidents

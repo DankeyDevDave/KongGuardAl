@@ -63,7 +63,7 @@ config = {
     
     -- Anonymize IP addresses
     anonymize_ip = true,
-    ip_anonymization_method = "mask_last_octet", -- 192.168.1.x
+    ip_anonymization_method = "mask_last_octet", -- 203.0.113.x
     
     -- Limit log retention
     log_retention_days = 30,
@@ -298,7 +298,7 @@ Implementing processing restrictions:
 ```lua
 -- Configuration for restricted processing
 local restricted_ips = {
-    ["192.168.1.100"] = {
+    ["203.0.113.100"] = {
         restriction_type = "processing_only", -- or "no_processing", "logging_only"
         reason = "gdpr_restriction_request",
         applied_date = "2024-01-15",

@@ -52,7 +52,7 @@ The Kong Guard AI Incident Management System provides comprehensive incident rec
         context = "param=1' union select * from users--"
       }
     ],
-    source_ip = "192.168.1.100",
+    source_ip = "203.0.113.100",
     request_details = {...},
     headers = {...},
     detection_details = {...}
@@ -76,8 +76,8 @@ The Kong Guard AI Incident Management System provides comprehensive incident rec
   
   -- Network forensics
   network_forensics = {
-    source_ip = "192.168.1.100",
-    x_forwarded_for = "10.0.0.1",
+    source_ip = "203.0.113.100",
+    x_forwarded_for = "198.51.100.1",
     x_real_ip = "203.0.113.1",
     port = "45123",
     protocol = "HTTP/1.1"
@@ -360,9 +360,9 @@ curl https://kong-gateway/kong-guard-ai/incidents/api/metrics
     "alert_id": "ALERT-1692384000-001",
     "incident_id": "INC-1692384000-001",
     "alert_level": "critical",
-    "title": "🚨 Kong Guard AI Alert: SQL injection detected from 192.168.1.100",
+    "title": "🚨 Kong Guard AI Alert: SQL injection detected from 203.0.113.100",
     "description": "Incident ID: INC-1692384000-001\nThreat Type: sql_injection\nSeverity: high\n...",
-    "source_ip": "192.168.1.100",
+    "source_ip": "203.0.113.100",
     "threat_type": "sql_injection",
     "created_at": 1692384000
   },
@@ -374,7 +374,7 @@ curl https://kong-gateway/kong-guard-ai/incidents/api/metrics
 ### 3. SIEM Export (CEF Format)
 
 ```
-CEF:0|Kong|Kong Guard AI|1.0|sql_injection|Security Incident|8|src=192.168.1.100 suser=anonymous requestMethod=POST requestUrl=/api/users requestClientApplication=Mozilla/5.0... act=block cat=sql_injection cs1=INC-1692384000-001 cs1Label=IncidentID cn1=8 cn1Label=ThreatLevel
+CEF:0|Kong|Kong Guard AI|1.0|sql_injection|Security Incident|8|src=203.0.113.100 suser=anonymous requestMethod=POST requestUrl=/api/users requestClientApplication=Mozilla/5.0... act=block cat=sql_injection cs1=INC-1692384000-001 cs1Label=IncidentID cn1=8 cn1Label=ThreatLevel
 ```
 
 ## Performance Considerations

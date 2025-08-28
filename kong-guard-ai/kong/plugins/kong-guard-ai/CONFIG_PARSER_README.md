@@ -318,7 +318,7 @@ local health = config_integration.health_check()
     "enable_notifications": true,
     "notification_threshold": 6.0,
     "slack_webhook_url": "https://hooks.slack.com/...",
-    "ip_blacklist": ["192.168.1.100", "10.0.0.0/24"],
+    "ip_blacklist": ["203.0.113.100", "198.51.100.0/24"],
     "suspicious_patterns": [
         "union.*select",
         "<script",

@@ -664,7 +664,7 @@ async def simulate_attacks():
             "features": RequestFeatures(
                 method="GET",
                 path="/api/users",
-                client_ip="192.168.1.100",
+                client_ip="203.0.113.100",
                 user_agent="AttackBot/1.0",
                 requests_per_minute=10,
                 content_length=0,
@@ -680,7 +680,7 @@ async def simulate_attacks():
             "features": RequestFeatures(
                 method="POST",
                 path="/api/comment",
-                client_ip="192.168.1.101",
+                client_ip="203.0.113.101",
                 user_agent="XSSBot/1.0",
                 requests_per_minute=5,
                 content_length=100,
@@ -696,7 +696,7 @@ async def simulate_attacks():
             "features": RequestFeatures(
                 method="GET",
                 path="/api/products",
-                client_ip="192.168.1.102",
+                client_ip="203.0.113.102",
                 user_agent="Chrome/96.0",
                 requests_per_minute=2,
                 content_length=0,

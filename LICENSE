@@ -1,0 +1,85 @@
+# Kong Guard AI - Licensing
+
+Copyright (c) 2024 Jacques Francois Coetzee. All Rights Reserved.
+
+## Dual License Structure
+
+This project uses a dual licensing model to protect intellectual property while enabling hackathon participation.
+
+### 1. EVALUATION LICENSE (Current)
+
+This software is provided for EVALUATION and DEMONSTRATION purposes only for the Kong Agentic AI Hackathon 2024/2025.
+
+**Permitted Uses:**
+- Viewing and evaluating the code for judging purposes
+- Testing the deployed demonstration
+- Academic study and research
+- Personal non-commercial use
+
+**NOT Permitted Without Written Permission:**
+- Commercial use of any kind
+- Redistribution or republication
+- Creating derivative works
+- Using the ML models in production
+- Copying the proprietary algorithms
+- Sublicensing to third parties
+
+### 2. COMPONENT LICENSING
+
+Different components have different licenses:
+
+#### Open Source Components (MIT Licensed):
+- Basic Kong plugin structure (`kong-plugin/kong/plugins/kong-guard-ai/handler.lua`)
+- HTML/CSS visualization files (`visualization/`)
+- Basic Docker configurations
+- General utility scripts
+
+#### PROPRIETARY Components (All Rights Reserved):
+- **ML Models** (`ml_models/`): Anomaly detection, attack classification, feature extraction
+- **AI Integration** (`ai-service/app.py`): Multi-provider AI orchestration
+- **Model Manager** (`ml_models/model_manager.py`): ML orchestration system  
+- **Training Algorithms**: All model training code
+- **Feature Engineering**: 70+ feature extraction pipeline
+- **Threat Scoring**: Proprietary scoring algorithms
+
+### 3. THIRD-PARTY COMPONENTS
+
+This project includes third-party software under their respective licenses:
+- Kong Gateway: Apache 2.0 License
+- FastAPI: MIT License
+- Scikit-learn: BSD License
+- Other dependencies: See requirements.txt
+
+### 4. API KEYS AND CREDENTIALS
+
+Any API keys, credentials, or sensitive configuration included in examples are for demonstration only and must not be used.
+
+### 5. HACKATHON SUBMISSION TERMS
+
+By accessing this code as part of the Kong Hackathon submission:
+- Judges may evaluate the code for competition purposes
+- Kong Inc. may showcase the project for promotional purposes  
+- No transfer of ownership or broad license is granted
+- Author retains all commercial rights
+
+### 6. FUTURE LICENSING
+
+Post-hackathon licensing options:
+- **Community Edition**: Selected components under MIT License
+- **Enterprise Edition**: Commercial license with support
+- **Custom Licensing**: Available for specific use cases
+
+### 7. WARRANTY DISCLAIMER
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY.
+
+### 8. CONTACT
+
+For licensing inquiries or permission requests:
+- Author: Jacques Francois Coetzee
+- Project: Kong Guard AI
+- Year: 2024
+
+---
+
+**NOTICE**: This is proprietary software. Unauthorized use, reproduction, or distribution is prohibited and may result in legal action.

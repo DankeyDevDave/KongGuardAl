@@ -253,7 +253,7 @@ Content-Type: application/json
   "threat_type": "http_method_violation",
   "threat_level": 8.5,
   "method": "TRACE",
-  "client_ip": "192.168.1.100",
+  "client_ip": "203.0.113.100",
   "path": "/api/users",
   "service_id": "user-service",
   "route_id": "api-route",

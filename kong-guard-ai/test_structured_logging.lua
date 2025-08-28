@@ -115,7 +115,7 @@ local test_conf = {
 local test_request_context = {
     method = "POST",
     path = "/api/users/login",
-    client_ip = "192.168.1.100",
+    client_ip = "203.0.113.100",
     service_id = "service-uuid-123",
     route_id = "route-uuid-456",
     consumer_id = "consumer-uuid-789",
@@ -124,7 +124,7 @@ local test_request_context = {
         ["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         ["content-type"] = "application/json",
         ["authorization"] = "Bearer jwt-token-here",
-        ["x-forwarded-for"] = "203.0.113.42, 192.168.1.100",
+        ["x-forwarded-for"] = "203.0.113.42, 203.0.113.100",
         ["referer"] = "https://example.com/login"
     },
     query = {
@@ -149,7 +149,7 @@ local test_threat_result = {
             }
         },
         total_matches = 1,
-        source_ip = "192.168.1.100",
+        source_ip = "203.0.113.100",
         blacklist_match = nil
     }
 }

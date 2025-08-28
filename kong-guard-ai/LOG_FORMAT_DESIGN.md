@@ -68,7 +68,7 @@ Captured during Kong's `access` phase to record incoming request metadata:
     "user-agent": "curl/7.68.0",
     "content-type": "application/json",
     "authorization": "Bearer [REDACTED]",
-    "x-forwarded-for": "203.0.113.1, 192.168.1.1",
+    "x-forwarded-for": "203.0.113.1, 203.0.113.1",
     "content-length": "156",
     "host": "api.example.com"
   },

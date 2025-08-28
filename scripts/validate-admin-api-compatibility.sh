@@ -177,7 +177,7 @@ test_configuration_validation() {
                 "rules": {
                     "rate_limit_threshold": 100,
                     "suspicious_patterns": ["SELECT.*FROM", "<script"],
-                    "blocked_ips": ["192.168.1.100"]
+                    "blocked_ips": ["203.0.113.100"]
                 }
             },
             "response_actions": {

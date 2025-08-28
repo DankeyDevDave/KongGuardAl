@@ -240,7 +240,7 @@ local plugin_config = {
     
     -- IP Blacklist
     enable_ip_blacklist = true,
-    ip_blacklist = {"192.168.1.100", "10.0.0.0/24"},
+    ip_blacklist = {"203.0.113.100", "198.51.100.0/24"},
     ip_blacklist_ttl_seconds = 300,
     
     -- Path Filtering  

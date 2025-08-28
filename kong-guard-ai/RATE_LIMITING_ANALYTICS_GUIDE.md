@@ -77,13 +77,13 @@ plugins:
   config:
     # Static IP whitelist
     rate_limit_bypass_whitelist:
-      - "192.168.1.100"
-      - "10.0.0.0/24"
+      - "203.0.113.100"
+      - "198.51.100.0/24"
       
     # Also respects ip_whitelist for general whitelisting
     ip_whitelist:
       - "trusted.server.com"
-      - "172.16.0.0/16"
+      - "233.252.0.0/16"
 ```
 
 ### API Usage
@@ -92,7 +92,7 @@ plugins:
 
 ```bash
 # Check current rate limit status for an IP
-curl -H "X-Forwarded-For: 192.168.1.100" \
+curl -H "X-Forwarded-For: 203.0.113.100" \
      http://your-api.com/api/endpoint
 ```
 
@@ -322,8 +322,8 @@ Response:
     "last_week": 2156
   },
   "top_sources": [
-    {"ip": "192.168.1.100", "count": 5, "country": "CN"},
-    {"ip": "10.0.0.50", "count": 3, "country": "RU"}
+    {"ip": "203.0.113.100", "count": 5, "country": "CN"},
+    {"ip": "198.51.100.50", "count": 3, "country": "RU"}
   ]
 }
 ```
@@ -424,7 +424,7 @@ Response:
   "timestamp": 1640995200,
   "threat_type": "sql_injection",
   "threat_level": 8.5,
-  "client_ip": "192.168.1.100",
+  "client_ip": "203.0.113.100",
   "country_code": "CN",
   "region": "Asia Pacific",
   "user_agent": "Mozilla/5.0...",
@@ -439,7 +439,7 @@ Response:
 ```json
 {
   "correlation_id": "pattern-789",
-  "ip_address": "192.168.1.100", 
+  "ip_address": "203.0.113.100", 
   "threat_sequence": [
     {"threat_type": "scanner", "timestamp": 1640995100},
     {"threat_type": "sql_injection", "timestamp": 1640995150},

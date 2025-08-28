@@ -48,7 +48,7 @@ data:
     server_tokens = off
     real_ip_header = X-Forwarded-For
     real_ip_recursive = on
-    trusted_ips = 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+    trusted_ips = 198.51.100.0/8,233.252.0.0/12,203.0.113.0/16
     
     # Clustering
     cluster_listen = 0.0.0.0:8005

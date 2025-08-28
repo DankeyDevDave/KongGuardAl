@@ -102,7 +102,7 @@ describe("Kong Guard AI Configuration Parser", function()
         
         it("should validate IP addresses", function()
             local config_with_invalid_ip = {
-                ip_whitelist = { "192.168.1.1", "invalid.ip.address", "10.0.0.0/24" }
+                ip_whitelist = { "203.0.113.1", "invalid.ip.address", "198.51.100.0/24" }
             }
             
             local config, errors = config_parser.parse_config(config_with_invalid_ip)
@@ -375,7 +375,7 @@ describe("Kong Guard AI Configuration Parser", function()
         end)
         
         it("should validate array fields", function()
-            local valid, err = config_parser.validate_field("ip_whitelist", {"192.168.1.1"}, "array")
+            local valid, err = config_parser.validate_field("ip_whitelist", {"203.0.113.1"}, "array")
             assert.is_true(valid)
             assert.is_nil(err)
             

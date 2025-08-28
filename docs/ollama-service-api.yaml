@@ -52,7 +52,7 @@ paths:
                   features:
                     method: "POST"
                     path: "/api/users"
-                    client_ip: "192.168.1.100"
+                    client_ip: "203.0.113.100"
                     user_agent: "AttackBot/1.0"
                     requests_per_minute: 50
                     content_length: 45
@@ -309,7 +309,7 @@ components:
             client_ip:
               type: string
               format: ipv4
-              example: "192.168.1.100"
+              example: "203.0.113.100"
             user_agent:
               type: string
               example: "Mozilla/5.0"

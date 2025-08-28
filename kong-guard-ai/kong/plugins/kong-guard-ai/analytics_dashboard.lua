@@ -856,9 +856,9 @@ function analytics_dashboard.get_real_time_threats(config)
             last_week = 2156
         },
         top_sources = {
-            {ip = "192.168.1.100", count = 5, country = "CN"},
-            {ip = "10.0.0.50", count = 3, country = "RU"},
-            {ip = "172.16.0.25", count = 2, country = "BR"}
+            {ip = "203.0.113.100", count = 5, country = "CN"},
+            {ip = "198.51.100.50", count = 3, country = "RU"},
+            {ip = "233.252.0.25", count = 2, country = "BR"}
         }
     }
 end

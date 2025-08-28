@@ -108,7 +108,7 @@ function _M.test_block_request_dry_run()
     
     local action_types = enforcement_gate.get_action_types()
     local action_data = {
-        client_ip = "192.168.1.100",
+        client_ip = "203.0.113.100",
         reason = "test_threat",
         threat_level = 8
     }
@@ -140,7 +140,7 @@ function _M.test_block_request_active()
     
     local action_types = enforcement_gate.get_action_types()
     local action_data = {
-        client_ip = "192.168.1.100",
+        client_ip = "203.0.113.100",
         reason = "test_threat",
         threat_level = 8
     }
@@ -172,7 +172,7 @@ function _M.test_rate_limiting_dry_run()
     
     local action_types = enforcement_gate.get_action_types()
     local action_data = {
-        client_ip = "192.168.1.101",
+        client_ip = "203.0.113.101",
         rate_limit = 50,
         service_id = "test-service"
     }
@@ -203,7 +203,7 @@ function _M.test_rate_limiting_active()
     
     local action_types = enforcement_gate.get_action_types()
     local action_data = {
-        client_ip = "192.168.1.101",
+        client_ip = "203.0.113.101",
         rate_limit = 50,
         service_id = "test-service"
     }
@@ -233,7 +233,7 @@ function _M.test_ip_blocking_dry_run()
     
     local action_types = enforcement_gate.get_action_types()
     local action_data = {
-        ip_address = "10.0.0.50",
+        ip_address = "198.51.100.50",
         duration = 3600,
         reason = "automated_threat_response"
     }
@@ -262,7 +262,7 @@ function _M.test_ip_blocking_active()
     
     local action_types = enforcement_gate.get_action_types()
     local action_data = {
-        ip_address = "10.0.0.50",
+        ip_address = "198.51.100.50",
         duration = 3600,
         reason = "automated_threat_response"
     }

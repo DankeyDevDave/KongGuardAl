@@ -5,7 +5,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 233.252.0.0/16
 
 volumes:
   kong-db-data:
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.10
+        ipv4_address: 233.252.0.10
     volumes:
       - kong-db-data:/var/lib/postgresql/data
     environment:
@@ -66,7 +66,7 @@ services:
     restart: unless-stopped
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.20
+        ipv4_address: 233.252.0.20
     ports:
       - "8000:8000"     # Proxy HTTP
       - "8443:8443"     # Proxy HTTPS
@@ -122,7 +122,7 @@ services:
     restart: unless-stopped
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.21
+        ipv4_address: 233.252.0.21
     ports:
       - "9000:8000"     # Proxy HTTP
       - "9443:8443"     # Proxy HTTPS
@@ -157,7 +157,7 @@ services:
     restart: unless-stopped
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.30
+        ipv4_address: 233.252.0.30
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
@@ -175,7 +175,7 @@ services:
     container_name: httpbin-service
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.40
+        ipv4_address: 233.252.0.40
     ports:
       - "8080:80"
     environment:
@@ -186,7 +186,7 @@ services:
     container_name: echo-service
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.41
+        ipv4_address: 233.252.0.41
     ports:
       - "8081:80"
     environment:
@@ -198,7 +198,7 @@ services:
     container_name: mockbin-service
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.42
+        ipv4_address: 233.252.0.42
     ports:
       - "8082:8080"
     environment:
@@ -212,7 +212,7 @@ services:
     container_name: kong-prometheus
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.50
+        ipv4_address: 233.252.0.50
     ports:
       - "9090:9090"
     volumes:
@@ -230,7 +230,7 @@ services:
     container_name: kong-grafana
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.51
+        ipv4_address: 233.252.0.51
     ports:
       - "3000:3000"
     volumes:
@@ -253,7 +253,7 @@ services:
     container_name: kong-pgadmin
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.60
+        ipv4_address: 233.252.0.60
     ports:
       - "5050:80"
     environment:
@@ -268,7 +268,7 @@ services:
     container_name: kong-redis-commander
     networks:
       kong-test-net:
-        ipv4_address: 172.20.0.61
+        ipv4_address: 233.252.0.61
     ports:
       - "8083:8081"
     environment:

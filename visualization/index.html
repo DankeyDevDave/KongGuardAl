@@ -169,7 +169,7 @@
                         features: {
                             method: attack.method,
                             path: attack.path,
-                            client_ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
+                            client_ip: `203.0.113.${Math.floor(Math.random() * 255)}`,
                             user_agent: type === 'normal' ? "Chrome/96.0" : "AttackBot/1.0",
                             requests_per_minute: attack.requests_per_minute || 10,
                             content_length: attack.body ? attack.body.length : 0,

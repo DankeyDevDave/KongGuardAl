@@ -26,7 +26,7 @@ cat > .claude/github-actions-config.json << 'EOF'
     "runs-on": "proxmox-runner-201"
   },
   "proxmoxConfig": {
-    "host": "192.168.0.200",
+    "host": "203.0.113.200",
     "container": "201",
     "runnerName": "proxmox-runner-201"
   }
@@ -39,13 +39,13 @@ find .github/workflows -name "*.yml" -o -name "*.yaml" | while read file; do
 done
 
 echo "=== Proxmox Container Status Check ==="
-ssh root@192.168.0.200 "pct status 201" 2>/dev/null || echo "❌ Cannot connect to Proxmox host or container not found"
+ssh root@203.0.113.200 "pct status 201" 2>/dev/null || echo "❌ Cannot connect to Proxmox host or container not found"
 
 echo -e "\n=== Container Details ==="
-ssh root@192.168.0.200 "pct config 201" 2>/dev/null | grep -E "hostname|net0|cores|memory" || echo "❌ Cannot retrieve container config"
+ssh root@203.0.113.200 "pct config 201" 2>/dev/null | grep -E "hostname|net0|cores|memory" || echo "❌ Cannot retrieve container config"
 
 echo -e "\n=== GitHub Runner Service Status ==="
-ssh root@192.168.0.200 "pct exec 201 -- systemctl --user list-units --type=service | grep actions.runner" 2>/dev/null || echo "❌ Cannot check runner service status"
+ssh root@203.0.113.200 "pct exec 201 -- systemctl --user list-units --type=service | grep actions.runner" 2>/dev/null || echo "❌ Cannot check runner service status"
 
 echo -e "\n=== GitHub Repository Runner Registration ==="
 gh api /repos/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/actions/runners --jq '.runners[] | select(.name=="proxmox-runner-201") | {name, status, busy}' 2>/dev/null || echo "❌ No runner named proxmox-runner-201 found"
@@ -54,21 +54,21 @@ echo -e "\n=== Current Workflow Queue Status ==="
 gh run list --status queued --limit 5 2>/dev/null || echo "❌ Cannot check workflow queue"
 
 echo -e "\n=== Runner Connectivity Test ==="
-if ssh root@192.168.0.200 "pct exec 201 -- ping -c 1 8.8.8.8 >/dev/null 2>&1"; then
+if ssh root@203.0.113.200 "pct exec 201 -- ping -c 1 8.8.8.8 >/dev/null 2>&1"; then
     echo "✅ Container has internet connectivity"
 else
     echo "❌ Container network connectivity issues"
 fi
 
 echo -e "\n=== Docker Status in Container ==="
-ssh root@192.168.0.200 "pct exec 201 -- docker --version" 2>/dev/null && echo "✅ Docker available" || echo "❌ Docker not found or not running"
+ssh root@203.0.113.200 "pct exec 201 -- docker --version" 2>/dev/null && echo "✅ Docker available" || echo "❌ Docker not found or not running"
 
 echo -e "\n=== Node.js Status in Container ==="
-ssh root@192.168.0.200 "pct exec 201 -- node --version" 2>/dev/null && echo "✅ Node.js available" || echo "❌ Node.js not found"
+ssh root@203.0.113.200 "pct exec 201 -- node --version" 2>/dev/null && echo "✅ Node.js available" || echo "❌ Node.js not found"
 
 # Step 6: Automatic GitHub Runner Registration
 echo -e "\n=== Preparing Container for GitHub Runner ==="
-ssh root@192.168.0.200 "pct exec 201 -- bash -c '
+ssh root@203.0.113.200 "pct exec 201 -- bash -c '
     # Create runner user if not exists
     if ! id -u runner >/dev/null 2>&1; then
         useradd -m -s /bin/bash runner
@@ -110,7 +110,7 @@ fi
 echo "✅ Retrieved registration token"
 
 echo -e "\n=== Downloading and Configuring GitHub Runner ==="
-ssh root@192.168.0.200 "pct exec 201 -- su - runner -c '
+ssh root@203.0.113.200 "pct exec 201 -- su - runner -c '
     cd /home/runner/actions-runner
     
     # Download runner if not already present
@@ -197,12 +197,12 @@ No queued workflows (or currently processing)
 
 ### Container Not Running
 ```bash
-ssh root@192.168.0.200 "pct start 201"
+ssh root@203.0.113.200 "pct start 201"
 ```
 
 ### Runner Service Not Active
 ```bash
-ssh root@192.168.0.200 "pct exec 201 -- systemctl --user start actions.runner.*"
+ssh root@203.0.113.200 "pct exec 201 -- systemctl --user start actions.runner.*"
 ```
 
 ### Runner Not Registered
@@ -212,8 +212,8 @@ ssh root@192.168.0.200 "pct exec 201 -- systemctl --user start actions.runner.*"
 
 ### Network Issues
 ```bash
-ssh root@192.168.0.200 "pct exec 201 -- ip addr show"
-ssh root@192.168.0.200 "pct exec 201 -- cat /etc/resolv.conf"
+ssh root@203.0.113.200 "pct exec 201 -- ip addr show"
+ssh root@203.0.113.200 "pct exec 201 -- cat /etc/resolv.conf"
 ```
 
 ## Post-Setup Verification:

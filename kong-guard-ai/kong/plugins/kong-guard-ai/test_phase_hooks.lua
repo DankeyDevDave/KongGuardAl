@@ -40,7 +40,7 @@ local mock_kong = {
         end
     },
     client = {
-        get_ip = function() return "192.168.1.100" end,
+        get_ip = function() return "203.0.113.100" end,
         get_consumer = function() return { id = "test-consumer" } end
     },
     router = {
@@ -191,7 +191,7 @@ print("------------------------------------------------")
 -- Mock request with various proxy headers
 kong.request.get_headers = function()
     return {
-        ["x-forwarded-for"] = "203.0.113.42, 192.168.1.1, 10.0.0.1",
+        ["x-forwarded-for"] = "203.0.113.42, 203.0.113.1, 198.51.100.1",
         ["x-real-ip"] = "203.0.113.42",
         ["cf-connecting-ip"] = "203.0.113.42"
     }

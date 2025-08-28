@@ -47,7 +47,7 @@ async def test_websocket_connection():
                         "features": {
                             "method": "GET",
                             "path": "/api/users",
-                            "client_ip": "192.168.1.100",
+                            "client_ip": "203.0.113.100",
                             "user_agent": "AttackBot/1.0",
                             "requests_per_minute": 10,
                             "content_length": 0,

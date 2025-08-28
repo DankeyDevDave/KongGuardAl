@@ -1,0 +1,15 @@
+# Add this to your production Prometheus configuration
+# Location: production-server:/etc/prometheus/prometheus.yml
+
+scrape_configs:
+  # Existing configs...
+  
+  # Kong Guard AI - Development Machine
+  - job_name: 'kong-guard-ai-dev'
+    static_configs:
+      - targets: 
+          - '198.51.100.84:18002'  # Cloud AI Protection (dev)
+          - '198.51.100.84:18003'  # Local Ollama Protection (dev)
+        labels:
+          environment: 'development'
+          location: 'jacques-macbook'

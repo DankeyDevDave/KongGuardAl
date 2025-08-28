@@ -154,10 +154,10 @@ npx claude-flow@alpha neural predict --model "threat-model" \
 /swarm-status
 
 # Investigate specific threat
-/orchestrate "Analyze the SQL injection attempts from IP 192.168.1.100"
+/orchestrate "Analyze the SQL injection attempts from IP 203.0.113.100"
 
 # Store security decision
-/memory-store "policy-decision" "Blocked IP range 192.168.1.0/24" security-policies
+/memory-store "policy-decision" "Blocked IP range 203.0.113.0/24" security-policies
 
 # Train with new threat data
 /neural-train prediction "recent-threats.json"

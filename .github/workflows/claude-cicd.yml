@@ -453,7 +453,7 @@ jobs:
           echo "${{ secrets.PRODUCTION_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           echo "Host production" >> ~/.ssh/config
-          echo "  HostName 192.168.0.199" >> ~/.ssh/config
+          echo "  HostName 203.0.113.199" >> ~/.ssh/config
           echo "  User root" >> ~/.ssh/config
           echo "  IdentityFile ~/.ssh/deploy_key" >> ~/.ssh/config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config

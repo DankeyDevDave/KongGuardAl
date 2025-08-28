@@ -8,7 +8,7 @@ Kong Guard AI uses a self-hosted GitHub Actions runner deployed on a Proxmox LXC
 
 ### Container Details
 - **Container ID**: 201 (git-worker-01)
-- **Host Server**: Proxmox VE at `192.168.0.200`
+- **Host Server**: Proxmox VE at `203.0.113.200`
 - **Container Type**: LXC (Linux Container)
 - **Runner Name**: proxmox-runner-201
 - **Labels**: `self-hosted`, `proxmox`, `Linux`, `X64`, `kong-guard-ai`
@@ -19,7 +19,7 @@ GitHub Actions
       ↓
 [Internet/VPN]
       ↓
-Proxmox Host (192.168.0.200)
+Proxmox Host (203.0.113.200)
       ↓
 LXC Container 201
       ↓
@@ -148,7 +148,7 @@ jobs:
 
 1. **Check container status**:
    ```bash
-   ssh root@192.168.0.200 "pct status 201"
+   ssh root@203.0.113.200 "pct status 201"
    ```
 
 2. **Restart runner service**:
@@ -182,7 +182,7 @@ jobs:
 1. **Runner runs as 'runner' user**, not root
 2. **For Docker access**, add runner to docker group:
    ```bash
-   ssh root@192.168.0.200
+   ssh root@203.0.113.200
    pct enter 201
    usermod -aG docker runner
    systemctl restart actions.runner.*.service
@@ -192,7 +192,7 @@ jobs:
 
 ```bash
 # SSH to Proxmox host
-ssh root@192.168.0.200
+ssh root@203.0.113.200
 
 # Enter container
 pct enter 201
@@ -234,7 +234,7 @@ journalctl -u 'actions.runner.*.service' -n 100
 
 ```bash
 # Generate deployment key (on runner)
-ssh root@192.168.0.200
+ssh root@203.0.113.200
 pct enter 201
 su - runner
 ssh-keygen -t ed25519 -C "github-runner-deploy"
@@ -273,10 +273,10 @@ systemctl restart systemd-journald
 1. **Container Resources**:
    ```bash
    # Check current limits
-   ssh root@192.168.0.200 "pct config 201 | grep -E 'cores|memory'"
+   ssh root@203.0.113.200 "pct config 201 | grep -E 'cores|memory'"
    
    # Adjust if needed
-   ssh root@192.168.0.200 "pct set 201 -cores 4 -memory 8192"
+   ssh root@203.0.113.200 "pct set 201 -cores 4 -memory 8192"
    ```
 
 2. **Concurrent Jobs**:
@@ -405,7 +405,7 @@ GITHUB_REF=<ref>
 # Custom for Kong Guard AI
 KONG_GUARD_ENV=production
 RUNNER_CONTAINER_ID=201
-RUNNER_HOST=192.168.0.200
+RUNNER_HOST=203.0.113.200
 ```
 
 ---

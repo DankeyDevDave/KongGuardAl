@@ -34,7 +34,7 @@ npx claude-flow@alpha agent spawn --type security \
 
 # Store security incident
 npx claude-flow@alpha memory store "incident-$(date +%s)" \
-  "SQL injection attempt from IP 192.168.1.100 - blocked" \
+  "SQL injection attempt from IP 203.0.113.100 - blocked" \
   --namespace security-incidents
 
 # Train threat prediction model

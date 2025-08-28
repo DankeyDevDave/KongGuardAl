@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'kong-guard-ai'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: 
+        - 'host.docker.internal:18002'  # AI service metrics
+        labels:
+          service: 'ai-service'
+      
+  - job_name: 'kong-admin'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: 
+        - 'host.docker.internal:8001'  # Kong admin metrics
+        labels:
+          service: 'kong-admin'
+          
+  - job_name: 'attack-metrics'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets:
+        - 'host.docker.internal:5000'  # Production API
+        labels:
+          service: 'production-api'

@@ -54,7 +54,7 @@ def migrate_all():
             sql = f"INSERT INTO kongguard.attack_metrics ({', '.join(col_list)}) VALUES ({', '.join(val_list)}) ON CONFLICT DO NOTHING;"
             
             # Execute via SSH
-            cmd = f"""ssh root@192.168.0.201 'pct exec 122 -- docker exec supabase-db psql -U supabase_admin -d postgres -c "{sql}"' 2>/dev/null"""
+            cmd = f"""ssh root@198.51.100.201 'pct exec 122 -- docker exec supabase-db psql -U supabase_admin -d postgres -c "{sql}"' 2>/dev/null"""
             result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
             
             if result.returncode == 0:

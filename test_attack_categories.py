@@ -41,7 +41,7 @@ class AttackTester:
             "features": {
                 "method": "POST",
                 "path": attack_data.get("path", "/api/test"),
-                "client_ip": "192.168.1.100",
+                "client_ip": "203.0.113.100",
                 "user_agent": "Mozilla/5.0 (AttackTest)",
                 "requests_per_minute": 1,
                 "content_length": len(attack_data.get("body", "")),

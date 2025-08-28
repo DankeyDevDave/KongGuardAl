@@ -117,7 +117,7 @@ setup_test_environment() {
 generate_test_traffic() {
     log_info "Generating test traffic to populate counters..."
     
-    local test_ips=("192.168.1.100" "10.0.0.50" "172.16.0.25")
+    local test_ips=("203.0.113.100" "198.51.100.50" "233.252.0.25")
     local status_codes=(200 404 500)
     local methods=("GET" "POST")
     
@@ -162,7 +162,7 @@ test_counter_functionality() {
     
     # Test IP-specific metrics
     test_counter "IP Metrics Endpoint" \
-        "curl -s '$KONG_ADMIN_URL:8001/guard-ai/metrics/ip/192.168.1.100'" \
+        "curl -s '$KONG_ADMIN_URL:8001/guard-ai/metrics/ip/203.0.113.100'" \
         '"counters".*"performance"'
     
     # Test global request counters

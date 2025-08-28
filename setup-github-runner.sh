@@ -4,7 +4,7 @@
 echo "🚀 Setting up GitHub Actions Runner: proxmox-runner-201"
 
 # Step 1: Enter the container and create runner directory
-ssh root@192.168.0.200 "pct exec 201 -- bash -c '
+ssh root@203.0.113.200 "pct exec 201 -- bash -c '
     # Create runner user if not exists
     id -u runner >/dev/null 2>&1 || useradd -m -s /bin/bash runner
     
@@ -27,7 +27,7 @@ echo "3. Select 'Linux' and copy the download/config commands"
 echo "4. Run the commands in container 201 as user 'runner'"
 
 echo "🔧 Example commands to run in container:"
-echo "ssh root@192.168.0.200 \"pct exec 201 -- su - runner\""
+echo "ssh root@203.0.113.200 \"pct exec 201 -- su - runner\""
 echo "# Then run the GitHub-provided download and config commands"
 echo "# Make sure to use runner name: proxmox-runner-201"
 echo "# Use labels: self-hosted,Linux,X64,proxmox"

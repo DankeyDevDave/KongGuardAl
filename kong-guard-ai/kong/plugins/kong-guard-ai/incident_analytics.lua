@@ -592,7 +592,7 @@ function _M.get_recent_incidents(limit)
         table.insert(incidents, {
             incident_id = string.format("INC-%d-%d", current_time, i),
             type = "sql_injection",
-            source_ip = string.format("192.168.1.%d", math.random(1, 254)),
+            source_ip = string.format("203.0.113.%d", math.random(1, 254)),
             severity = ({"low", "medium", "high", "critical"})[math.random(1, 4)],
             timestamp = current_time - (i * 60),
             status = "active"

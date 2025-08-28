@@ -78,7 +78,7 @@ curl -X POST http://localhost:18001/services/{service}/plugins \
 
 ### Debug Level (Most Verbose)
 ```
-[debug] Kong Guard AI: Request received {client_ip: "192.168.1.1", path: "/api/users", method: "GET", headers: {...}}
+[debug] Kong Guard AI: Request received {client_ip: "203.0.113.1", path: "/api/users", method: "GET", headers: {...}}
 [info] Kong Guard AI: Threat detected {threat_score: 0.3, threat_type: "none"}
 [debug] Kong Guard AI: Features extracted {requests_per_minute: 5, header_count: 10, ...}
 ```
@@ -86,12 +86,12 @@ curl -X POST http://localhost:18001/services/{service}/plugins \
 ### Info Level (Default)
 ```
 [info] Kong Guard AI: Threat detected {threat_score: 0.85, threat_type: "xss"}
-[warn] Kong Guard AI: Blocking request {threat_type: "xss", client_ip: "192.168.1.1"}
+[warn] Kong Guard AI: Blocking request {threat_type: "xss", client_ip: "203.0.113.1"}
 ```
 
 ### Warn Level (Production)
 ```
-[warn] Kong Guard AI: Blocking request {threat_type: "sql_injection", client_ip: "192.168.1.1"}
+[warn] Kong Guard AI: Blocking request {threat_type: "sql_injection", client_ip: "203.0.113.1"}
 [error] Kong Guard AI: Failed to apply rate limit {error: "..."}
 ```
 

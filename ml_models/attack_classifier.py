@@ -1,5 +1,11 @@
 """
 Kong Guard AI - Attack Classification Module
+Copyright (c) 2024 Jacques Francois Coetzee. All Rights Reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+This module contains proprietary attack classification algorithms.
+Unauthorized use, reproduction, or distribution is prohibited.
+
 Multi-class classification for attack type detection
 """
 

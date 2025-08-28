@@ -40,7 +40,7 @@ global:all:{counter_type}:{window_seconds}:{time_bucket}
 p:{identifier}:{bucket_max_ms}:{window_seconds}:{time_bucket}
 
 # Examples:
-ip:192.168.1.100:req:60:123456789    # 1-minute request counter for IP
+ip:203.0.113.100:req:60:123456789    # 1-minute request counter for IP
 global:all:resp:300:123456789        # 5-minute global response counter
 p:global:500:3600:123456789          # 1-hour global <500ms response bucket
 ```
@@ -80,7 +80,7 @@ Increments a per-IP counter.
 
 **Example:**
 ```lua
-local results = counters.increment_ip_counter("192.168.1.100", counters.COUNTER_TYPES.REQUESTS)
+local results = counters.increment_ip_counter("203.0.113.100", counters.COUNTER_TYPES.REQUESTS)
 -- Results: {minute = 15, five_minutes = 42, hour = 158, lifetime = 1205}
 ```
 
@@ -125,7 +125,7 @@ Retrieves statistics for a specific IP address.
 
 **Example:**
 ```lua
-local stats = counters.get_ip_stats("192.168.1.100")
+local stats = counters.get_ip_stats("203.0.113.100")
 -- Returns:
 -- {
 --   req = {minute = 15, five_minutes = 42, hour = 158, lifetime = 1205},
@@ -261,7 +261,7 @@ counters.track_response_time(client_ip, response_time_ms)
 **Response Example:**
 ```json
 {
-  "ip": "192.168.1.100",
+  "ip": "203.0.113.100",
   "timestamp": 1692454800,
   "counters": {
     "req": {"minute": 15, "five_minutes": 42, "hour": 158, "lifetime": 1205},
@@ -375,14 +375,14 @@ Run the comprehensive validation script:
 ```bash
 # Generate test traffic
 for i in {1..100}; do
-  curl -H "X-Forwarded-For: 192.168.1.100" http://localhost:8000/test
+  curl -H "X-Forwarded-For: 203.0.113.100" http://localhost:8000/test
 done
 
 # Check global stats
 curl http://localhost:8001/guard-ai/status | jq '.counters.global'
 
 # Check IP-specific stats  
-curl http://localhost:8001/guard-ai/metrics/ip/192.168.1.100 | jq '.counters'
+curl http://localhost:8001/guard-ai/metrics/ip/203.0.113.100 | jq '.counters'
 
 # Monitor memory usage
 curl http://localhost:8001/guard-ai/memory | jq '.'

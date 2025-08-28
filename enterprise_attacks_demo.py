@@ -24,8 +24,8 @@ class EnterpriseAttackEngine:
             "203.0.113.42",  # Suspicious foreign IP
             "198.51.100.123",  # Known botnet IP
             "192.0.2.100",    # Compromised corporate IP
-            "10.0.0.50",      # Internal lateral movement
-            "172.16.0.25",    # DMZ compromise
+            "198.51.100.50",      # Internal lateral movement
+            "233.252.0.25",    # DMZ compromise
             "185.220.100.240", # Tor exit node
             "141.98.80.15",   # VPN/Proxy service
             "5.188.10.95",    # Bulletproof hosting
@@ -504,14 +504,14 @@ class EnterpriseAttackEngine:
                 "features": {
                     "method": "GET",
                     "path": "/api/network/discovery",
-                    "client_ip": "10.0.0.50",  # Internal IP
+                    "client_ip": "198.51.100.50",  # Internal IP
                     "user_agent": "NetworkScanner/1.0",
                     "requests_per_minute": 100,
                     "content_length": 0,
                     "query_param_count": 1,
                     "header_count": 4,
                     "hour_of_day": datetime.now().hour,
-                    "query": "range=10.0.0.1-10.0.255.255&ports=22,23,135,139,445,3389",
+                    "query": "range=198.51.100.1-198.51.100.255&ports=22,23,135,139,445,3389",
                     "body": ""
                 }
             }

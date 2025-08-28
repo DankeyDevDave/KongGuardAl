@@ -12,7 +12,7 @@ GRAFANA_VERSION=latest
 CONTAINER_NAME=grafana-kongguard
 
 # SSH connection details
-SSH_HOST="root@192.168.0.201"
+SSH_HOST="root@198.51.100.201"
 LXC_ID="122"
 
 # Grafana deployment via Docker
@@ -28,7 +28,7 @@ ssh $SSH_HOST "pct exec $LXC_ID -- docker run -d \
   -e 'GF_SECURITY_ADMIN_PASSWORD=KongGuard@2024' \
   -e 'GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,yesoreyeram-boomtable-panel,vonage-status-panel' \
   -e 'GF_USERS_ALLOW_SIGN_UP=false' \
-  -e 'GF_SERVER_ROOT_URL=http://192.168.0.225:$GRAFANA_PORT' \
+  -e 'GF_SERVER_ROOT_URL=http://198.51.100.225:$GRAFANA_PORT' \
   -e 'GF_ANALYTICS_REPORTING_ENABLED=false' \
   grafana/grafana:$GRAFANA_VERSION"
 
@@ -263,7 +263,7 @@ echo "=========================================="
 echo "✅ Grafana Deployment Complete!"
 echo "=========================================="
 echo ""
-echo "📊 Access Grafana at: http://192.168.0.225:$GRAFANA_PORT"
+echo "📊 Access Grafana at: http://198.51.100.225:$GRAFANA_PORT"
 echo "👤 Username: admin"
 echo "🔑 Password: KongGuard@2024"
 echo ""

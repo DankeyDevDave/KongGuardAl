@@ -1,117 +1,150 @@
-# Kong Guard AI Environment Configuration
+# Kong Guard AI Environment Variables Template
+# Copy this file to .env and fill in your actual values
 
-# ===========================================
+# =============================================================================
 # DATABASE CONFIGURATION
-# ===========================================
+# =============================================================================
 
-# Self-hosted Supabase (Production)
-# Uncomment these lines to use your self-hosted Supabase instance
-# SUPABASE_URL=https://your-supabase-instance.com
-# SUPABASE_ANON_KEY=your_anon_key_here
-# SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+# Kong Database
+KONG_DATABASE=postgres
+KONG_PG_HOST=kong-database
+KONG_PG_PORT=5432
+KONG_PG_USER=kong
+KONG_PG_PASSWORD=your_kong_password_here
+KONG_PG_DATABASE=kong
 
-# SQLite (Local Development) - Default
-# DATABASE_TYPE=sqlite
-# SQLITE_DB_PATH=attack_metrics.db
+# Konga Database (Admin GUI)
+KONGA_DB_ADAPTER=postgres
+KONGA_DB_HOST=konga-database
+KONGA_DB_PORT=5432
+KONGA_DB_USER=konga
+KONGA_DB_PASSWORD=your_konga_password_here
+KONGA_DB_DATABASE=konga
+KONGA_TOKEN_SECRET=your_konga_token_secret_here
 
-# ===========================================
-# AI SERVICE CONFIGURATION  
-# ===========================================
+# =============================================================================
+# NETWORK CONFIGURATION
+# =============================================================================
 
-# OpenAI API (for cloud AI tier)
-# OPENAI_API_KEY=sk-your-openai-key-here
+# Kong Gateway Ports
+KONG_PROXY_PORT=8000
+KONG_PROXY_SSL_PORT=8443
+KONG_ADMIN_PORT=8001
+KONG_ADMIN_SSL_PORT=8444
 
-# Groq API (fast inference alternative)
-# GROQ_API_KEY=gsk_your-groq-key-here
+# External Access Ports (for development)
+KONG_PROXY_EXTERNAL_PORT=18000
+KONG_PROXY_SSL_EXTERNAL_PORT=18443
+KONG_ADMIN_EXTERNAL_PORT=18001
+KONG_ADMIN_SSL_EXTERNAL_PORT=18444
 
-# Google Gemini API (for advanced analysis)
-# GEMINI_API_KEY=your-gemini-key-here
+# Demo API Ports
+DEMO_API_PORT=18085
+MOCK_ATTACKER_PORT=18090
 
-# Ollama (for local AI tier)
-# OLLAMA_URL=http://localhost:11434
+# Redis Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_EXTERNAL_PORT=16379
 
-# ===========================================
-# ATTACK SIMULATION CONFIGURATION
-# ===========================================
+# =============================================================================
+# SUPABASE CONFIGURATION
+# =============================================================================
 
-# Default attack flood settings
-DEFAULT_ATTACK_INTENSITY=medium
-DEFAULT_ATTACK_STRATEGY=wave
-DEFAULT_ATTACK_DURATION=30
-DEFAULT_TARGET_TIERS=unprotected,cloud,local
+# Supabase Host (replace with your actual Supabase host)
+SUPABASE_HOST=your_supabase_host_here
+SUPABASE_PORT=5432
+SUPABASE_DATABASE=postgres
+SUPABASE_USER=postgres
+SUPABASE_PASSWORD=your_supabase_password_here
 
-# Rate limiting and safety
-MAX_ATTACK_DURATION=300
-MAX_CONCURRENT_ATTACKS=1000
-ENABLE_ATTACK_LOGGING=true
+# Supabase Admin (for production deployments)
+SUPABASE_ADMIN_HOST=your_supabase_admin_host_here
+SUPABASE_ADMIN_CONTAINER=your_container_id_here
+SUPABASE_ADMIN_USER=supabase_admin
 
-# ===========================================
+# =============================================================================
+# AI SERVICE CONFIGURATION
+# =============================================================================
+
+# AI Service Ports
+AI_SERVICE_PORT=5000
+DASHBOARD_PORT=8000
+
+# Kong Admin URL for AI Gateway
+KONG_ADMIN_URL=http://localhost:8001
+
+# =============================================================================
 # SECURITY CONFIGURATION
-# ===========================================
+# =============================================================================
 
-# API Security
-API_RATE_LIMIT=100  # requests per minute
-ENABLE_CORS=true
-ALLOWED_ORIGINS=http://localhost:*,https://localhost:*
+# Trusted IP Ranges (comma-separated)
+TRUSTED_IPS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 
-# Input validation
-ENABLE_INPUT_SANITIZATION=true
-MAX_PAYLOAD_SIZE=10240  # bytes
-BLOCKED_PAYLOADS=<script>,javascript:,data:
+# SSL/TLS Configuration
+SSL_CERT_PATH=/etc/kong/ssl/kong-default.crt
+SSL_KEY_PATH=/etc/kong/ssl/kong-default.key
 
-# ===========================================  
-# PERFORMANCE CONFIGURATION
-# ===========================================
+# =============================================================================
+# MONITORING AND LOGGING
+# =============================================================================
 
-# Database connection pooling
-DB_POOL_SIZE=10
-DB_MAX_CONNECTIONS=50
-DB_CONNECTION_TIMEOUT=30
+# Log Levels
+KONG_LOG_LEVEL=info
+KONG_GUARD_AI_LOG_LEVEL=info
 
-# Attack simulation performance
-BATCH_INSERT_SIZE=1000
-METRICS_BUFFER_SIZE=5000
-ENABLE_REAL_TIME_UPDATES=true
+# Grafana Configuration (if using)
+GRAFANA_PORT=3000
+GRAFANA_HOST=your_grafana_host_here
 
-# ===========================================
-# MONITORING & LOGGING
-# ===========================================
+# =============================================================================
+# DEVELOPMENT SETTINGS
+# =============================================================================
 
-# Logging configuration
-LOG_LEVEL=INFO
-LOG_FILE=kong_guard.log
-ENABLE_STRUCTURED_LOGGING=true
+# Development Mode
+KONG_GUARD_AI_DRY_RUN=true
+KONG_GUARD_AI_DEVELOPMENT_MODE=true
 
-# Metrics and monitoring
-ENABLE_PROMETHEUS_METRICS=false
-PROMETHEUS_PORT=9090
-HEALTH_CHECK_ENDPOINT=/health
+# Test Configuration
+TEST_ENVIRONMENT=docker
+CI=false
 
-# ===========================================
-# DEVELOPMENT CONFIGURATION
-# ===========================================
+# =============================================================================
+# API KEYS AND SECRETS
+# =============================================================================
 
-# Development mode settings
-DEBUG_MODE=false
-ENABLE_MOCK_ATTACKS=false
-MOCK_RESPONSE_TIME=50
+# AI Gateway API Key (if using external AI services)
+AI_API_KEY=your_ai_api_key_here
 
-# Testing configuration  
-TEST_DATABASE_PATH=test_attack_metrics.db
-ENABLE_TEST_ENDPOINTS=false
+# Slack Webhook (for notifications)
+SLACK_WEBHOOK_URL=your_slack_webhook_url_here
 
-# ===========================================
-# SELF-HOSTED SUPABASE SPECIFIC
-# ===========================================
+# Email Configuration (for notifications)
+SMTP_SERVER=smtp.gmail.com
+EMAIL_FROM=security@yourcompany.com
+EMAIL_PASSWORD=your_email_password_here
 
-# If using self-hosted Supabase, these are typical settings:
-# SUPABASE_URL=http://localhost:54321  # Default local Supabase
-# SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-# SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# =============================================================================
+# DEPLOYMENT CONFIGURATION
+# =============================================================================
 
-# Database connection (if direct PostgreSQL access needed)
-# POSTGRES_HOST=localhost
-# POSTGRES_PORT=54322
-# POSTGRES_DB=postgres  
-# POSTGRES_USER=postgres
-# POSTGRES_PASSWORD=your-postgres-password
+# Docker Configuration
+KONG_USER=kong
+DOCKER_NETWORK=kong-net
+
+# Kubernetes Configuration (if using)
+KUBERNETES_NAMESPACE=kong-guard-ai
+KUBERNETES_CLUSTER_NAME=your_cluster_name_here
+
+# =============================================================================
+# BACKUP AND RECOVERY
+# =============================================================================
+
+# Backup Configuration
+BACKUP_ENABLED=true
+BACKUP_RETENTION_DAYS=30
+BACKUP_PATH=/backups
+
+# Database Backup
+DB_BACKUP_ENABLED=true
+DB_BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM

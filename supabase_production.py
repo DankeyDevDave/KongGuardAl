@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class SupabaseProduction:
     """Production-ready Supabase interface for Kong Guard AI"""
     
-    def __init__(self, host: str = "192.168.0.201", container: str = "122"):
+    def __init__(self, host: str = "198.51.100.201", container: str = "122"):
         self.host = host
         self.container = container
         self.user = "supabase_admin"
@@ -237,7 +237,7 @@ def main():
             "action_taken": "block",
             "blocked": True,
             "status_code": 403,
-            "source_ip": "192.168.1.100",
+            "source_ip": "203.0.113.100",
             "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
         },
         {
@@ -251,7 +251,7 @@ def main():
             "action_taken": "sanitize",
             "blocked": True,
             "status_code": 200,
-            "source_ip": "10.0.0.50",
+            "source_ip": "198.51.100.50",
             "user_agent": "AttackBot/1.0"
         },
         {
@@ -279,7 +279,7 @@ def main():
             "action_taken": "error",
             "blocked": False,
             "status_code": 500,
-            "source_ip": "172.16.0.25",
+            "source_ip": "233.252.0.25",
             "user_agent": "python-requests/2.28.0",
             "error_message": "Command execution failed"
         }

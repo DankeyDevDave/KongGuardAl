@@ -1,0 +1,68 @@
+# Kong Guard AI Security Configuration Template
+# Copy this file to security-config.yml and update with your values
+
+# Database Security
+database:
+  encryption_enabled: true
+  ssl_required: true
+  connection_pool_size: 10
+  max_connections: 50
+
+# API Security
+api:
+  rate_limit_enabled: true
+  rate_limit_requests: 100
+  rate_limit_window: 60
+  cors_enabled: true
+  allowed_origins:
+    - "https://yourdomain.com"
+    - "https://api.yourdomain.com"
+
+# Authentication & Authorization
+auth:
+  jwt_secret: "your_jwt_secret_here"
+  jwt_expiry: 3600
+  refresh_token_expiry: 86400
+  password_min_length: 12
+  require_special_chars: true
+  require_numbers: true
+  require_uppercase: true
+
+# Network Security
+network:
+  trusted_ips:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+  block_suspicious_ips: true
+  enable_ddos_protection: true
+  max_connections_per_ip: 100
+
+# Logging & Monitoring
+logging:
+  level: "info"
+  sensitive_data_masking: true
+  log_retention_days: 90
+  audit_log_enabled: true
+
+# SSL/TLS Configuration
+ssl:
+  enabled: true
+  cert_path: "/path/to/your/certificate.crt"
+  key_path: "/path/to/your/private.key"
+  min_tls_version: "1.2"
+  cipher_suite: "ECDHE-RSA-AES256-GCM-SHA384"
+
+# AI Service Security
+ai_service:
+  api_key_required: true
+  request_validation: true
+  response_sanitization: true
+  max_payload_size: 1048576  # 1MB
+
+# Backup & Recovery
+backup:
+  enabled: true
+  encryption: true
+  retention_days: 30
+  backup_path: "/secure/backup/location"

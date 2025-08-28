@@ -141,7 +141,7 @@ function _M.test_schema_validation()
             rules = {
                 rate_limit_threshold = 50,
                 suspicious_patterns = {"SELECT.*FROM", "<script"},
-                blocked_ips = {"192.168.1.100"},
+                blocked_ips = {"203.0.113.100"},
                 blocked_user_agents = {"malicious-bot"}
             }
         },

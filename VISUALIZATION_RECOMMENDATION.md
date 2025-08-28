@@ -38,7 +38,7 @@ docker run -d \
   grafana/grafana-enterprise
 
 # Connect to Supabase PostgreSQL:
-# Host: 192.168.0.225
+# Host: 198.51.100.225
 # Port: 5432
 # Database: postgres
 # Schema: kongguard
@@ -67,7 +67,7 @@ docker run -d \
 docker run -d -p 3001:3000 \
   --name metabase \
   -e "MB_DB_TYPE=postgres" \
-  -e "MB_DB_HOST=192.168.0.225" \
+  -e "MB_DB_HOST=198.51.100.225" \
   metabase/metabase
 ```
 
@@ -170,7 +170,7 @@ GROUP BY source_ip;
     <script>
         // Initialize Supabase client
         const supabase = createClient(
-            'http://192.168.0.225:8000',
+            'http://198.51.100.225:8000',
             'YOUR_ANON_KEY'
         );
         
@@ -262,7 +262,7 @@ WHERE timestamp >= NOW() - INTERVAL '24 hours';
 ### 3. Test Real-time Feed
 ```javascript
 // Quick test in browser console
-const SUPABASE_URL = 'http://192.168.0.225:8000';
+const SUPABASE_URL = 'http://198.51.100.225:8000';
 const SUPABASE_ANON_KEY = 'your-anon-key';
 
 const { createClient } = supabase;

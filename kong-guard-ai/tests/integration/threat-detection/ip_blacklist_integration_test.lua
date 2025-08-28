@@ -9,9 +9,9 @@ local function run_tests(framework, config)
         dry_run_mode = false,
         enable_ip_blacklist = true,
         ip_blacklist = {
-            "192.168.1.100",    -- Single IP
-            "10.0.0.0/24",      -- CIDR block
-            "172.16.0.0/16"     -- Larger CIDR block
+            "203.0.113.100",    -- Single IP
+            "198.51.100.0/24",      -- CIDR block
+            "233.252.0.0/16"     -- Larger CIDR block
         },
         ip_blacklist_ttl_seconds = 300,
         threat_threshold = 7.0,
@@ -31,7 +31,7 @@ local function run_tests(framework, config)
         kong_id,
         "GET",
         "/test?query=normal",
-        {["X-Forwarded-For"] = "192.168.1.100"},  -- Blacklisted IP
+        {["X-Forwarded-For"] = "203.0.113.100"},  -- Blacklisted IP
         nil,
         403  -- Expected blocked status
     )
@@ -49,7 +49,7 @@ local function run_tests(framework, config)
         kong_id,
         "GET", 
         "/test",
-        {["X-Forwarded-For"] = "10.0.0.50"},  -- In blacklisted CIDR 10.0.0.0/24
+        {["X-Forwarded-For"] = "198.51.100.50"},  -- In blacklisted CIDR 198.51.100.0/24
         nil,
         403
     )
@@ -65,7 +65,7 @@ local function run_tests(framework, config)
         kong_id,
         "POST",
         "/test",
-        {["X-Forwarded-For"] = "172.16.255.254"},  -- In blacklisted CIDR 172.16.0.0/16
+        {["X-Forwarded-For"] = "233.252.0.254"},  -- In blacklisted CIDR 233.252.0.0/16
         '{"test": "data"}',
         403
     )
@@ -98,7 +98,7 @@ local function run_tests(framework, config)
         "GET",
         "/test",
         {
-            ["X-Forwarded-For"] = "203.0.113.1, 192.168.1.100",  -- Blacklisted IP in chain
+            ["X-Forwarded-For"] = "203.0.113.1, 203.0.113.100",  -- Blacklisted IP in chain
             ["X-Real-IP"] = "203.0.113.1"
         },
         nil,
@@ -116,7 +116,7 @@ local function run_tests(framework, config)
         kong_id,
         "GET",
         "/test", 
-        {["CF-Connecting-IP"] = "10.0.0.25"},  -- Blacklisted CIDR
+        {["CF-Connecting-IP"] = "198.51.100.25"},  -- Blacklisted CIDR
         nil,
         403
     )
@@ -137,7 +137,7 @@ local function run_tests(framework, config)
             kong_id,
             "GET",
             "/test",
-            {["X-Forwarded-For"] = "192.168.1.100"},
+            {["X-Forwarded-For"] = "203.0.113.100"},
             nil,
             403
         )

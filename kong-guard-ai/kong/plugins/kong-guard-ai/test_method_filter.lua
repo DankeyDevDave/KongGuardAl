@@ -127,7 +127,7 @@ function _M.benchmark_method_filtering(conf)
         local mock_context = {
             method = method,
             path = "/api/test",
-            client_ip = "192.168.1.100"
+            client_ip = "203.0.113.100"
         }
         
         local start_time = ngx.now()

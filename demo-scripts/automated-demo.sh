@@ -38,7 +38,7 @@ send_attack() {
             \"features\": {
                 \"method\": \"$method\",
                 \"path\": \"$path\",
-                \"client_ip\": \"192.168.1.$((RANDOM % 255))\",
+                \"client_ip\": \"203.0.113.$((RANDOM % 255))\",
                 \"user_agent\": \"DemoClient/1.0\",
                 \"requests_per_minute\": $((RANDOM % 100 + 10)),
                 \"content_length\": ${#body},
@@ -128,7 +128,7 @@ for i in {1..20}; do
             \"features\": {
                 \"method\": \"GET\",
                 \"path\": \"/api/data\",
-                \"client_ip\": \"192.168.1.100\",
+                \"client_ip\": \"203.0.113.100\",
                 \"user_agent\": \"DDoSBot/1.0\",
                 \"requests_per_minute\": 500,
                 \"content_length\": 0,

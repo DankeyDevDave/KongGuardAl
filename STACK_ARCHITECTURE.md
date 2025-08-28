@@ -6,8 +6,8 @@
 ✅ **All services can run on a single LXC container (122)**
 
 ```
-Proxmox Host (192.168.0.201)
-└── LXC Container 122 (192.168.0.225)
+Proxmox Host (198.51.100.201)
+└── LXC Container 122 (198.51.100.225)
     ├── CPU: 6 cores
     ├── RAM: 8GB (Currently using ~3GB)
     ├── Storage: 82GB
@@ -119,24 +119,24 @@ Real-time Subscribers  | 1,000+
 ### Access Services
 ```bash
 # Supabase PostgreSQL
-psql -h 192.168.0.225 -p 5432 -U supabase_admin -d postgres
+psql -h 198.51.100.225 -p 5432 -U supabase_admin -d postgres
 
 # Grafana Dashboard
-http://192.168.0.225:3333
+http://198.51.100.225:3333
 Username: admin
 Password: KongGuard2024
 
 # Kong API Gateway
-http://192.168.0.225:8000
+http://198.51.100.225:8000
 
 # Analytics
-http://192.168.0.225:4000
+http://198.51.100.225:4000
 ```
 
 ### Container Management
 ```bash
 # SSH to container
-ssh root@192.168.0.201
+ssh root@198.51.100.201
 pct enter 122
 
 # Check all services
@@ -196,10 +196,10 @@ docker logs supabase-db
 
 ```
 External Access:
-├── 192.168.0.225:8000  → Kong API Gateway
-├── 192.168.0.225:3333  → Grafana Dashboard
-├── 192.168.0.225:5432  → PostgreSQL (Supabase)
-└── 192.168.0.225:4000  → Analytics
+├── 198.51.100.225:8000  → Kong API Gateway
+├── 198.51.100.225:3333  → Grafana Dashboard
+├── 198.51.100.225:5432  → PostgreSQL (Supabase)
+└── 198.51.100.225:4000  → Analytics
 
 Internal Docker Network (supabase_default):
 ├── supabase-db:5432    → PostgreSQL
@@ -232,15 +232,15 @@ Internal Docker Network (supabase_default):
 echo "🔍 Checking Kong Guard AI Stack Health..."
 
 # PostgreSQL
-curl -s http://192.168.0.225:8000/rest/v1/ > /dev/null 2>&1 && 
+curl -s http://198.51.100.225:8000/rest/v1/ > /dev/null 2>&1 && 
   echo "✅ Supabase API: Healthy" || echo "❌ Supabase API: Down"
 
 # Grafana
-curl -s http://192.168.0.225:3333/api/health > /dev/null 2>&1 && 
+curl -s http://198.51.100.225:3333/api/health > /dev/null 2>&1 && 
   echo "✅ Grafana: Healthy" || echo "❌ Grafana: Down"
 
 # Database
-ssh root@192.168.0.201 'pct exec 122 -- docker exec supabase-db pg_isready' > /dev/null 2>&1 && 
+ssh root@198.51.100.201 'pct exec 122 -- docker exec supabase-db pg_isready' > /dev/null 2>&1 && 
   echo "✅ PostgreSQL: Healthy" || echo "❌ PostgreSQL: Down"
 ```
 

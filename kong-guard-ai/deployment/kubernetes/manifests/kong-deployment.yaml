@@ -136,7 +136,7 @@ spec:
         - name: KONG_REAL_IP_RECURSIVE
           value: "on"
         - name: KONG_TRUSTED_IPS
-          value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          value: "198.51.100.0/8,233.252.0.0/12,203.0.113.0/16"
         
         # Logging Configuration
         - name: KONG_LOG_LEVEL
@@ -299,9 +299,9 @@ metadata:
 spec:
   type: LoadBalancer
   loadBalancerSourceRanges:
-  - 10.0.0.0/8
-  - 172.16.0.0/12
-  - 192.168.0.0/16
+  - 198.51.100.0/8
+  - 233.252.0.0/12
+  - 203.0.113.0/16
   ports:
   - name: admin-api
     port: 8001

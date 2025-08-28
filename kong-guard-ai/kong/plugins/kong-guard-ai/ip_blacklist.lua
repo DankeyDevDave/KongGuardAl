@@ -151,7 +151,7 @@ end
 
 ---
 -- Parse CIDR notation and cache result
--- @param cidr string CIDR notation (e.g., "192.168.1.0/24")
+-- @param cidr string CIDR notation (e.g., "203.0.113.0/24")
 -- @return table {network_int, prefix_len, is_ipv6} or nil if invalid
 ---
 function _M.parse_cidr(cidr)

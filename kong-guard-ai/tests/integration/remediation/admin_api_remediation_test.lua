@@ -32,7 +32,7 @@ local function run_tests(framework, config)
     -- Test 1: Automatic IP blocking via Admin API
     local test1 = framework.create_test("Admin API - Automatic IP Blocking", framework.TEST_MODES.INTEGRATION)
     
-    local malicious_ip = "192.168.100.50"
+    local malicious_ip = "203.0.113.50"
     
     -- Trigger high-threat request that should cause IP blocking
     local attack_response = framework.execute_request(
@@ -63,7 +63,7 @@ local function run_tests(framework, config)
     -- Test 2: Dynamic rate limiting application
     local test2 = framework.create_test("Admin API - Dynamic Rate Limiting", framework.TEST_MODES.INTEGRATION)
     
-    local suspicious_ip = "192.168.100.51"
+    local suspicious_ip = "203.0.113.51"
     
     -- Send medium-threat requests to trigger rate limiting
     for i = 1, 3 do
@@ -158,7 +158,7 @@ local function run_tests(framework, config)
     -- This is a critical feature that should be tested carefully
     
     -- For safety, this test only validates that rollback conditions are detected
-    local critical_threat_ip = "192.168.100.52"
+    local critical_threat_ip = "203.0.113.52"
     
     local critical_response = framework.execute_request(
         kong_id,
@@ -220,7 +220,7 @@ local function run_tests(framework, config)
             kong_id,
             "GET",
             "/test",
-            {["X-Forwarded-For"] = "192.168.100.60"},
+            {["X-Forwarded-For"] = "203.0.113.60"},
             nil,
             200
         )
@@ -264,7 +264,7 @@ local function run_tests(framework, config)
     local test13 = framework.create_test("Admin API - Remediation Action Logging", framework.TEST_MODES.INTEGRATION)
     
     -- Test that all remediation actions are properly logged
-    local logged_ip = "192.168.100.53"
+    local logged_ip = "203.0.113.53"
     
     local logged_response = framework.execute_request(
         kong_id,

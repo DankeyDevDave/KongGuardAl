@@ -45,7 +45,7 @@ send_to_ai() {
     local path=$2
     local query=$3
     local threat_type=$4
-    local ip="192.168.1.$((RANDOM % 255))"
+    local ip="203.0.113.$((RANDOM % 255))"
     local rpm=$5
     
     curl -X POST http://localhost:8000/analyze \

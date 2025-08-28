@@ -51,7 +51,7 @@ def main():
     
     # Execute runs migration
     print("📊 Migrating attack runs...")
-    cmd = "scp /tmp/migrate_runs.sql root@192.168.0.201:/tmp/ && ssh root@192.168.0.201 'pct exec 122 -- docker exec -i supabase-db psql -U supabase_admin -d postgres -f /tmp/migrate_runs.sql'"
+    cmd = "scp /tmp/migrate_runs.sql root@198.51.100.201:/tmp/ && ssh root@198.51.100.201 'pct exec 122 -- docker exec -i supabase-db psql -U supabase_admin -d postgres -f /tmp/migrate_runs.sql'"
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     
     if result.returncode == 0:
@@ -87,7 +87,7 @@ def main():
     
     # Execute metrics migration
     print("📈 Migrating attack metrics sample...")
-    cmd = "scp /tmp/migrate_metrics.sql root@192.168.0.201:/tmp/ && ssh root@192.168.0.201 'pct exec 122 -- docker exec -i supabase-db psql -U supabase_admin -d postgres -f /tmp/migrate_metrics.sql'"
+    cmd = "scp /tmp/migrate_metrics.sql root@198.51.100.201:/tmp/ && ssh root@198.51.100.201 'pct exec 122 -- docker exec -i supabase-db psql -U supabase_admin -d postgres -f /tmp/migrate_metrics.sql'"
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     
     if result.returncode == 0:
@@ -97,7 +97,7 @@ def main():
     
     # Verify migration
     print("\n🔍 Verifying migration...")
-    cmd = "ssh root@192.168.0.201 'pct exec 122 -- docker exec supabase-db psql -U supabase_admin -d postgres -c \"SELECT COUNT(*) as runs FROM kongguard.attack_runs; SELECT COUNT(*) as metrics FROM kongguard.attack_metrics;\"'"
+    cmd = "ssh root@198.51.100.201 'pct exec 122 -- docker exec supabase-db psql -U supabase_admin -d postgres -c \"SELECT COUNT(*) as runs FROM kongguard.attack_runs; SELECT COUNT(*) as metrics FROM kongguard.attack_metrics;\"'"
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     
     if result.returncode == 0:

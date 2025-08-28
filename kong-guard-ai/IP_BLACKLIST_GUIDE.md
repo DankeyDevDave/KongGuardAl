@@ -14,7 +14,7 @@ The IP Blacklist enforcement system provides immediate, high-performance IP bloc
 
 ### 🌐 Comprehensive IP Support
 - **IPv4 addresses** with full CIDR notation support
-- **CIDR ranges** (e.g., `192.168.1.0/24`, `10.0.0.0/8`)
+- **CIDR ranges** (e.g., `203.0.113.0/24`, `198.51.100.0/8`)
 - **Proxy header detection** for real client IP extraction
 - **IPv6 support** (planned for future release)
 
@@ -40,13 +40,13 @@ The IP Blacklist enforcement system provides immediate, high-performance IP bloc
   "config": {
     "enable_ip_blacklist": true,
     "ip_blacklist": [
-      "192.168.1.100",
-      "10.0.0.0/8",
-      "172.16.0.0/12"
+      "203.0.113.100",
+      "198.51.100.0/8",
+      "233.252.0.0/12"
     ],
     "ip_whitelist": [
-      "192.168.1.200",
-      "10.1.0.0/16"
+      "203.0.113.200",
+      "198.51.100.0/16"
     ],
     "trust_proxy_headers": true,
     "ip_blacklist_ttl_seconds": 3600,
@@ -84,19 +84,19 @@ The system automatically detects real client IPs through these headers (in prior
 
 ```bash
 # Single IP addresses
-192.168.1.100
-10.0.0.1
+203.0.113.100
+198.51.100.1
 
 # CIDR blocks
-192.168.1.0/24    # 192.168.1.0 - 192.168.1.255 (256 IPs)
-10.0.0.0/8        # 10.0.0.0 - 10.255.255.255 (16M IPs)
-172.16.0.0/12     # 172.16.0.0 - 172.31.255.255 (1M IPs)
+203.0.113.0/24    # 203.0.113.0 - 203.0.113.255 (256 IPs)
+198.51.100.0/8        # 198.51.100.0 - 198.51.100.255 (16M IPs)
+233.252.0.0/12     # 233.252.0.0 - 233.252.0.255 (1M IPs)
 203.0.113.0/28    # 203.0.113.0 - 203.0.113.15 (16 IPs)
 
 # Common private networks
-10.0.0.0/8        # Private Class A
-172.16.0.0/12     # Private Class B
-192.168.0.0/16    # Private Class C
+198.51.100.0/8        # Private Class A
+233.252.0.0/12     # Private Class B
+203.0.113.0/16    # Private Class C
 ```
 
 ### Performance Characteristics
@@ -180,14 +180,14 @@ POST /_guard_ai/blacklist/check
 Content-Type: application/json
 
 {
-  "ip": "192.168.1.100"
+  "ip": "203.0.113.100"
 }
 ```
 
 **Response:**
 ```json
 {
-  "ip": "192.168.1.100",
+  "ip": "203.0.113.100",
   "blocked": true,
   "details": {
     "blocked": true,
@@ -460,8 +460,8 @@ dry_run_mode: false
 ```json
 {
   "ip_whitelist": [
-    "192.168.1.0/24",    // Internal network
-    "10.0.0.0/8",        // Corporate network
+    "203.0.113.0/24",    // Internal network
+    "198.51.100.0/8",        // Corporate network
     "203.0.113.100"      // Monitoring system
   ]
 }

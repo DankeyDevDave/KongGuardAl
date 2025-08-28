@@ -11,9 +11,10 @@ import hashlib
 import subprocess
 import threading
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 import uvicorn
 import httpx
@@ -864,6 +865,58 @@ async def provide_feedback(
         return {"status": "recorded", "action": "threat_confirmed"}
     return {"status": "no_action"}
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "Kong Guard AI",
+        "ai_provider": AI_PROVIDER,
+        "ml_enabled": ML_ENABLED,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def get_metrics():
+    """Prometheus metrics endpoint"""
+    metrics = []
+    
+    # Service status
+    metrics.append("# HELP kong_guard_ai_up Kong Guard AI service status")
+    metrics.append("# TYPE kong_guard_ai_up gauge")
+    metrics.append("kong_guard_ai_up 1")
+    
+    # Threat metrics
+    total_threats = sum(threat_intel.known_attacks.values())
+    metrics.append(f"# HELP kong_guard_threats_detected_total Total threats detected")
+    metrics.append(f"# TYPE kong_guard_threats_detected_total counter")
+    metrics.append(f"kong_guard_threats_detected_total {total_threats}")
+    
+    # Threat by type
+    metrics.append("# HELP kong_guard_threats_by_type Threats by type")
+    metrics.append("# TYPE kong_guard_threats_by_type gauge")
+    for threat_type, count in threat_intel.known_attacks.items():
+        metrics.append(f'kong_guard_threats_by_type{{threat_type="{threat_type}"}} {count}')
+    
+    # Blocked IPs
+    metrics.append(f"# HELP kong_guard_blocked_ips_total Total blocked IPs")
+    metrics.append(f"# TYPE kong_guard_blocked_ips_total gauge")
+    metrics.append(f"kong_guard_blocked_ips_total {len(threat_intel.blocked_ips)}")
+    
+    # False positives
+    metrics.append(f"# HELP kong_guard_false_positives_total Total false positives")
+    metrics.append(f"# TYPE kong_guard_false_positives_total gauge")
+    metrics.append(f"kong_guard_false_positives_total {len(threat_intel.false_positives)}")
+    
+    # ML model metrics if available
+    if ML_ENABLED and model_manager:
+        model_status = model_manager.get_model_status()
+        metrics.append(f"# HELP kong_guard_ml_models_loaded ML models loaded")
+        metrics.append(f"# TYPE kong_guard_ml_models_loaded gauge")
+        metrics.append(f"kong_guard_ml_models_loaded {1 if model_status.get('models_loaded') else 0}")
+    
+    return "\n".join(metrics)
+
 @app.get("/stats")
 async def get_statistics():
     """Get threat detection statistics"""
@@ -1300,10 +1353,13 @@ async def broadcast_threat_analysis(analysis_result: dict):
 # ============================================================================
 
 if __name__ == "__main__":
+    import os
+    PORT = int(os.getenv("PORT", "18002"))
+    
     print("🚀 Kong Guard AI - Threat Analysis Service")
     print(f"📊 AI Provider: {AI_PROVIDER}")
     print(f"🤖 ML Models: {'Enabled' if ML_ENABLED else 'Disabled'}")
-    print(f"🔍 Starting on http://localhost:8000")
+    print(f"🔍 Starting on http://localhost:{PORT}")
     print("")
     print("Available providers:")
     print("  - OpenAI (GPT-4): Set OPENAI_API_KEY")
@@ -1321,4 +1377,4 @@ if __name__ == "__main__":
         print("  ✅ Continuous learning enabled")
         print("")
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

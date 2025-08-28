@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class SupabaseSimple:
     """Simple Supabase interface using SSH commands"""
     
-    def __init__(self, host: str = "192.168.0.201", container: str = "122"):
+    def __init__(self, host: str = "198.51.100.201", container: str = "122"):
         self.host = host
         self.container = container
         self.user = "supabase_admin"

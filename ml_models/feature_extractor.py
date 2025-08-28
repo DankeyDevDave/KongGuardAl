@@ -1,5 +1,11 @@
 """
 Kong Guard AI - Feature Extraction Module
+Copyright (c) 2024 Jacques Francois Coetzee. All Rights Reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+This module contains proprietary feature engineering algorithms.
+Unauthorized use, reproduction, or distribution is prohibited.
+
 Advanced feature engineering for ML models
 """
 

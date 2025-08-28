@@ -650,7 +650,7 @@ async def manage_kong_guard():
         response = await client.post(
             "http://localhost:8080/v1/remediation/ip-blacklist",
             json={
-                "ip": "192.168.1.100",
+                "ip": "203.0.113.100",
                 "ttl": 3600,
                 "reason": "Repeated SQL injection attempts"
             }
