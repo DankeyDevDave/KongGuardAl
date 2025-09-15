@@ -334,6 +334,31 @@
                 <input type="number" id="attackDuration" value="60" min="10" max="300" style="width: 100%; padding: 8px; background: var(--surface); color: var(--hi-silver); border: 1px solid var(--line); border-radius: 4px; font-size: 14px;">
             </div>
             
+            <div>
+                <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block;">Target Protection Tiers</label>
+                <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px; min-height: 80px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; color: var(--txt-muted);">Select tiers to attack:</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="selectAllTiers()" style="padding: 2px 6px; background: var(--steel); color: white; border: none; border-radius: 3px; font-size: 10px; cursor: pointer;">All</button>
+                            <button onclick="clearAllTiers()" style="padding: 2px 6px; background: var(--line); color: var(--txt); border: none; border-radius: 3px; font-size: 10px; cursor: pointer;">None</button>
+                        </div>
+                    </div>
+                    <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer; font-size: 14px; color: var(--hi-silver);">
+                        <input type="checkbox" id="targetUnprotected" checked style="margin-right: 8px; accent-color: var(--critical);">
+                        <span style="color: var(--critical); font-weight: 500;">🔓 Unprotected Kong</span>
+                    </label>
+                    <label style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer; font-size: 14px; color: var(--hi-silver);">
+                        <input type="checkbox" id="targetCloudAI" checked style="margin-right: 8px; accent-color: var(--steel);">
+                        <span style="color: var(--steel); font-weight: 500;">☁️ Cloud AI Protection</span>
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer; font-size: 14px; color: var(--hi-silver);">
+                        <input type="checkbox" id="targetLocalAI" checked style="margin-right: 8px; accent-color: var(--normal);">
+                        <span style="color: var(--normal); font-weight: 500;">💻 Local AI Protection</span>
+                    </label>
+                </div>
+            </div>
+            
             <div style="display: flex; align-items: end; gap: 8px;">
                 <button onclick="launchAttackFlood()" id="launchFloodBtn" style="flex: 1; padding: 12px; background: var(--critical); color: white; border: none; border-radius: 4px; font-weight: 600; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: all 0.2s;">
                     LAUNCH ATTACK FLOOD
@@ -1116,10 +1141,80 @@
         let currentAttackRun = null;
         let attackMetricsInterval = null;
 
+        // Function to update visual feedback for protection tier selection
+        function updateProtectionTierVisuals() {
+            const targetUnprotected = document.getElementById('targetUnprotected').checked;
+            const targetCloudAI = document.getElementById('targetCloudAI').checked;
+            const targetLocalAI = document.getElementById('targetLocalAI').checked;
+            
+            // Update button state based on selections
+            const launchBtn = document.getElementById('launchFloodBtn');
+            if (targetUnprotected || targetCloudAI || targetLocalAI) {
+                launchBtn.disabled = false;
+                launchBtn.style.opacity = '1';
+            } else {
+                launchBtn.disabled = true;
+                launchBtn.style.opacity = '0.5';
+            }
+            
+            // Update progress text
+            const progressDiv = document.getElementById('attackProgress');
+            if (targetUnprotected || targetCloudAI || targetLocalAI) {
+                const selectedTiers = [];
+                if (targetUnprotected) selectedTiers.push('Unprotected Kong');
+                if (targetCloudAI) selectedTiers.push('Cloud AI Protection');
+                if (targetLocalAI) selectedTiers.push('Local AI Protection');
+                progressDiv.textContent = `Ready to attack: ${selectedTiers.join(', ')}`;
+            } else {
+                progressDiv.textContent = 'Please select at least one protection tier to attack...';
+            }
+        }
+
+        // Add event listeners for protection tier checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('targetUnprotected').addEventListener('change', updateProtectionTierVisuals);
+            document.getElementById('targetCloudAI').addEventListener('change', updateProtectionTierVisuals);
+            document.getElementById('targetLocalAI').addEventListener('change', updateProtectionTierVisuals);
+            updateProtectionTierVisuals(); // Initial call
+        });
+
+        // Function to select all protection tiers
+        function selectAllTiers() {
+            document.getElementById('targetUnprotected').checked = true;
+            document.getElementById('targetCloudAI').checked = true;
+            document.getElementById('targetLocalAI').checked = true;
+            updateProtectionTierVisuals();
+        }
+
+        // Function to clear all protection tiers
+        function clearAllTiers() {
+            document.getElementById('targetUnprotected').checked = false;
+            document.getElementById('targetCloudAI').checked = false;
+            document.getElementById('targetLocalAI').checked = false;
+            updateProtectionTierVisuals();
+        }
+
         async function launchAttackFlood() {
             const intensity = document.getElementById('attackIntensity').value;
             const strategy = document.getElementById('attackStrategy').value;
             const duration = parseInt(document.getElementById('attackDuration').value);
+            
+            // Get selected protection tiers
+            const targetUnprotected = document.getElementById('targetUnprotected').checked;
+            const targetCloudAI = document.getElementById('targetCloudAI').checked;
+            const targetLocalAI = document.getElementById('targetLocalAI').checked;
+            
+            // Validate that at least one tier is selected
+            if (!targetUnprotected && !targetCloudAI && !targetLocalAI) {
+                alert('Please select at least one protection tier to attack.');
+                return;
+            }
+            
+            // Build targets array based on selections
+            const targets = [];
+            if (targetUnprotected) targets.push('unprotected');
+            if (targetCloudAI) targets.push('cloud');
+            if (targetLocalAI) targets.push('local');
             
             const launchBtn = document.getElementById('launchFloodBtn');
             const stopBtn = document.getElementById('stopFloodBtn');
@@ -1144,7 +1239,7 @@
                         intensity: intensity,
                         strategy: strategy,
                         duration: duration,
-                        targets: ['unprotected', 'cloud', 'local'],
+                        targets: targets,
                         record_metrics: true
                     })
                 });
@@ -1162,9 +1257,17 @@
                     const sanitizedStrategy = strategy.toUpperCase().replace(/[<>&"']/g, '');
                     const sanitizedDuration = String(duration).replace(/[<>&"']/g, '');
                     
+                    // Create target tiers display
+                    const targetLabels = [];
+                    if (targetUnprotected) targetLabels.push('Unprotected');
+                    if (targetCloudAI) targetLabels.push('Cloud AI');
+                    if (targetLocalAI) targetLabels.push('Local AI');
+                    const targetsDisplay = targetLabels.join(', ');
+                    
                     progressDiv.innerHTML = `
                         <div style="font-weight: 600; color: var(--critical);">Attack Flood Active (Run ID: ${sanitizedRunId})</div>
                         <div style="margin-top: 4px;">Intensity: ${sanitizedIntensity} | Strategy: ${sanitizedStrategy} | Duration: ${sanitizedDuration}s</div>
+                        <div style="margin-top: 4px; color: var(--steel);">Targeting: ${targetsDisplay}</div>
                     `;
                     
                     // Enable stop button, disable launch

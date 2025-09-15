@@ -210,17 +210,122 @@ services:
       timeout: 10s
       retries: 5
 
-  # Kong AI Gateway (Optional - for advanced AI features)
-  # Uncomment if using AI Gateway features
-  # kong-ai-gateway:
-  #   image: kong/kong-ai-gateway:latest
-  #   container_name: kong-ai-gateway
-  #   depends_on:
-  #     - kong
-  #   networks:
-  #     - kong-net
-  #   ports:
-  #     - "8002:8002"
-  #   environment:
-  #     AI_GATEWAY_KONG_ADMIN_URL: http://kong:8001
-  #     AI_GATEWAY_PORT: 8002
+  # Grafana for monitoring and visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kong-guard-grafana
+    restart: on-failure
+    networks:
+      - kong-net
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=KongGuard2024!
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana-local/provisioning:/etc/grafana/provisioning
+      - ./grafana-local/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kong-guard-prometheus
+    restart: on-failure
+    networks:
+      - kong-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-config.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Cloud AI Protection Service
+  ai-service-cloud:
+    build: ./ai-service
+    container_name: kong-guard-ai-cloud
+    restart: on-failure
+    networks:
+      - kong-net
+    ports:
+      - "18002:8000"
+    environment:
+      - PORT=8000
+      - AI_PROVIDER=${AI_PROVIDER:-openai}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ML_ENABLED=true
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./ai-service:/app
+      - ./logs/cloud-ai:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Local Ollama Protection Service
+  ai-service-ollama:
+    build: ./ai-service
+    container_name: kong-guard-ai-ollama
+    restart: on-failure
+    networks:
+      - kong-net
+    ports:
+      - "18003:8000"
+    environment:
+      - PORT=8000
+      - AI_PROVIDER=ollama
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.2:3b
+      - ML_ENABLED=true
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./ai-service:/app
+      - ./logs/ollama-ai:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Web Dashboard
+  web-dashboard:
+    image: nginx:alpine
+    container_name: kong-guard-dashboard
+    restart: on-failure
+    networks:
+      - kong-net
+    ports:
+      - "8080:80"
+    volumes:
+      - ./dashboards:/usr/share/nginx/html:ro
+      - ./nginx-dashboard.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

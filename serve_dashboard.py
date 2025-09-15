@@ -9,15 +9,15 @@ import socketserver
 import os
 import sys
 
-PORT = 8080
+PORT = 12345
 DASHBOARD_FILE = "enterprise_demo_dashboard.html"
 
 class DashboardHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/" or self.path == "/dashboard":
-            # Redirect to the main dashboard
+            # Redirect to the unified dashboard
             self.send_response(302)
-            self.send_header("Location", f"/{DASHBOARD_FILE}")
+            self.send_header("Location", "/unified_dashboard.html")
             self.end_headers()
         else:
             super().do_GET()
@@ -32,11 +32,15 @@ if __name__ == "__main__":
         print(f"=" * 50)
         print(f"✅ Dashboard running at: http://localhost:{PORT}")
         print(f"📊 Main dashboard: http://localhost:{PORT}/{DASHBOARD_FILE}")
+        print(f"🔄 Unified dashboard: http://localhost:{PORT}/unified_dashboard.html")
         print(f"📁 Available dashboards:")
         print(f"   - http://localhost:{PORT}/enterprise_demo_dashboard.html")
+        print(f"   - http://localhost:{PORT}/enterprise_attack_dashboard.html")
         print(f"   - http://localhost:{PORT}/kong-dashboard.html")  
-        print(f"   - http://localhost:{PORT}/visualization/simple-ai-dashboard.html")
         print(f"   - http://localhost:{PORT}/attack_reports.html")
+        print(f"   - http://localhost:{PORT}/protection-module-test.html")
+        print(f"   - http://localhost:{PORT}/visualization/simple-ai-dashboard.html")
+        print(f"   - http://localhost:{PORT}/visualization/ai-insights.html")
         print(f"=" * 50)
         print(f"Press Ctrl+C to stop the server")
         

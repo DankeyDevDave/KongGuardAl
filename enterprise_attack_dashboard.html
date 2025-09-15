@@ -368,6 +368,26 @@
     <div class="dashboard-grid">
         <div class="control-panel">
             <h3>🎯 Enterprise Attack Categories</h3>
+            
+            <!-- Protection Module Selector - Compact Version -->
+            <div style="margin: 15px 0; padding: 10px; background: rgba(116,185,255,0.1); border-radius: 8px; border: 1px solid rgba(116,185,255,0.3);">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <span style="font-weight: bold; color: #74b9ff;">Protection Modules:</span>
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="kongDirect" checked style="margin-right: 5px;">
+                        🔒 Kong Direct
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="cloudAI" checked style="margin-right: 5px;">
+                        ☁️ Cloud AI
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="localAI" checked style="margin-right: 5px;">
+                        💻 Local AI
+                    </label>
+                </div>
+            </div>
+            
             <div class="attack-simulator">
                 <button class="attack-button btn-sql" onclick="launchAttackCategory('sql')">
                     💉 Advanced SQL Injection
@@ -481,6 +501,13 @@
         };
         let selectedIndustry = 'all';
         let demoRunning = false;
+        
+        // Protection modules state
+        let protectionModules = {
+            kongDirect: true,
+            cloudAI: true,
+            localAI: true
+        };
 
         // Initialize WebSocket connection
         function initWebSocket() {
@@ -641,11 +668,25 @@
         async function launchAttackCategory(category) {
             if (demoRunning) return;
             
-            console.log(`Launching ${category} attacks`);
+            // Update protection module state from checkboxes
+            protectionModules.kongDirect = document.getElementById('kongDirect').checked;
+            protectionModules.cloudAI = document.getElementById('cloudAI').checked;
+            protectionModules.localAI = document.getElementById('localAI').checked;
+            
+            console.log(`Launching ${category} attacks with protection:`, protectionModules);
             showAIThinking();
             
-            // This would trigger the Python attack simulation
-            // For now, simulate with random data
+            // Send with protection modules if WebSocket is connected
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'attack_simulation',
+                    category: category,
+                    protectionModules: protectionModules,
+                    timestamp: new Date().toISOString()
+                }));
+            }
+            
+            // Fallback simulation
             setTimeout(() => {
                 simulateAttack(category);
             }, 1000);
