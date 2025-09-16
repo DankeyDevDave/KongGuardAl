@@ -49,10 +49,10 @@ runner_status=$(gh api /repos/${REPO}/actions/runners 2>/dev/null | jq -r '.runn
 
 if [ "$runner_status" = "online" ]; then
     echo -e "  ${GREEN}${CHECK}${NC} Runner is ONLINE in GitHub"
-    
+
     # Get runner details
     gh api /repos/${REPO}/actions/runners 2>/dev/null | jq -r '.runners[] | select(.name=="'${RUNNER_NAME}'") | "  Labels: \(.labels[].name)"' | head -4
-    
+
     # Check if runner is busy
     is_busy=$(gh api /repos/${REPO}/actions/runners 2>/dev/null | jq -r '.runners[] | select(.name=="'${RUNNER_NAME}'") | .busy' || echo "false")
     if [ "$is_busy" = "true" ]; then
@@ -69,16 +69,16 @@ fi
 echo -e "\n${GREEN}[3/6] Checking Proxmox Container...${NC}"
 if ping -c 1 ${RUNNER_HOST} &> /dev/null; then
     echo -e "  ${GREEN}${CHECK}${NC} Proxmox host reachable (${RUNNER_HOST})"
-    
+
     # Check container status
     container_status=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@${RUNNER_HOST} "pct status ${RUNNER_CONTAINER}" 2>/dev/null | grep -o "running\|stopped" || echo "unknown")
-    
+
     if [ "$container_status" = "running" ]; then
         echo -e "  ${GREEN}${CHECK}${NC} Container ${RUNNER_CONTAINER} is RUNNING"
-        
+
         # Check runner service
         service_status=$(ssh -o ConnectTimeout=5 root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- systemctl is-active 'actions.runner.*.service' 2>/dev/null" || echo "inactive")
-        
+
         if [ "$service_status" = "active" ]; then
             echo -e "  ${GREEN}${CHECK}${NC} Runner service is ACTIVE"
         else
@@ -97,13 +97,13 @@ echo -e "\n${GREEN}[4/6] Recent Workflow Runs...${NC}"
 recent_runs=$(gh run list --repo ${REPO} --limit 5 --json status,conclusion,name,createdAt 2>/dev/null)
 
 if [ -n "$recent_runs" ] && [ "$recent_runs" != "[]" ]; then
-    echo "$recent_runs" | jq -r '.[] | 
-        (if .conclusion == "success" then "  ✓" 
-         elif .conclusion == "failure" then "  ✗" 
+    echo "$recent_runs" | jq -r '.[] |
+        (if .conclusion == "success" then "  ✓"
+         elif .conclusion == "failure" then "  ✗"
          elif .status == "in_progress" then "  ⟳"
          elif .status == "queued" then "  ⏸"
-         else "  ?" end) + 
-        " " + (.name | .[0:40]) + 
+         else "  ?" end) +
+        " " + (.name | .[0:40]) +
         " (" + (.createdAt | split("T")[0]) + ")"' 2>/dev/null || echo "  No recent runs"
 else
     echo "  No workflow runs found"
@@ -154,7 +154,7 @@ echo -e "${BLUE}═════════════════════�
 # Provide recommendations if issues found
 if [ $health_score -lt $max_score ]; then
     echo -e "\n${YELLOW}Recommendations:${NC}"
-    
+
     [ "$runner_status" != "online" ] && echo "  • Restart runner service: ./scripts/runner-management.sh restart"
     [ "$container_status" != "running" ] && echo "  • Start container: ssh root@${RUNNER_HOST} 'pct start ${RUNNER_CONTAINER}'"
     [ "$service_status" != "active" ] && echo "  • Start service: ssh root@${RUNNER_HOST} 'pct exec ${RUNNER_CONTAINER} -- systemctl start actions.runner.*.service'"

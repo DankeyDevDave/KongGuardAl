@@ -227,7 +227,7 @@
             .tier-comparison {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
@@ -250,7 +250,7 @@
                 <option value="">Select a run...</option>
             </select>
         </div>
-        
+
         <div>
             <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; margin-bottom: 6px; display: block;">Actions</label>
             <button onclick="loadAllRuns()" class="btn primary" style="margin-right: 8px;">Refresh Data</button>
@@ -260,7 +260,7 @@
         <div>
             <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; margin-bottom: 6px; display: block;">Quick Stats</label>
             <div id="quickStats" style="font-size: 14px; color: var(--txt);">
-                Total Runs: <span id="totalRuns">-</span> | 
+                Total Runs: <span id="totalRuns">-</span> |
                 Total Attacks: <span id="totalAttacks">-</span>
             </div>
         </div>
@@ -330,7 +330,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     allRuns = data.runs || [];
-                    
+
                     populateRunSelector();
                     updateQuickStats();
                     displayRunsTable();
@@ -346,7 +346,7 @@
         function populateRunSelector() {
             const selector = document.getElementById('runSelector');
             selector.innerHTML = '<option value="">Select a run...</option>';
-            
+
             allRuns.forEach(run => {
                 const option = document.createElement('option');
                 option.value = run.run_id;
@@ -389,7 +389,7 @@
             if (!currentRunData) return;
 
             const container = document.getElementById('overviewContent');
-            
+
             const duration = Math.round(currentRunData.duration);
             const attacksPerSecond = duration > 0 ? (currentRunData.total_attacks / duration).toFixed(1) : 0;
 
@@ -429,7 +429,7 @@
             Object.entries(tierData).forEach(([tierName, stats]) => {
                 const detectionRate = Math.round(stats.detection_rate || 0);
                 const avgResponse = Math.round(stats.avg_response_time || 0);
-                const successRate = stats.total_requests > 0 ? 
+                const successRate = stats.total_requests > 0 ?
                     Math.round(((stats.total_requests - stats.attacks_blocked) / stats.total_requests) * 100) : 0;
 
                 let rateClass = 'success-rate';
@@ -491,7 +491,7 @@
 
         function createAttackTypeChart() {
             const ctx = document.getElementById('attackTypeChart').getContext('2d');
-            
+
             if (!currentRunData.results_summary.attack_breakdown) {
                 ctx.fillStyle = '#666';
                 ctx.font = '16px Inter';
@@ -512,7 +512,7 @@
                     datasets: [{
                         data: counts,
                         backgroundColor: [
-                            '#ff4444', '#ffaa44', '#44aaff', '#44ff44', 
+                            '#ff4444', '#ffaa44', '#44aaff', '#44ff44',
                             '#aa44ff', '#ff44aa', '#44ffaa', '#aaff44'
                         ],
                         borderColor: '#2a3037',
@@ -543,7 +543,7 @@
 
         function createResponseTimeChart() {
             const ctx = document.getElementById('responseTimeChart').getContext('2d');
-            
+
             if (!currentRunData.results_summary.tier_performance) {
                 ctx.fillStyle = '#666';
                 ctx.font = '16px Inter';
@@ -609,7 +609,7 @@
 
         function createAccuracyChart() {
             const ctx = document.getElementById('accuracyChart').getContext('2d');
-            
+
             if (!currentRunData.results_summary.tier_performance) {
                 ctx.fillStyle = '#666';
                 ctx.font = '16px Inter';
@@ -676,7 +676,7 @@
 
         function displayRunsTable() {
             const container = document.getElementById('runsTableContainer');
-            
+
             if (allRuns.length === 0) {
                 container.innerHTML = '<div class="loading">No attack runs found</div>';
                 return;
@@ -747,7 +747,7 @@
             const blob = new Blob([JSON.stringify(reportData, null, 2)], {
                 type: 'application/json'
             });
-            
+
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -760,13 +760,13 @@
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error';
             errorDiv.textContent = message;
-            
+
             // Insert at top of page
             document.querySelector('.reports-container').insertBefore(
-                errorDiv, 
+                errorDiv,
                 document.querySelector('.report-controls')
             );
-            
+
             // Auto-remove after 5 seconds
             setTimeout(() => {
                 if (errorDiv.parentNode) {

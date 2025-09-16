@@ -148,32 +148,32 @@ ingress:
     service: http://localhost:8080
     originRequest:
       noTLSVerify: true
-      
-  # Grafana Monitoring  
+
+  # Grafana Monitoring
   - hostname: kong-grafana.\${DOMAIN}
     service: http://localhost:3000
     originRequest:
       noTLSVerify: true
-      
+
   # Kong Admin (Restricted)
   - hostname: kong-admin.\${DOMAIN}
     service: http://localhost:8001
     originRequest:
       noTLSVerify: true
-      
+
   # Konga UI
   - hostname: kong-ui.\${DOMAIN}
     service: http://localhost:1337
     originRequest:
       noTLSVerify: true
-      
+
   # Health Check Endpoint
   - hostname: kong-health.\${DOMAIN}
     service: http://localhost:18002
     path: /health
     originRequest:
       noTLSVerify: true
-      
+
   - service: http_status:404
 EOF
 

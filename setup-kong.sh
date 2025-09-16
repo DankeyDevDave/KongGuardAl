@@ -22,7 +22,7 @@ echo " ✅ Kong Admin API ready"
 create_service() {
     local name=$1
     local url=$2
-    
+
     echo "🔗 Creating service: $name"
     curl -i -X POST "$KONG_ADMIN_URL/services/" \
         -H "Content-Type: application/json" \
@@ -37,7 +37,7 @@ create_route() {
     local service_name=$1
     local path=$2
     local name=$3
-    
+
     echo "🛣️  Creating route: $name for service: $service_name"
     curl -i -X POST "$KONG_ADMIN_URL/services/$service_name/routes" \
         -H "Content-Type: application/json" \
@@ -53,7 +53,7 @@ enable_plugin() {
     local service_name=$1
     local plugin_name=$2
     local config=$3
-    
+
     echo "🔌 Enabling plugin: $plugin_name on service: $service_name"
     curl -i -X POST "$KONG_ADMIN_URL/services/$service_name/plugins" \
         -H "Content-Type: application/json" \

@@ -2,13 +2,13 @@
   "name": "kong-guard-ai",
   "config": {
     "comment": "Kong Guard AI with Advanced Remediation - Production Configuration",
-    
+
     "basic_security": {
       "dry_run_mode": false,
       "threat_threshold": 7.5,
       "max_processing_time_ms": 8
     },
-    
+
     "threat_detection": {
       "enable_rate_limiting_detection": true,
       "rate_limit_threshold": 120,
@@ -17,14 +17,14 @@
       "enable_path_filtering": true,
       "enable_method_filtering": true
     },
-    
+
     "advanced_remediation": {
       "enable_advanced_remediation": true,
       "enable_5xx_correlation": true,
       "config_correlation_window": 43200,
       "error_correlation_threshold": 0.12,
       "remediation_confidence_threshold": 0.82,
-      
+
       "rollback_configuration": {
         "enable_automatic_rollback": false,
         "rollback_confidence_threshold": 0.92,
@@ -32,7 +32,7 @@
         "emergency_rollback_enabled": false,
         "emergency_error_threshold": 0.45
       },
-      
+
       "traffic_management": {
         "enable_traffic_rerouting": true,
         "default_reroute_strategy": "gradual",
@@ -41,14 +41,14 @@
         "circuit_breaker_failure_threshold": 8,
         "circuit_breaker_recovery_timeout": 90
       },
-      
+
       "snapshot_management": {
         "enable_periodic_snapshots": true,
         "snapshot_interval_seconds": 1800,
         "max_snapshots_retained": 336,
         "backup_retention_days": 14
       },
-      
+
       "operational_settings": {
         "remediation_timeout_seconds": 240,
         "enable_remediation_validation": true,
@@ -57,28 +57,28 @@
         "remediation_notification_channels": ["slack", "webhook"]
       }
     },
-    
+
     "kong_integration": {
       "kong_admin_url": "http://localhost:8001",
       "enable_deck_integration": true,
       "deck_config_format": "yaml",
       "admin_api_timeout_ms": 4000
     },
-    
+
     "notifications": {
       "enable_notifications": true,
       "notification_threshold": 6.5,
       "slack_webhook_url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
       "webhook_urls": ["https://your-monitoring-system.com/kong-guard-ai/alerts"]
     },
-    
+
     "logging": {
       "structured_logging_enabled": true,
       "async_logging": true,
       "log_level": "info",
       "external_logging_enabled": false
     },
-    
+
     "analytics": {
       "analytics_dashboard_enabled": true,
       "enable_threat_intelligence": true,
@@ -86,7 +86,7 @@
       "enable_anomaly_detection": true,
       "analytics_data_retention_days": 45
     },
-    
+
     "incident_management": {
       "incident_analytics_enabled": true,
       "incident_alerting_enabled": true,
@@ -100,7 +100,7 @@
     "rollout_strategy": "GRADUAL_ENABLEMENT",
     "validation_required": [
       "Test in staging environment with realistic traffic",
-      "Validate decK integration and snapshot creation", 
+      "Validate decK integration and snapshot creation",
       "Verify Kong Admin API connectivity and permissions",
       "Configure backup upstream/service targets",
       "Test dry-run rollback procedures",

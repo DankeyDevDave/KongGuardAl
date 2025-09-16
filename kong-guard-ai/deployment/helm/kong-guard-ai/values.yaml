@@ -13,17 +13,17 @@ kong:
     repository: kong-guard-ai
     tag: "latest"
     pullPolicy: IfNotPresent
-  
+
   # Replica configuration
   replicaCount: 3
-  
+
   # Update strategy
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-  
+
   # Resource configuration
   resources:
     requests:
@@ -32,7 +32,7 @@ kong:
     limits:
       memory: "2Gi"
       cpu: "2"
-  
+
   # Security context
   securityContext:
     runAsNonRoot: true
@@ -40,7 +40,7 @@ kong:
     fsGroup: 1000
     readOnlyRootFilesystem: true
     allowPrivilegeEscalation: false
-  
+
   # Network configuration
   proxy:
     enabled: true
@@ -55,7 +55,7 @@ kong:
       enabled: true
       servicePort: 443
       containerPort: 8443
-  
+
   admin:
     enabled: true
     type: ClusterIP
@@ -67,7 +67,7 @@ kong:
       enabled: false
       servicePort: 8444
       containerPort: 8444
-  
+
   # Health checks
   livenessProbe:
     httpGet:
@@ -77,7 +77,7 @@ kong:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
-  
+
   readinessProbe:
     httpGet:
       path: /status
@@ -87,7 +87,7 @@ kong:
     timeoutSeconds: 3
     successThreshold: 1
     failureThreshold: 3
-  
+
   startupProbe:
     httpGet:
       path: /status
@@ -96,7 +96,7 @@ kong:
     periodSeconds: 5
     timeoutSeconds: 3
     failureThreshold: 30
-  
+
   # Environment configuration
   env:
     # Database configuration
@@ -105,23 +105,23 @@ kong:
     pg_port: 5432
     pg_database: kong
     pg_user: kong
-    
+
     # Performance tuning
     nginx_worker_processes: auto
     nginx_worker_connections: 4096
     mem_cache_size: 128m
-    
+
     # Plugin configuration
     plugins: "bundled,kong-guard-ai"
     lua_package_path: "/usr/local/share/lua/5.1/?.lua;;"
-    
+
     # Security configuration
     headers: "off"
     server_tokens: "off"
     real_ip_header: "X-Forwarded-For"
     real_ip_recursive: "on"
     trusted_ips: "198.51.100.0/8,233.252.0.0/12,203.0.113.0/16"
-    
+
     # Logging
     log_level: info
     proxy_access_log: "/dev/stdout"
@@ -132,49 +132,49 @@ kong:
 # Kong Guard AI Plugin Configuration
 kongGuardAI:
   enabled: true
-  
+
   # Core settings
   config:
     dry_run_mode: true
     threat_threshold: 8.0
     max_processing_time_ms: 10
-    
+
     # Threat detection
     enable_rate_limiting_detection: true
     rate_limit_threshold: 150
     rate_limit_window_seconds: 60
     enable_payload_analysis: true
     max_payload_size: 262144
-    
+
     # Response actions
     enable_auto_blocking: false
     block_duration_seconds: 1800
     enable_rate_limiting_response: true
     enable_config_rollback: false
-    
+
     # AI Gateway integration
     ai_gateway_enabled: false
     ai_gateway_model: "gpt-4o-mini"
     ai_analysis_threshold: 6.0
     ai_timeout_ms: 3000
-    
+
     # Notifications
     enable_notifications: true
     notification_threshold: 7.0
-    
+
     # Admin API integration
     admin_api_enabled: false
     admin_api_timeout_ms: 3000
-    
+
     # Logging and monitoring
     log_level: "info"
     enable_learning: false
     learning_sample_rate: 0.01
-    
+
     # IP management
     ip_whitelist: []
     ip_blacklist: []
-    
+
     # Pattern detection
     suspicious_patterns:
       - "(?i)(union|select|insert|delete|update|drop|create|alter).*?(from|into|table|database)"
@@ -187,14 +187,14 @@ kongGuardAI:
 secrets:
   # AI Gateway credentials
   aiApiKey: ""
-  
+
   # Notification credentials
   slackWebhookUrl: ""
   emailSmtpPassword: ""
-  
+
   # External service credentials
   externalLogApiKey: ""
-  
+
   # Admin API credentials
   adminApiKey: ""
 
@@ -230,7 +230,7 @@ redis:
 # Monitoring configuration
 monitoring:
   enabled: true
-  
+
   prometheus:
     enabled: true
     serviceMonitor:
@@ -239,7 +239,7 @@ monitoring:
       path: /metrics
     rules:
       enabled: true
-  
+
   grafana:
     enabled: true
     adminPassword: "admin"
@@ -248,7 +248,7 @@ monitoring:
       size: 5Gi
     dashboards:
       enabled: true
-  
+
   alertmanager:
     enabled: true
     config:
@@ -332,7 +332,7 @@ environment:
         ai_gateway_enabled: false
     monitoring:
       enabled: false
-  
+
   # Staging environment
   staging:
     kong:
@@ -346,7 +346,7 @@ environment:
         admin_api_enabled: false
     monitoring:
       enabled: true
-  
+
   # Production environment
   production:
     kong:

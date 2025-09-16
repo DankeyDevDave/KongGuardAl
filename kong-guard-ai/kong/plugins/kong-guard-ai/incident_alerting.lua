@@ -19,7 +19,7 @@ local ALERT_THRESHOLDS = {
 -- Notification channels
 local NOTIFICATION_CHANNELS = {
     SLACK = "slack",
-    EMAIL = "email", 
+    EMAIL = "email",
     WEBHOOK = "webhook",
     SMS = "sms",
     PAGERDUTY = "pagerduty",
@@ -29,7 +29,7 @@ local NOTIFICATION_CHANNELS = {
 -- Alert levels
 local ALERT_LEVELS = {
     INFO = "info",
-    WARNING = "warning", 
+    WARNING = "warning",
     CRITICAL = "critical",
     EMERGENCY = "emergency"
 }
@@ -45,22 +45,22 @@ local escalation_timers = {}
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Incident Alerting] Initializing alerting system")
-    
+
     -- Initialize alert state
     alert_state.active_alerts = {}
     alert_state.suppressed_alerts = {}
     alert_state.alert_history = {}
     alert_state.last_cleanup = ngx.time()
-    
+
     -- Initialize notification queue
     notification_queue.pending = {}
     notification_queue.failed = {}
     notification_queue.sent = {}
-    
+
     -- Initialize escalation tracking
     escalation_timers.active = {}
     escalation_timers.completed = {}
-    
+
     kong.log.info("[Kong Guard AI Incident Alerting] Alerting system initialized")
 end
 
@@ -74,32 +74,32 @@ function _M.process_incident_for_alerting(incident, conf)
     if not conf.incident_alerting_enabled then
         return
     end
-    
+
     -- Determine if this incident should trigger an alert
     local should_alert, alert_level = _M.should_trigger_alert(incident, conf)
-    
+
     if should_alert then
         kong.log.info(string.format(
             "[Kong Guard AI Incident Alerting] Triggering %s alert for incident %s",
             alert_level,
             incident.incident_id
         ))
-        
+
         -- Create alert
         local alert = _M.create_alert(incident, alert_level, conf)
-        
+
         -- Send notifications
         _M.send_alert_notifications(alert, conf)
-        
+
         -- Setup escalation if needed
         if alert_level == ALERT_LEVELS.CRITICAL or alert_level == ALERT_LEVELS.EMERGENCY then
             _M.setup_escalation(alert, conf)
         end
-        
+
         -- Store alert
         alert_state.active_alerts[alert.alert_id] = alert
     end
-    
+
     -- Check for attack patterns that require alerting
     _M.check_attack_patterns(incident, conf)
 end
@@ -114,22 +114,22 @@ function _M.should_trigger_alert(incident, conf)
     local severity = incident.severity_level
     local incident_type = incident.type
     local source_ip = incident.network_forensics.source_ip
-    
+
     -- Always alert for critical severity
     if severity == "critical" then
         return true, ALERT_LEVELS.EMERGENCY
     end
-    
+
     -- Alert for high severity incidents
     if severity == "high" and ALERT_THRESHOLDS.HIGH_SEVERITY_IMMEDIATE then
         return true, ALERT_LEVELS.CRITICAL
     end
-    
+
     -- Check for repeat offender
     if incident.correlation_data.incident_count_for_ip >= ALERT_THRESHOLDS.REPEAT_OFFENDER_THRESHOLD then
         return true, ALERT_LEVELS.WARNING
     end
-    
+
     -- Check for attack campaigns
     if incident.correlation_data.campaign_id then
         local campaign_incidents = _M.count_campaign_incidents(incident.correlation_data.campaign_id)
@@ -137,26 +137,26 @@ function _M.should_trigger_alert(incident, conf)
             return true, ALERT_LEVELS.CRITICAL
         end
     end
-    
+
     -- Check for high incident rate
     local recent_incidents = _M.count_recent_incidents(300) -- Last 5 minutes
     if recent_incidents >= ALERT_THRESHOLDS.CRITICAL_INCIDENT_COUNT then
         return true, ALERT_LEVELS.CRITICAL
     end
-    
+
     -- Check for specific threat types that always require alerting
     local critical_threat_types = {
         "sql_injection",
-        "distributed_denial_of_service", 
+        "distributed_denial_of_service",
         "credential_stuffing"
     }
-    
+
     for _, threat_type in ipairs(critical_threat_types) do
         if incident_type == threat_type then
             return true, ALERT_LEVELS.WARNING
         end
     end
-    
+
     return false, nil
 end
 
@@ -169,20 +169,20 @@ end
 ---
 function _M.create_alert(incident, alert_level, conf)
     local alert_id = string.format("ALERT-%d-%s", ngx.time(), string.sub(incident.incident_id, -6))
-    
+
     local alert = {
         alert_id = alert_id,
         incident_id = incident.incident_id,
         alert_level = alert_level,
         created_at = ngx.time(),
         status = "active",
-        
+
         -- Alert context
         title = _M.generate_alert_title(incident, alert_level),
         description = _M.generate_alert_description(incident),
         source_ip = incident.network_forensics.source_ip,
         threat_type = incident.type,
-        
+
         -- Incident summary
         incident_summary = {
             severity = incident.severity_level,
@@ -190,18 +190,18 @@ function _M.create_alert(incident, alert_level, conf)
             enforcement_action = incident.decision,
             correlation_count = #incident.correlation_data.related_incidents
         },
-        
+
         -- Notification tracking
         notifications_sent = {},
         escalations = {},
-        
+
         -- Resolution tracking
         acknowledged_by = nil,
         acknowledged_at = nil,
         resolved_at = nil,
         resolution_notes = nil
     }
-    
+
     return alert
 end
 
@@ -214,13 +214,13 @@ end
 function _M.generate_alert_title(incident, alert_level)
     local severity_emoji = {
         [ALERT_LEVELS.INFO] = "ℹ️",
-        [ALERT_LEVELS.WARNING] = "⚠️", 
+        [ALERT_LEVELS.WARNING] = "⚠️",
         [ALERT_LEVELS.CRITICAL] = "🚨",
         [ALERT_LEVELS.EMERGENCY] = "🔥"
     }
-    
+
     local emoji = severity_emoji[alert_level] or "🛡️"
-    
+
     return string.format("%s Kong Guard AI Alert: %s detected from %s",
         emoji,
         incident.type:gsub("_", " "):gsub("^%l", string.upper),
@@ -242,20 +242,20 @@ function _M.generate_alert_description(incident)
         string.format("Action Taken: %s", incident.decision),
         string.format("Confidence: %.1f%%", (incident.threat_analysis.confidence or 0) * 100)
     }
-    
+
     if incident.correlation_data.campaign_id then
         table.insert(description_parts, string.format("Campaign: %s", incident.correlation_data.campaign_id))
     end
-    
+
     if #incident.correlation_data.related_incidents > 0 then
         table.insert(description_parts, string.format("Related incidents: %d", #incident.correlation_data.related_incidents))
     end
-    
+
     if incident.request_forensics.user_agent then
-        table.insert(description_parts, string.format("User Agent: %s", 
+        table.insert(description_parts, string.format("User Agent: %s",
             string.sub(incident.request_forensics.user_agent, 1, 100)))
     end
-    
+
     return table.concat(description_parts, "\n")
 end
 
@@ -266,10 +266,10 @@ end
 ---
 function _M.send_alert_notifications(alert, conf)
     local notification_channels = conf.alert_notification_channels or {"webhook"}
-    
+
     for _, channel in ipairs(notification_channels) do
         local success = false
-        
+
         if channel == NOTIFICATION_CHANNELS.SLACK then
             success = _M.send_slack_notification(alert, conf)
         elseif channel == NOTIFICATION_CHANNELS.EMAIL then
@@ -283,14 +283,14 @@ function _M.send_alert_notifications(alert, conf)
         elseif channel == NOTIFICATION_CHANNELS.TEAMS then
             success = _M.send_teams_notification(alert, conf)
         end
-        
+
         -- Track notification result
         alert.notifications_sent[channel] = {
             success = success,
             sent_at = ngx.time(),
             retry_count = 0
         }
-        
+
         if success then
             kong.log.info(string.format(
                 "[Kong Guard AI Incident Alerting] Sent %s notification for alert %s",
@@ -298,10 +298,10 @@ function _M.send_alert_notifications(alert, conf)
             ))
         else
             kong.log.error(string.format(
-                "[Kong Guard AI Incident Alerting] Failed to send %s notification for alert %s", 
+                "[Kong Guard AI Incident Alerting] Failed to send %s notification for alert %s",
                 channel, alert.alert_id
             ))
-            
+
             -- Queue for retry
             _M.queue_notification_retry(alert, channel, conf)
         end
@@ -318,14 +318,14 @@ function _M.send_slack_notification(alert, conf)
     if not conf.slack_webhook_url then
         return false
     end
-    
+
     local color = {
         [ALERT_LEVELS.INFO] = "good",
         [ALERT_LEVELS.WARNING] = "warning",
-        [ALERT_LEVELS.CRITICAL] = "danger", 
+        [ALERT_LEVELS.CRITICAL] = "danger",
         [ALERT_LEVELS.EMERGENCY] = "danger"
     }
-    
+
     local payload = {
         username = "Kong Guard AI",
         icon_emoji = ":shield:",
@@ -340,7 +340,7 @@ function _M.send_slack_notification(alert, conf)
                     short = true
                 },
                 {
-                    title = "Incident ID", 
+                    title = "Incident ID",
                     value = alert.incident_id,
                     short = true
                 },
@@ -359,13 +359,13 @@ function _M.send_slack_notification(alert, conf)
             ts = alert.created_at
         }}
     }
-    
+
     return _M.send_http_notification(conf.slack_webhook_url, payload, conf)
 end
 
 ---
 -- Send webhook notification
--- @param alert Alert record  
+-- @param alert Alert record
 -- @param conf Plugin configuration
 -- @return Boolean success
 ---
@@ -373,13 +373,13 @@ function _M.send_webhook_notification(alert, conf)
     if not conf.webhook_notification_url then
         return false
     end
-    
+
     local payload = {
         alert = alert,
         timestamp = ngx.time(),
         source = "kong-guard-ai"
     }
-    
+
     return _M.send_http_notification(conf.webhook_notification_url, payload, conf)
 end
 
@@ -393,30 +393,30 @@ end
 function _M.send_http_notification(url, payload, conf)
     local httpc = http.new()
     httpc:set_timeout(5000) -- 5 second timeout
-    
+
     local body = json.encode(payload)
     local headers = {
         ["Content-Type"] = "application/json",
         ["User-Agent"] = "Kong-Guard-AI/1.0"
     }
-    
+
     -- Add authentication if configured
     if conf.webhook_auth_header and conf.webhook_auth_token then
         headers[conf.webhook_auth_header] = conf.webhook_auth_token
     end
-    
+
     local res, err = httpc:request_uri(url, {
         method = "POST",
         body = body,
         headers = headers,
         ssl_verify = false -- TODO: Make configurable
     })
-    
+
     if not res then
         kong.log.error("[Kong Guard AI Incident Alerting] HTTP notification failed: " .. (err or "unknown error"))
         return false
     end
-    
+
     if res.status >= 200 and res.status < 300 then
         return true
     else
@@ -431,21 +431,21 @@ end
 ---
 -- Send Teams notification
 -- @param alert Alert record
--- @param conf Plugin configuration  
+-- @param conf Plugin configuration
 -- @return Boolean success
 ---
 function _M.send_teams_notification(alert, conf)
     if not conf.teams_webhook_url then
         return false
     end
-    
+
     local card_color = {
         [ALERT_LEVELS.INFO] = "0078D4",
         [ALERT_LEVELS.WARNING] = "FFA500",
         [ALERT_LEVELS.CRITICAL] = "FF4444",
         [ALERT_LEVELS.EMERGENCY] = "CC0000"
     }
-    
+
     local payload = {
         ["@type"] = "MessageCard",
         ["@context"] = "https://schema.org/extensions",
@@ -461,7 +461,7 @@ function _M.send_teams_notification(alert, conf)
             }
         }}
     }
-    
+
     return _M.send_http_notification(conf.teams_webhook_url, payload, conf)
 end
 
@@ -508,16 +508,16 @@ end
 ---
 function _M.setup_escalation(alert, conf)
     local escalation_delay = conf.escalation_delay_seconds or 300 -- 5 minutes default
-    
+
     local escalation = {
         alert_id = alert.alert_id,
         escalation_level = 1,
         next_escalation_at = ngx.time() + escalation_delay,
         max_escalations = conf.max_escalation_levels or 3
     }
-    
+
     escalation_timers.active[alert.alert_id] = escalation
-    
+
     kong.log.info(string.format(
         "[Kong Guard AI Incident Alerting] Escalation scheduled for alert %s in %d seconds",
         alert.alert_id, escalation_delay
@@ -526,24 +526,24 @@ end
 
 ---
 -- Check and process escalations
--- @param conf Plugin configuration  
+-- @param conf Plugin configuration
 ---
 function _M.process_escalations(conf)
     local current_time = ngx.time()
-    
+
     for alert_id, escalation in pairs(escalation_timers.active) do
         if current_time >= escalation.next_escalation_at then
             local alert = alert_state.active_alerts[alert_id]
-            
+
             if alert and alert.status == "active" and not alert.acknowledged_at then
                 kong.log.warn(string.format(
                     "[Kong Guard AI Incident Alerting] Escalating alert %s (level %d)",
                     alert_id, escalation.escalation_level
                 ))
-                
+
                 -- Send escalation notification
                 _M.send_escalation_notification(alert, escalation, conf)
-                
+
                 -- Setup next escalation if not at max level
                 if escalation.escalation_level < escalation.max_escalations then
                     escalation.escalation_level = escalation.escalation_level + 1
@@ -581,10 +581,10 @@ function _M.send_escalation_notification(alert, escalation, conf)
         created_at = ngx.time(),
         escalation_level = escalation.escalation_level
     }
-    
+
     -- Send to escalation channels (might be different from regular channels)
     local escalation_channels = conf.escalation_notification_channels or conf.alert_notification_channels or {"webhook"}
-    
+
     for _, channel in ipairs(escalation_channels) do
         if channel == NOTIFICATION_CHANNELS.SLACK then
             _M.send_slack_notification(escalated_alert, conf)
@@ -594,7 +594,7 @@ function _M.send_escalation_notification(alert, escalation, conf)
             _M.send_teams_notification(escalated_alert, conf)
         end
     end
-    
+
     -- Track escalation
     table.insert(alert.escalations, {
         level = escalation.escalation_level,
@@ -617,7 +617,7 @@ function _M.queue_notification_retry(alert, channel, conf)
         next_retry_at = ngx.time() + (conf.notification_retry_delay or 60),
         max_retries = conf.notification_max_retries or 3
     }
-    
+
     table.insert(notification_queue.failed, retry_item)
 end
 
@@ -629,14 +629,14 @@ function _M.process_notification_retries(conf)
     local current_time = ngx.time()
     local retry_queue = notification_queue.failed
     notification_queue.failed = {}
-    
+
     for _, retry_item in ipairs(retry_queue) do
         if current_time >= retry_item.next_retry_at and retry_item.retry_count <= retry_item.max_retries then
             kong.log.info(string.format(
                 "[Kong Guard AI Incident Alerting] Retrying %s notification for alert %s (attempt %d)",
                 retry_item.channel, retry_item.alert.alert_id, retry_item.retry_count
             ))
-            
+
             local success = false
             if retry_item.channel == NOTIFICATION_CHANNELS.SLACK then
                 success = _M.send_slack_notification(retry_item.alert, conf)
@@ -645,7 +645,7 @@ function _M.process_notification_retries(conf)
             elseif retry_item.channel == NOTIFICATION_CHANNELS.TEAMS then
                 success = _M.send_teams_notification(retry_item.alert, conf)
             end
-            
+
             if success then
                 -- Update alert notification status
                 retry_item.alert.notifications_sent[retry_item.channel] = {
@@ -699,10 +699,10 @@ function _M.acknowledge_alert(alert_id, acknowledged_by)
         alert.acknowledged_by = acknowledged_by
         alert.acknowledged_at = ngx.time()
         alert.status = "acknowledged"
-        
+
         -- Remove from escalation queue
         escalation_timers.active[alert_id] = nil
-        
+
         kong.log.info(string.format(
             "[Kong Guard AI Incident Alerting] Alert %s acknowledged by %s",
             alert_id, acknowledged_by
@@ -725,14 +725,14 @@ function _M.resolve_alert(alert_id, resolved_by, resolution_notes)
         alert.resolved_at = ngx.time()
         alert.status = "resolved"
         alert.resolution_notes = resolution_notes
-        
+
         -- Move to history
         alert_state.alert_history[alert_id] = alert
         alert_state.active_alerts[alert_id] = nil
-        
+
         -- Remove from escalation queue
         escalation_timers.active[alert_id] = nil
-        
+
         kong.log.info(string.format(
             "[Kong Guard AI Incident Alerting] Alert %s resolved by %s",
             alert_id, resolved_by or "system"
@@ -755,17 +755,17 @@ function _M.get_alerting_statistics()
         alerts_by_level = {},
         top_alert_sources = {}
     }
-    
+
     -- Count active alerts
     for _ in pairs(alert_state.active_alerts) do
         stats.active_alerts = stats.active_alerts + 1
     end
-    
+
     -- Count escalated alerts
     for _ in pairs(escalation_timers.active) do
         stats.escalated_alerts = stats.escalated_alerts + 1
     end
-    
+
     return stats
 end
 
@@ -777,9 +777,9 @@ function _M.cleanup_alert_data(conf)
     local current_time = ngx.time()
     local retention_period = (conf.alert_retention_days or 7) * 24 * 3600
     local cleanup_threshold = current_time - retention_period
-    
+
     local cleaned_count = 0
-    
+
     -- Clean alert history
     for alert_id, alert in pairs(alert_state.alert_history) do
         if alert.created_at < cleanup_threshold then
@@ -787,7 +787,7 @@ function _M.cleanup_alert_data(conf)
             cleaned_count = cleaned_count + 1
         end
     end
-    
+
     -- Clean completed escalations
     for alert_id, escalation in pairs(escalation_timers.completed) do
         local alert = alert_state.alert_history[alert_id]
@@ -795,7 +795,7 @@ function _M.cleanup_alert_data(conf)
             escalation_timers.completed[alert_id] = nil
         end
     end
-    
+
     if cleaned_count > 0 then
         kong.log.info(string.format(
             "[Kong Guard AI Incident Alerting] Cleaned up %d old alert records",
@@ -811,7 +811,7 @@ end
 function _M.maintenance(conf)
     _M.process_escalations(conf)
     _M.process_notification_retries(conf)
-    
+
     -- Cleanup every hour
     if ngx.time() - alert_state.last_cleanup > 3600 then
         _M.cleanup_alert_data(conf)

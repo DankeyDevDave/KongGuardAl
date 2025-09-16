@@ -63,20 +63,20 @@ local user_agent_cache = {}
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Structured Logger] Initializing structured logging system")
-    
+
     -- Configure logger from plugin configuration
     _M.configure_logger(conf)
-    
+
     -- Initialize async logging queue if enabled
     if logger_config.async_logging then
         _M.init_async_logging()
     end
-    
+
     -- Initialize external destinations
     if logger_config.destinations.external and conf.log_endpoint then
         _M.init_external_logging(conf.log_endpoint)
     end
-    
+
     kong.log.info("[Kong Guard AI Structured Logger] Structured logging initialized")
 end
 
@@ -88,22 +88,22 @@ function _M.configure_logger(conf)
     if conf.log_level then
         logger_config.min_log_level = _M.parse_log_level(conf.log_level)
     end
-    
+
     if conf.external_logging_enabled then
         logger_config.destinations.external = true
         logger_config.external_endpoint = conf.log_endpoint
     end
-    
+
     -- Configure sampling rate based on load
     if conf.max_processing_time_ms and conf.max_processing_time_ms < 3 then
         logger_config.sampling_rate = 0.8 -- Reduce logging under high performance requirements
     end
-    
+
     -- Enable geolocation if threat intelligence is available
     if conf.enable_ip_reputation then
         logger_config.include_geolocation = true
     end
-    
+
     kong.log.debug("[Kong Guard AI Structured Logger] Logger configured", {
         min_level = logger_config.min_log_level,
         async = logger_config.async_logging,
@@ -157,7 +157,7 @@ function _M.create_correlation_id(request_context)
     local timestamp = ngx.now() * 1000 -- Milliseconds
     local service_id = request_context.service_id or "unknown"
     local short_service = service_id:sub(1, 8)
-    
+
     return string.format("guard_ai_%s_%d_%d", short_service, timestamp, request_counter)
 end
 
@@ -171,7 +171,7 @@ function _M.create_session_id(client_ip, user_agent)
     session_counter = session_counter + 1
     local hash_input = (client_ip or "unknown") .. "_" .. (user_agent or "unknown")
     local hash = ngx.crc32_long(hash_input)
-    
+
     return string.format("session_%x_%d", hash, session_counter)
 end
 
@@ -184,12 +184,12 @@ function _M.enrich_geolocation(client_ip)
     if not logger_config.include_geolocation or not client_ip then
         return {}
     end
-    
+
     -- Check cache first
     if geo_cache[client_ip] then
         return geo_cache[client_ip]
     end
-    
+
     -- Simple geolocation enrichment (in production, integrate with GeoIP service)
     local geo_data = {
         country = "unknown",
@@ -199,17 +199,17 @@ function _M.enrich_geolocation(client_ip)
         is_proxy = false,
         is_tor = false
     }
-    
+
     -- Basic IP classification
     if client_ip:match("^10%.") or client_ip:match("^192%.168%.") or client_ip:match("^172%.1[6-9]%.") then
         geo_data.is_private = true
     elseif client_ip:match("^127%.") then
         geo_data.is_localhost = true
     end
-    
+
     -- Cache geolocation data (with TTL in production)
     geo_cache[client_ip] = geo_data
-    
+
     return geo_data
 end
 
@@ -222,12 +222,12 @@ function _M.enrich_user_agent(user_agent)
     if not user_agent then
         return { parsed = false }
     end
-    
+
     -- Check cache first
     if user_agent_cache[user_agent] then
         return user_agent_cache[user_agent]
     end
-    
+
     -- Simple user agent parsing (in production, use comprehensive library)
     local ua_data = {
         browser = "unknown",
@@ -239,12 +239,12 @@ function _M.enrich_user_agent(user_agent)
         is_mobile = false,
         parsed = true
     }
-    
+
     -- Basic bot detection
     local bot_patterns = {
         "bot", "crawler", "spider", "scraper", "python-requests", "curl/", "wget/"
     }
-    
+
     local ua_lower = user_agent:lower()
     for _, pattern in ipairs(bot_patterns) do
         if ua_lower:find(pattern) then
@@ -253,13 +253,13 @@ function _M.enrich_user_agent(user_agent)
             break
         end
     end
-    
+
     -- Basic mobile detection
     if ua_lower:find("mobile") or ua_lower:find("android") or ua_lower:find("iphone") then
         ua_data.is_mobile = true
         ua_data.device_type = "mobile"
     end
-    
+
     -- Basic browser detection
     if ua_lower:find("chrome/") then
         ua_data.browser = "Chrome"
@@ -270,10 +270,10 @@ function _M.enrich_user_agent(user_agent)
     elseif ua_lower:find("edge/") then
         ua_data.browser = "Edge"
     end
-    
+
     -- Cache user agent data (with size limit in production)
     user_agent_cache[user_agent] = ua_data
-    
+
     return ua_data
 end
 
@@ -291,7 +291,7 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
     local timestamp = ngx.now()
     local correlation_id = _M.create_correlation_id(request_context)
     local session_id = _M.create_session_id(request_context.client_ip, request_context.headers["user-agent"])
-    
+
     -- Base log structure
     local log_entry = {
         -- Core fields
@@ -302,12 +302,12 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
         message = message,
         source = "kong-guard-ai",
         version = "0.1.0",
-        
+
         -- Correlation and tracking
         correlation_id = correlation_id,
         session_id = session_id,
         request_id = ngx.var.request_id,
-        
+
         -- Request information
         request = {
             method = request_context.method or "unknown",
@@ -320,7 +320,7 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
             content_length = request_context.headers and request_context.headers["content-length"] or "",
             header_count = 0
         },
-        
+
         -- Kong context
         kong = {
             service_id = request_context.service_id or "unknown",
@@ -329,7 +329,7 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
             worker_pid = (ngx.worker and ngx.worker.pid and ngx.worker.pid()) or 0,
             node_id = (kong.node and kong.node.get_id and kong.node.get_id()) or "unknown"
         },
-        
+
         -- Configuration context
         config = {
             dry_run_mode = conf.dry_run_mode,
@@ -337,12 +337,12 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
             plugin_enabled = true
         }
     }
-    
+
     -- Count request headers
     for _ in pairs(request_context.headers) do
         log_entry.request.header_count = log_entry.request.header_count + 1
     end
-    
+
     -- Add threat information if available
     if threat_result then
         log_entry.threat = {
@@ -354,13 +354,13 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
             requires_ai_analysis = threat_result.requires_ai_analysis,
             details = threat_result.details
         }
-        
+
         -- Add response analysis if available
         if threat_result.response_analysis then
             log_entry.threat.response_analysis = threat_result.response_analysis
         end
     end
-    
+
     -- Add response information if available
     if response_context then
         log_entry.response = {
@@ -370,7 +370,7 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
             processing_time_ms = response_context.processing_time_ms
         }
     end
-    
+
     -- Add performance metrics
     if logger_config.include_performance_metrics then
         log_entry.performance = {
@@ -380,17 +380,17 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
             log_queue_size = #log_queue
         }
     end
-    
+
     -- Add geolocation enrichment
     if logger_config.include_geolocation then
         log_entry.geolocation = _M.enrich_geolocation(request_context.client_ip)
     end
-    
+
     -- Add user agent enrichment
     if request_context.headers["user-agent"] then
         log_entry.user_agent_parsed = _M.enrich_user_agent(request_context.headers["user-agent"])
     end
-    
+
     -- Add threat intelligence hooks (placeholder for integration)
     log_entry.threat_intelligence = {
         ip_reputation_score = 0, -- Placeholder for external threat intel
@@ -398,7 +398,7 @@ function _M.create_log_entry(level, message, threat_result, request_context, res
         asn_reputation_score = 0,
         threat_feeds_checked = false
     }
-    
+
     return log_entry
 end
 
@@ -416,16 +416,16 @@ function _M.log(level, message, threat_result, request_context, response_context
     if not logger_config.enabled or level.level < logger_config.min_log_level then
         return
     end
-    
+
     -- Apply sampling rate for high-volume scenarios
     if math.random() > logger_config.sampling_rate then
         log_stats.dropped_logs = log_stats.dropped_logs + 1
         return
     end
-    
+
     -- Create structured log entry
     local log_entry = _M.create_log_entry(level, message, threat_result, request_context, response_context, conf)
-    
+
     -- Serialize to JSON
     local json_log, err = cjson.encode(log_entry)
     if not json_log then
@@ -433,7 +433,7 @@ function _M.log(level, message, threat_result, request_context, response_context
         log_stats.error_logs = log_stats.error_logs + 1
         return
     end
-    
+
     -- Check log size limits
     if #json_log > logger_config.max_log_size then
         kong.log.warn("[Kong Guard AI Structured Logger] Log entry too large, truncating")
@@ -441,9 +441,9 @@ function _M.log(level, message, threat_result, request_context, response_context
         log_entry.truncated = true
         json_log = cjson.encode(log_entry)
     end
-    
+
     log_stats.total_logs = log_stats.total_logs + 1
-    
+
     -- Route to configured destinations
     if logger_config.async_logging then
         _M.queue_log_async(json_log, level)
@@ -463,9 +463,9 @@ function _M.queue_log_async(json_log, level)
         level = level,
         timestamp = ngx.now()
     })
-    
+
     log_stats.async_queue_size = #log_queue
-    
+
     -- Prevent queue from growing too large
     if #log_queue > 1000 then
         table.remove(log_queue, 1) -- Remove oldest
@@ -487,17 +487,17 @@ function _M.emit_log_sync(json_log, level)
         end
         kong.log[kong_level]("[STRUCTURED] " .. json_log)
     end
-    
+
     -- External endpoint logging
     if logger_config.destinations.external and logger_config.external_endpoint then
         _M.send_to_external_endpoint(json_log)
     end
-    
+
     -- File logging (if configured)
     if logger_config.destinations.file then
         _M.write_to_file(json_log)
     end
-    
+
     -- Syslog (if configured)
     if logger_config.destinations.syslog then
         _M.send_to_syslog(json_log, level)
@@ -512,16 +512,16 @@ function _M.process_log_queue(premature)
     if premature then
         return
     end
-    
+
     local batch_size = math.min(50, #log_queue) -- Process up to 50 logs per batch
-    
+
     for i = 1, batch_size do
         local log_item = table.remove(log_queue, 1)
         if log_item then
             _M.emit_log_sync(log_item.json, log_item.level)
         end
     end
-    
+
     log_stats.async_queue_size = #log_queue
 end
 
@@ -533,11 +533,11 @@ function _M.send_to_external_endpoint(json_log)
     if not logger_config.external_endpoint then
         return
     end
-    
+
     local httpc = require "resty.http"
     local client = httpc.new()
     client:set_timeout(logger_config.external_timeout_ms)
-    
+
     local res, err = client:request_uri(logger_config.external_endpoint, {
         method = "POST",
         headers = {
@@ -546,7 +546,7 @@ function _M.send_to_external_endpoint(json_log)
         },
         body = json_log
     })
-    
+
     if not res then
         kong.log.error("[Kong Guard AI Structured Logger] External logging failed: " .. tostring(err))
         log_stats.error_logs = log_stats.error_logs + 1
@@ -612,17 +612,17 @@ function _M.log_threat_event(threat_result, request_context, enforcement_result,
     elseif threat_result.threat_level >= 7 then
         level = LOG_LEVELS.ERROR
     end
-    
+
     local message = string.format("Threat detected: %s (level: %.1f, confidence: %.2f)",
         threat_result.threat_type or "unknown",
         threat_result.threat_level,
         threat_result.confidence or 0)
-    
+
     local response_context = {
         status = (kong.response and kong.response.get_status and kong.response.get_status()) or 200,
         processing_time_ms = (kong.ctx and kong.ctx.plugin and kong.ctx.plugin.guard_ai_processing_time) or 0
     }
-    
+
     -- Add enforcement information to threat result
     if enforcement_result then
         threat_result.enforcement = {
@@ -632,7 +632,7 @@ function _M.log_threat_event(threat_result, request_context, enforcement_result,
             dry_run = conf.dry_run_mode
         }
     end
-    
+
     _M.log(level, message, threat_result, request_context, response_context, conf)
 end
 
@@ -646,21 +646,21 @@ function _M.log_performance_metrics(processing_time_ms, request_context, conf)
     if processing_time_ms <= 2 then
         return -- Skip logging for very fast requests
     end
-    
+
     local level = LOG_LEVELS.DEBUG
     if processing_time_ms > 10 then
         level = LOG_LEVELS.WARN
     elseif processing_time_ms > 5 then
         level = LOG_LEVELS.INFO
     end
-    
+
     local message = string.format("Request processing completed in %.2fms", processing_time_ms)
-    
+
     local response_context = {
         status = (kong.response and kong.response.get_status and kong.response.get_status()) or 200,
         processing_time_ms = processing_time_ms
     }
-    
+
     _M.log(level, message, nil, request_context, response_context, conf)
 end
 
@@ -691,20 +691,20 @@ function _M.health_check()
         status = "healthy",
         issues = {}
     }
-    
+
     -- Check queue size
     if log_stats.async_queue_size > 500 then
         health.status = "warning"
         table.insert(health.issues, "Log queue size high: " .. log_stats.async_queue_size)
     end
-    
+
     -- Check error rate
     local error_rate = log_stats.error_logs / math.max(log_stats.total_logs, 1)
     if error_rate > 0.1 then
         health.status = "unhealthy"
         table.insert(health.issues, "High error rate: " .. (error_rate * 100) .. "%")
     end
-    
+
     return health
 end
 
@@ -714,24 +714,24 @@ end
 function _M.cleanup()
     -- Cleanup caches to prevent memory leaks
     local current_time = ngx.time()
-    
+
     -- Clear old geo cache entries (1 hour TTL)
     for ip, data in pairs(geo_cache) do
         if not data.timestamp or current_time - data.timestamp > 3600 then
             geo_cache[ip] = nil
         end
     end
-    
+
     -- Limit user agent cache size
     local ua_count = 0
     for _ in pairs(user_agent_cache) do
         ua_count = ua_count + 1
     end
-    
+
     if ua_count > 1000 then
         user_agent_cache = {} -- Simple cache reset
     end
-    
+
     kong.log.debug("[Kong Guard AI Structured Logger] Cache cleanup completed")
 end
 

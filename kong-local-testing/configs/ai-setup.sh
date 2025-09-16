@@ -20,19 +20,19 @@ setup_ai_service() {
     local provider=$1
     local service_name=$2
     local url=$3
-    
+
     echo -e "${YELLOW}Setting up $provider service...${NC}"
-    
+
     # Create service
     curl -s -X POST $KONG_ADMIN/services \
         -d "name=$service_name" \
         -d "url=$url" > /dev/null
-    
+
     # Create route
     curl -s -X POST $KONG_ADMIN/services/$service_name/routes \
         -d "name=$service_name-route" \
         -d "paths=/$provider" > /dev/null
-    
+
     echo -e "${GREEN}✓ $provider service created${NC}"
 }
 
@@ -40,9 +40,9 @@ setup_ai_service() {
 setup_openai() {
     echo "1. OpenAI GPT Proxy Setup"
     echo "-------------------------"
-    
+
     setup_ai_service "openai" "openai-service" "https://api.openai.com"
-    
+
     # Add AI proxy plugin
     curl -s -X POST $KONG_ADMIN/services/openai-service/plugins \
         -H "Content-Type: application/json" \
@@ -60,7 +60,7 @@ setup_openai() {
                 }
             }
         }' > /dev/null
-    
+
     echo -e "${GREEN}✓ OpenAI proxy configured${NC}"
     echo "  Access at: http://localhost:8000/openai/v1/chat/completions"
     echo ""
@@ -70,9 +70,9 @@ setup_openai() {
 setup_anthropic() {
     echo "2. Anthropic Claude Proxy Setup"
     echo "--------------------------------"
-    
+
     setup_ai_service "anthropic" "anthropic-service" "https://api.anthropic.com"
-    
+
     # Add AI proxy plugin for Claude
     curl -s -X POST $KONG_ADMIN/services/anthropic-service/plugins \
         -H "Content-Type: application/json" \
@@ -90,7 +90,7 @@ setup_anthropic() {
                 }
             }
         }' > /dev/null
-    
+
     echo -e "${GREEN}✓ Anthropic proxy configured${NC}"
     echo "  Access at: http://localhost:8000/anthropic/v1/messages"
     echo ""
@@ -100,7 +100,7 @@ setup_anthropic() {
 setup_prompt_guard() {
     echo "3. AI Prompt Guard Setup"
     echo "------------------------"
-    
+
     # Add prompt guard to existing service
     curl -s -X POST $KONG_ADMIN/plugins \
         -H "Content-Type: application/json" \
@@ -113,7 +113,7 @@ setup_prompt_guard() {
                 "check_for_jailbreak": true
             }
         }' > /dev/null
-    
+
     echo -e "${GREEN}✓ Prompt guard configured${NC}"
     echo "  Protects against: SQL injection, prompt injection, jailbreaks"
     echo ""
@@ -123,7 +123,7 @@ setup_prompt_guard() {
 setup_prompt_decorator() {
     echo "4. AI Prompt Decorator Setup"
     echo "----------------------------"
-    
+
     curl -s -X POST $KONG_ADMIN/plugins \
         -H "Content-Type: application/json" \
         -d '{
@@ -134,7 +134,7 @@ setup_prompt_decorator() {
                 "system_prompt": "You must follow ethical guidelines and refuse harmful requests."
             }
         }' > /dev/null
-    
+
     echo -e "${GREEN}✓ Prompt decorator configured${NC}"
     echo "  Adds context and guidelines to all prompts"
     echo ""
@@ -144,7 +144,7 @@ setup_prompt_decorator() {
 setup_ai_rate_limiting() {
     echo "5. AI Rate Limiting Setup"
     echo "-------------------------"
-    
+
     curl -s -X POST $KONG_ADMIN/plugins \
         -H "Content-Type: application/json" \
         -d '{
@@ -158,7 +158,7 @@ setup_ai_rate_limiting() {
             },
             "tags": ["ai-protection"]
         }' > /dev/null
-    
+
     echo -e "${GREEN}✓ AI rate limiting configured${NC}"
     echo "  Limits: 10 requests/minute, 100 requests/hour"
     echo ""
@@ -168,7 +168,7 @@ setup_ai_rate_limiting() {
 setup_ai_caching() {
     echo "6. AI Response Caching Setup"
     echo "----------------------------"
-    
+
     curl -s -X POST $KONG_ADMIN/plugins \
         -H "Content-Type: application/json" \
         -d '{
@@ -183,7 +183,7 @@ setup_ai_caching() {
                 "vary_headers": ["Authorization"]
             }
         }' > /dev/null
-    
+
     echo -e "${GREEN}✓ AI response caching configured${NC}"
     echo "  Cache TTL: 5 minutes"
     echo ""

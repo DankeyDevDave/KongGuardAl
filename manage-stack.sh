@@ -47,22 +47,22 @@ case "$1" in
     start)
         echo "🚀 Starting Kong Guard AI Stack..."
         echo "=================================="
-        
+
         # Stop any running standalone services first
         print_info "Stopping standalone services if running..."
         pkill -f "python.*18002" 2>/dev/null || true
         pkill -f "python.*18003" 2>/dev/null || true
         pkill -f "grafana-server" 2>/dev/null || true
         pkill -f "prometheus" 2>/dev/null || true
-        
+
         # Start the complete stack
         print_info "Starting Docker Compose stack..."
         docker-compose up -d
-        
+
         echo ""
         print_info "Waiting for services to be ready..."
         sleep 10
-        
+
         # Health checks
         echo ""
         echo "Health Checks:"
@@ -74,7 +74,7 @@ case "$1" in
         check_health "Web Dashboard" "http://localhost:8080"
         check_health "Grafana" "http://localhost:3000/api/health"
         check_health "Prometheus" "http://localhost:9090/-/healthy"
-        
+
         echo ""
         echo "📊 Access Points:"
         echo "=================="
@@ -87,24 +87,24 @@ case "$1" in
         echo "• Cloud AI API:     http://localhost:18002"
         echo "• Ollama AI API:    http://localhost:18003"
         ;;
-        
+
     stop)
         echo "🛑 Stopping Kong Guard AI Stack..."
         docker-compose down
         print_status "Stack stopped"
         ;;
-        
+
     restart)
         echo "🔄 Restarting Kong Guard AI Stack..."
         docker-compose restart
         print_status "Stack restarted"
         ;;
-        
+
     status)
         echo "📊 Kong Guard AI Stack Status"
         echo "=============================="
         docker-compose ps
-        
+
         echo ""
         echo "Service Health:"
         echo "--------------"
@@ -114,7 +114,7 @@ case "$1" in
         check_health "Grafana" "http://localhost:3000/api/health" || true
         check_health "Prometheus" "http://localhost:9090/-/healthy" || true
         ;;
-        
+
     logs)
         if [ -z "$2" ]; then
             docker-compose logs -f --tail=100
@@ -122,33 +122,33 @@ case "$1" in
             docker-compose logs -f --tail=100 "$2"
         fi
         ;;
-        
+
     metrics)
         echo "📈 Current Metrics"
         echo "=================="
-        
+
         echo ""
         echo "Cloud AI Service Metrics:"
         curl -s http://localhost:18002/metrics | grep -E "^kong_guard" | head -10
-        
+
         echo ""
         echo "Ollama AI Service Metrics:"
         curl -s http://localhost:18003/metrics | grep -E "^kong_guard" | head -10
         ;;
-        
+
     clean)
         echo "🧹 Cleaning Kong Guard AI Stack..."
         docker-compose down -v
         rm -rf ./grafana-data ./prometheus-data ./logs
         print_status "Stack cleaned"
         ;;
-        
+
     build)
         echo "🔨 Building AI Service Images..."
         docker-compose build ai-service-cloud ai-service-ollama
         print_status "Images built"
         ;;
-        
+
     *)
         echo "Kong Guard AI Stack Manager"
         echo "==========================="

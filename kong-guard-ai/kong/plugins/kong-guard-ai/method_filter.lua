@@ -39,7 +39,7 @@ local METHOD_THREAT_LEVELS = {
     TRACE = 8.5,    -- High threat - often used in attacks
     CONNECT = 8.0,  -- High threat - tunneling attempts
     DEBUG = 7.5,    -- Medium-high threat - information disclosure
-    TRACK = 7.5,    -- Medium-high threat - similar to TRACE  
+    TRACK = 7.5,    -- Medium-high threat - similar to TRACE
     OPTIONS = 4.0,  -- Low threat - information gathering
     PATCH = 3.0,    -- Low threat - if allowed normally
     PURGE = 6.0,    -- Medium threat - cache manipulation
@@ -58,13 +58,13 @@ local METHOD_THREAT_LEVELS = {
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Method Filter] Initializing HTTP method filtering")
-    
+
     -- Build O(1) lookup hash from configuration
     _M.build_denied_methods_hash(conf)
-    
+
     -- Initialize bypass routes if configured
     _M.build_bypass_routes_hash(conf)
-    
+
     -- Initialize analytics tracking
     method_analytics = {
         blocked_methods = {},
@@ -72,8 +72,8 @@ function _M.init_worker(conf)
         total_blocks = 0,
         start_time = ngx.now()
     }
-    
-    kong.log.info("[Kong Guard AI Method Filter] Method filtering initialized with " .. 
+
+    kong.log.info("[Kong Guard AI Method Filter] Method filtering initialized with " ..
                   _M.get_denied_methods_count() .. " denied methods")
 end
 
@@ -83,28 +83,28 @@ end
 ---
 function _M.build_denied_methods_hash(conf)
     denied_methods_hash = {}
-    
+
     local methods_to_deny = {}
-    
+
     -- Start with default denied methods
     for _, method in ipairs(DEFAULT_DENIED_METHODS) do
         table.insert(methods_to_deny, method)
     end
-    
+
     -- Add extended methods if configured
     if conf.block_extended_methods then
         for _, method in ipairs(EXTENDED_DENIED_METHODS) do
             table.insert(methods_to_deny, method)
         end
     end
-    
+
     -- Add custom denied methods from configuration
     if conf.custom_denied_methods and type(conf.custom_denied_methods) == "table" then
         for _, method in ipairs(conf.custom_denied_methods) do
             table.insert(methods_to_deny, method)
         end
     end
-    
+
     -- Build hash table for O(1) lookup with case normalization
     for _, method in ipairs(methods_to_deny) do
         local normalized_method = string.upper(method)
@@ -115,11 +115,11 @@ end
 
 ---
 -- Build hash table for bypass routes
--- @param conf Plugin configuration  
+-- @param conf Plugin configuration
 ---
 function _M.build_bypass_routes_hash(conf)
     bypass_routes_hash = {}
-    
+
     if conf.method_bypass_routes and type(conf.method_bypass_routes) == "table" then
         for _, route_pattern in ipairs(conf.method_bypass_routes) do
             bypass_routes_hash[route_pattern] = true
@@ -149,41 +149,41 @@ function _M.analyze_method(method, request_context, conf)
         requires_ai_analysis = false,
         recommended_action = "allow"
     }
-    
+
     -- Normalize method to uppercase for consistent checking
     local normalized_method = string.upper(method or "GET")
     threat_result.details.normalized_method = normalized_method
-    
+
     -- Check if method is in denied list (O(1) lookup)
     if denied_methods_hash[normalized_method] then
         threat_result.details.is_denied = true
-        
+
         -- Check for bypass routes before blocking
         local bypass_allowed = _M.check_bypass_routes(request_context, conf)
         if bypass_allowed then
             threat_result.details.bypass_used = true
             threat_result.details.bypass_reason = "route_whitelist"
             _M.track_bypass_usage(normalized_method, request_context.path)
-            kong.log.info("[Kong Guard AI Method Filter] Method " .. normalized_method .. 
+            kong.log.info("[Kong Guard AI Method Filter] Method " .. normalized_method ..
                          " allowed via bypass for route: " .. request_context.path)
             return threat_result
         end
-        
+
         -- Method is denied and no bypass applies
         local threat_level = METHOD_THREAT_LEVELS[normalized_method] or 7.0
         threat_result.threat_level = threat_level
         threat_result.confidence = 0.95 -- High confidence for explicit method blocks
         threat_result.recommended_action = "block"
         threat_result.details.block_reason = "method_denied"
-        
+
         -- Track analytics
         _M.track_blocked_method(normalized_method, request_context)
-        
-        kong.log.warn("[Kong Guard AI Method Filter] Blocked HTTP method: " .. normalized_method .. 
-                      " from " .. (request_context.client_ip or "unknown") .. 
+
+        kong.log.warn("[Kong Guard AI Method Filter] Blocked HTTP method: " .. normalized_method ..
+                      " from " .. (request_context.client_ip or "unknown") ..
                       " (threat level: " .. threat_level .. ")")
     end
-    
+
     return threat_result
 end
 
@@ -197,12 +197,12 @@ function _M.check_bypass_routes(request_context, conf)
     if not request_context.path then
         return false
     end
-    
+
     -- Check exact path matches first (O(1) lookup)
     if bypass_routes_hash[request_context.path] then
         return true
     end
-    
+
     -- Check pattern matches (only if no exact match found)
     for route_pattern, _ in pairs(bypass_routes_hash) do
         if route_pattern:find("*") or route_pattern:find("^") then
@@ -212,7 +212,7 @@ function _M.check_bypass_routes(request_context, conf)
             end
         end
     end
-    
+
     -- Check service-specific bypass
     if conf.method_bypass_services and request_context.service_id then
         for _, service_id in ipairs(conf.method_bypass_services) do
@@ -221,7 +221,7 @@ function _M.check_bypass_routes(request_context, conf)
             end
         end
     end
-    
+
     return false
 end
 
@@ -234,7 +234,7 @@ end
 ---
 function _M.execute_method_block(threat_result, request_context, conf)
     local method = threat_result.details.normalized_method or "UNKNOWN"
-    
+
     -- Prepare 405 Method Not Allowed response
     local response_body = {
         error = "Method Not Allowed",
@@ -244,12 +244,12 @@ function _M.execute_method_block(threat_result, request_context, conf)
         correlation_id = request_context.correlation_id,
         allowed_methods = _M.get_allowed_methods_list(conf)
     }
-    
+
     -- Set appropriate headers
     kong.response.set_header("Allow", table.concat(_M.get_allowed_methods_list(conf), ", "))
     kong.response.set_header("X-Kong-Guard-AI", "method-blocked")
     kong.response.set_header("X-Block-Reason", "http-method-denied")
-    
+
     -- Return structured response
     return kong.response.exit(405, response_body, {
         ["Content-Type"] = "application/json"
@@ -264,13 +264,13 @@ end
 function _M.get_allowed_methods_list(conf)
     local standard_methods = {"GET", "POST", "PUT", "DELETE", "HEAD"}
     local allowed_methods = {}
-    
+
     for _, method in ipairs(standard_methods) do
         if not denied_methods_hash[method] then
             table.insert(allowed_methods, method)
         end
     end
-    
+
     -- Add any explicitly allowed custom methods
     if conf.custom_allowed_methods and type(conf.custom_allowed_methods) == "table" then
         for _, method in ipairs(conf.custom_allowed_methods) do
@@ -280,7 +280,7 @@ function _M.get_allowed_methods_list(conf)
             end
         end
     end
-    
+
     return allowed_methods
 end
 
@@ -298,12 +298,12 @@ function _M.track_blocked_method(method, request_context)
             source_ips = {}
         }
     end
-    
+
     local method_stats = method_analytics.blocked_methods[method]
     method_stats.count = method_stats.count + 1
     method_stats.last_seen = ngx.now()
     method_analytics.total_blocks = method_analytics.total_blocks + 1
-    
+
     -- Track unique source IPs (limit to prevent memory bloat)
     local client_ip = request_context.client_ip
     if client_ip and not method_stats.source_ips[client_ip] then
@@ -330,10 +330,10 @@ function _M.track_bypass_usage(method, path)
             paths = {}
         }
     end
-    
+
     local bypass_stats = method_analytics.bypass_used[method]
     bypass_stats.count = bypass_stats.count + 1
-    
+
     -- Track unique paths (limit to prevent memory bloat)
     if not bypass_stats.paths[path] and _M.count_table_entries(bypass_stats.paths) < 50 then
         bypass_stats.paths[path] = {
@@ -352,7 +352,7 @@ end
 function _M.get_method_analytics()
     local runtime_seconds = ngx.now() - method_analytics.start_time
     local blocks_per_hour = method_analytics.total_blocks / (runtime_seconds / 3600)
-    
+
     return {
         runtime_seconds = runtime_seconds,
         total_blocks = method_analytics.total_blocks,
@@ -381,7 +381,7 @@ end
 ---
 function _M.get_top_blocked_methods(limit)
     local methods = {}
-    
+
     for method, stats in pairs(method_analytics.blocked_methods) do
         table.insert(methods, {
             method = method,
@@ -391,16 +391,16 @@ function _M.get_top_blocked_methods(limit)
             last_seen = stats.last_seen
         })
     end
-    
+
     -- Sort by count descending
     table.sort(methods, function(a, b) return a.count > b.count end)
-    
+
     -- Return limited results
     local result = {}
     for i = 1, math.min(limit or 10, #methods) do
         table.insert(result, methods[i])
     end
-    
+
     return result
 end
 
@@ -414,11 +414,11 @@ function _M.analyze_threat_patterns()
         distributed_sources = {},
         suspicious_timing = {}
     }
-    
+
     for method, stats in pairs(method_analytics.blocked_methods) do
         local runtime_hours = (ngx.now() - method_analytics.start_time) / 3600
         local requests_per_hour = stats.count / math.max(runtime_hours, 0.01)
-        
+
         -- High frequency attacks (>10 requests per hour)
         if requests_per_hour > 10 then
             patterns.high_frequency_attacks[method] = {
@@ -426,7 +426,7 @@ function _M.analyze_threat_patterns()
                 total_count = stats.count
             }
         end
-        
+
         -- Distributed sources (>5 unique IPs)
         local unique_ips = _M.count_table_entries(stats.source_ips)
         if unique_ips > 5 then
@@ -435,7 +435,7 @@ function _M.analyze_threat_patterns()
                 total_count = stats.count
             }
         end
-        
+
         -- Suspicious timing (recent spike in activity)
         local recent_threshold = ngx.now() - 3600 -- Last hour
         if stats.last_seen > recent_threshold and stats.count > 10 then
@@ -445,7 +445,7 @@ function _M.analyze_threat_patterns()
             }
         end
     end
-    
+
     return patterns
 end
 
@@ -455,7 +455,7 @@ end
 function _M.cleanup_cache()
     local current_time = ngx.now()
     local cleanup_threshold = current_time - 86400 -- 24 hours
-    
+
     -- Clean old analytics data to prevent memory bloat
     for method, stats in pairs(method_analytics.blocked_methods) do
         if stats.last_seen < cleanup_threshold then

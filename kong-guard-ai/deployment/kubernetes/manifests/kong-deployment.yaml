@@ -101,7 +101,7 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: POSTGRES_DB
-        
+
         # Network Configuration
         - name: KONG_PROXY_LISTEN
           value: "0.0.0.0:8000, 0.0.0.0:8443 ssl http2"
@@ -111,13 +111,13 @@ spec:
           value: "0.0.0.0:8100"
         - name: KONG_CLUSTER_LISTEN
           value: "0.0.0.0:8005"
-        
+
         # Plugin Configuration
         - name: KONG_PLUGINS
           value: "bundled,kong-guard-ai"
         - name: KONG_LUA_PACKAGE_PATH
           value: "/usr/local/share/lua/5.1/?.lua;;"
-        
+
         # Performance Configuration
         - name: KONG_NGINX_WORKER_PROCESSES
           value: "auto"
@@ -125,7 +125,7 @@ spec:
           value: "4096"
         - name: KONG_MEM_CACHE_SIZE
           value: "128m"
-        
+
         # Security Configuration
         - name: KONG_HEADERS
           value: "off"
@@ -137,7 +137,7 @@ spec:
           value: "on"
         - name: KONG_TRUSTED_IPS
           value: "198.51.100.0/8,233.252.0.0/12,203.0.113.0/16"
-        
+
         # Logging Configuration
         - name: KONG_LOG_LEVEL
           value: "info"
@@ -149,7 +149,7 @@ spec:
           value: "/dev/stderr"
         - name: KONG_ADMIN_ERROR_LOG
           value: "/dev/stderr"
-        
+
         # Kong Guard AI Configuration
         - name: KONG_GUARD_AI_AI_API_KEY
           valueFrom:
@@ -169,7 +169,7 @@ spec:
               name: kong-guard-ai-secret
               key: EMAIL_SMTP_PASSWORD
               optional: true
-        
+
         # Shared Memory Configuration
         - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_CACHE
           value: "64m"
@@ -181,7 +181,7 @@ spec:
           value: "16m"
         - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_AI_CACHE
           value: "32m"
-        
+
         volumeMounts:
         - name: kong-config
           mountPath: /etc/kong/kong.conf
@@ -191,7 +191,7 @@ spec:
           mountPath: /tmp
         - name: var-lib-kong
           mountPath: /var/lib/kong
-        
+
         livenessProbe:
           httpGet:
             path: /status
@@ -200,7 +200,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-          
+
         readinessProbe:
           httpGet:
             path: /status
@@ -210,7 +210,7 @@ spec:
           timeoutSeconds: 3
           successThreshold: 1
           failureThreshold: 3
-          
+
         startupProbe:
           httpGet:
             path: /status
@@ -219,7 +219,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 30
-          
+
         resources:
           requests:
             memory: "512Mi"
@@ -227,14 +227,14 @@ spec:
           limits:
             memory: "2Gi"
             cpu: "2"
-            
+
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities:
             drop:
               - ALL
-      
+
       volumes:
       - name: kong-config
         configMap:
@@ -243,7 +243,7 @@ spec:
         emptyDir: {}
       - name: var-lib-kong
         emptyDir: {}
-      
+
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -256,7 +256,7 @@ spec:
                   values:
                   - kong-gateway
               topologyKey: kubernetes.io/hostname
-      
+
       terminationGracePeriodSeconds: 30
 ---
 apiVersion: v1

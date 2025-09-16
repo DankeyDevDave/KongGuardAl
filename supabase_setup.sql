@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS attack_metrics (
 );
 
 -- Partition by date for better performance (optional)
--- CREATE TABLE attack_metrics_y2024m08 PARTITION OF attack_metrics 
+-- CREATE TABLE attack_metrics_y2024m08 PARTITION OF attack_metrics
 -- FOR VALUES FROM ('2024-08-01') TO ('2024-09-01');
 
 -- Add indexes for high-performance queries
@@ -143,7 +143,7 @@ CREATE INDEX IF NOT EXISTS idx_attack_patterns_expires ON attack_patterns (expir
 
 -- Current attack statistics view
 CREATE OR REPLACE VIEW current_attack_stats AS
-SELECT 
+SELECT
     ar.run_id,
     ar.start_time,
     ar.intensity_level,
@@ -160,7 +160,7 @@ GROUP BY ar.run_id, ar.start_time, ar.intensity_level, ar.strategy;
 
 -- Tier performance comparison view
 CREATE OR REPLACE VIEW tier_performance_comparison AS
-SELECT 
+SELECT
     am.tier,
     COUNT(*) as total_requests,
     COUNT(CASE WHEN am.blocked = true THEN 1 END) as blocked_requests,
@@ -175,7 +175,7 @@ ORDER BY block_rate_percent DESC;
 
 -- Attack type breakdown view
 CREATE OR REPLACE VIEW attack_type_breakdown AS
-SELECT 
+SELECT
     am.attack_type,
     am.tier,
     COUNT(*) as attack_count,
@@ -197,14 +197,14 @@ RETURNS VOID AS $$
 BEGIN
     -- Delete existing stats for this run
     DELETE FROM tier_statistics WHERE run_id = p_run_id;
-    
+
     -- Calculate and insert new stats
     INSERT INTO tier_statistics (
         run_id, tier, total_requests, attacks_blocked, attacks_allowed,
         detection_rate, avg_response_time, avg_threat_score, avg_confidence,
         max_response_time, min_response_time
     )
-    SELECT 
+    SELECT
         p_run_id,
         tier,
         COUNT(*) as total_requests,
@@ -216,7 +216,7 @@ BEGIN
         ROUND(AVG(confidence), 3) as avg_confidence,
         MAX(response_time_ms) as max_response_time,
         MIN(response_time_ms) as min_response_time
-    FROM attack_metrics 
+    FROM attack_metrics
     WHERE run_id = p_run_id
     GROUP BY tier;
 END;
@@ -230,16 +230,16 @@ DECLARE
 BEGIN
     -- Delete old attack runs and cascade to related data
     WITH deleted_runs AS (
-        DELETE FROM attack_runs 
+        DELETE FROM attack_runs
         WHERE start_time < NOW() - (days_to_keep || ' days')::INTERVAL
         RETURNING run_id
     )
     SELECT COUNT(*) INTO deleted_count FROM deleted_runs;
-    
+
     -- Clean expired cache patterns
-    DELETE FROM attack_patterns 
+    DELETE FROM attack_patterns
     WHERE expires_at IS NOT NULL AND expires_at < NOW();
-    
+
     RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;
@@ -309,19 +309,19 @@ INSERT INTO attack_runs (intensity_level, strategy, duration, config_json) VALUE
 ('medium', 'sustained', 60, '{"test": true, "version": "1.0"}');
 
 -- Verify tables were created
-SELECT schemaname, tablename, tableowner 
-FROM pg_tables 
+SELECT schemaname, tablename, tableowner
+FROM pg_tables
 WHERE schemaname = 'kongguard'
 ORDER BY tablename;
 
 -- Show table sizes
-SELECT 
+SELECT
     schemaname,
     tablename,
     attname,
     n_distinct,
     correlation
-FROM pg_stats 
+FROM pg_stats
 WHERE schemaname = 'kongguard'
 ORDER BY tablename, attname;
 

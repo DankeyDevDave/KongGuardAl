@@ -35,33 +35,33 @@ print_warning() {
 # Check prerequisites
 check_prerequisites() {
     print_header "Checking Prerequisites"
-    
+
     if ! command -v gh &> /dev/null; then
         print_error "GitHub CLI (gh) is not installed"
         echo "Install with: brew install gh"
         exit 1
     fi
-    
+
     if ! gh auth status &> /dev/null; then
         print_error "GitHub CLI is not authenticated"
         echo "Run: gh auth login"
         exit 1
     fi
-    
+
     echo "✓ GitHub CLI is installed and authenticated"
 }
 
 # Check runner status
 check_runner_status() {
     print_header "Checking Runner Status for $REPO"
-    
+
     echo "Fetching runner information from GitHub..."
     gh api /repos/${REPO}/actions/runners --jq '.runners[] | select(.name=="'${RUNNER_NAME}'") | {name, status, busy, labels}' 2>/dev/null || {
         print_warning "No runner found or API error"
         echo "Checking all runners for the repository..."
         gh api /repos/${REPO}/actions/runners --jq '.runners[] | {name, status, busy}' 2>/dev/null || print_error "Failed to fetch runners"
     }
-    
+
     echo -e "\n${GREEN}Recent Workflow Runs:${NC}"
     gh run list --repo ${REPO} --limit 5 2>/dev/null || print_warning "No recent runs found"
 }
@@ -69,15 +69,15 @@ check_runner_status() {
 # Check runner service on Proxmox
 check_runner_service() {
     print_header "Checking Runner Service on Proxmox Container"
-    
+
     echo "Connecting to Proxmox container ${RUNNER_CONTAINER}..."
-    
+
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- systemctl is-active 'actions.runner.*.service'" 2>/dev/null && {
         echo "✓ Runner service is active"
     } || {
         print_warning "Runner service may not be active"
     }
-    
+
     echo -e "\n${GREEN}Runner processes:${NC}"
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- ps aux | grep -i runner | grep -v grep" 2>/dev/null || print_warning "No runner processes found"
 }
@@ -85,7 +85,7 @@ check_runner_service() {
 # View runner logs
 view_runner_logs() {
     print_header "Runner Logs (Last 50 lines)"
-    
+
     echo "Fetching logs from Proxmox container..."
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- journalctl -u 'actions.runner.*' -n 50 --no-pager" 2>/dev/null || {
         print_error "Failed to fetch logs"
@@ -97,14 +97,14 @@ view_runner_logs() {
 # Restart runner service
 restart_runner() {
     print_header "Restarting Runner Service"
-    
+
     read -p "Are you sure you want to restart the runner? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Restart cancelled"
         return
     fi
-    
+
     echo "Restarting runner service..."
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- systemctl restart 'actions.runner.*.service'" 2>/dev/null && {
         echo "✓ Runner service restarted successfully"
@@ -122,10 +122,10 @@ restart_runner() {
 # Cancel stuck workflows
 cancel_stuck_workflows() {
     print_header "Cancelling Stuck Workflows"
-    
+
     echo "Checking for queued workflows..."
     queued_runs=$(gh run list --repo ${REPO} --status queued --json databaseId --jq '.[].databaseId' 2>/dev/null)
-    
+
     if [ -z "$queued_runs" ]; then
         echo "No queued workflows found"
     else
@@ -140,10 +140,10 @@ cancel_stuck_workflows() {
             done
         fi
     fi
-    
+
     echo -e "\nChecking for in-progress workflows..."
     in_progress=$(gh run list --repo ${REPO} --status in_progress --json databaseId --jq '.[].databaseId' 2>/dev/null)
-    
+
     if [ -z "$in_progress" ]; then
         echo "No in-progress workflows found"
     else
@@ -163,21 +163,21 @@ cancel_stuck_workflows() {
 # Trigger workflow manually
 trigger_workflow() {
     print_header "Trigger Workflow Manually"
-    
+
     echo "Available workflows:"
     gh workflow list --repo ${REPO} 2>/dev/null || {
         print_error "Failed to list workflows"
         return
     }
-    
+
     echo -e "\nEnter workflow name or ID to trigger (or press Enter to cancel):"
     read workflow_input
-    
+
     if [ -z "$workflow_input" ]; then
         echo "Cancelled"
         return
     fi
-    
+
     echo "Triggering workflow: $workflow_input"
     gh workflow run "$workflow_input" --repo ${REPO} 2>/dev/null && {
         echo "✓ Workflow triggered successfully"
@@ -204,7 +204,7 @@ show_menu() {
     echo "q) Quit"
     echo
     read -p "Select option: " option
-    
+
     case $option in
         1) check_runner_status ;;
         2) check_runner_service ;;
@@ -212,7 +212,7 @@ show_menu() {
         4) restart_runner ;;
         5) cancel_stuck_workflows ;;
         6) trigger_workflow ;;
-        7) 
+        7)
             check_runner_status
             echo
             check_runner_service
@@ -220,7 +220,7 @@ show_menu() {
         q|Q) exit 0 ;;
         *) print_error "Invalid option" ;;
     esac
-    
+
     echo
     read -p "Press Enter to continue..."
 }
@@ -228,7 +228,7 @@ show_menu() {
 # Main execution
 main() {
     check_prerequisites
-    
+
     # If arguments provided, run specific command
     case "${1:-}" in
         status)

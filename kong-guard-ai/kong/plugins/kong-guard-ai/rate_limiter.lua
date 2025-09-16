@@ -74,22 +74,22 @@ local KEY_PREFIXES = {
 function rate_limiter.init_worker(config)
     local rate_limit_shm = ngx.shared[RATE_LIMIT_DICT]
     local burst_shm = ngx.shared[BURST_DICT]
-    
+
     if not rate_limit_shm then
         kong.log.err("[Kong Guard AI Rate Limiter] Shared memory zone '", RATE_LIMIT_DICT, "' not found")
         return false
     end
-    
+
     if not burst_shm then
         kong.log.err("[Kong Guard AI Rate Limiter] Shared memory zone '", BURST_DICT, "' not found")
         return false
     end
-    
+
     -- Initialize baseline rate data
     local current_time = ngx.time()
     rate_limit_shm:set("init_time", current_time)
     burst_shm:set("init_time", current_time)
-    
+
     kong.log.info("[Kong Guard AI Rate Limiter] Initialized successfully")
     return true
 end
@@ -105,13 +105,13 @@ end
 local function generate_rate_key(ip, user_id, window, bucket)
     local identifier = user_id and (ip .. ":" .. user_id) or ip
     local key = KEY_PREFIXES.RATE_LIMIT .. identifier .. ":" .. tostring(window) .. ":" .. tostring(bucket)
-    
+
     -- Truncate if too long for efficiency
     if #key > 128 then
         local hash = ngx.crc32_short(key)
         key = string.sub(key, 1, 100) .. ":" .. tostring(hash)
     end
-    
+
     return key
 end
 
@@ -126,12 +126,12 @@ local function get_sliding_window_buckets(window, bucket_count)
     local bucket_size = window / bucket_count
     local current_time = ngx.time()
     local buckets = {}
-    
+
     for i = 0, bucket_count - 1 do
         local bucket_start = current_time - (i * bucket_size)
         buckets[i + 1] = math.floor(bucket_start / bucket_size)
     end
-    
+
     return buckets
 end
 
@@ -149,17 +149,17 @@ local function increment_sliding_window(ip, user_id, window, increment)
     if not rate_limit_shm then
         return {}
     end
-    
+
     local buckets = get_sliding_window_buckets(window)
     local current_bucket = buckets[1]
     local window_total = 0
     local bucket_counts = {}
-    
+
     -- Increment current bucket
     local current_key = generate_rate_key(ip, user_id, window, current_bucket)
     local expiry = window * 2  -- Keep data for 2x window length
     local current_count = rate_limit_shm:incr(current_key, increment, 0, expiry) or 0
-    
+
     -- Sum all buckets in the sliding window
     for _, bucket in ipairs(buckets) do
         local bucket_key = generate_rate_key(ip, user_id, window, bucket)
@@ -167,7 +167,7 @@ local function increment_sliding_window(ip, user_id, window, increment)
         bucket_counts[bucket] = count
         window_total = window_total + count
     end
-    
+
     return {
         total = window_total,
         current_bucket = current_count,
@@ -192,7 +192,7 @@ local function is_whitelisted(ip, user_id, config)
             end
         end
     end
-    
+
     -- Check dynamic whitelist in shared memory
     local rate_limit_shm = ngx.shared[RATE_LIMIT_DICT]
     if rate_limit_shm then
@@ -200,7 +200,7 @@ local function is_whitelisted(ip, user_id, config)
         if rate_limit_shm:get(whitelist_key) then
             return true
         end
-        
+
         if user_id then
             local user_whitelist_key = KEY_PREFIXES.WHITELIST .. "user:" .. user_id
             if rate_limit_shm:get(user_whitelist_key) then
@@ -208,7 +208,7 @@ local function is_whitelisted(ip, user_id, config)
             end
         end
     end
-    
+
     return false
 end
 
@@ -223,26 +223,26 @@ local function get_penalty_level(ip, user_id)
     if not rate_limit_shm then
         return {level = "NONE", multiplier = 1.0, expires_at = 0}
     end
-    
+
     local identifier = user_id and (ip .. ":" .. user_id) or ip
     local penalty_key = KEY_PREFIXES.PENALTY .. identifier
     local penalty_data = rate_limit_shm:get(penalty_key)
-    
+
     if not penalty_data then
         return {level = "NONE", multiplier = 1.0, expires_at = 0}
     end
-    
+
     local success, penalty = pcall(cjson.decode, penalty_data)
     if not success then
         return {level = "NONE", multiplier = 1.0, expires_at = 0}
     end
-    
+
     -- Check if penalty has expired
     if penalty.expires_at <= ngx.time() then
         rate_limit_shm:delete(penalty_key)
         return {level = "NONE", multiplier = 1.0, expires_at = 0}
     end
-    
+
     return penalty
 end
 
@@ -259,11 +259,11 @@ local function set_penalty_level(ip, user_id, level, duration, reason)
     if not rate_limit_shm then
         return
     end
-    
+
     local identifier = user_id and (ip .. ":" .. user_id) or ip
     local penalty_key = KEY_PREFIXES.PENALTY .. identifier
     local expires_at = ngx.time() + duration
-    
+
     local penalty_data = {
         level = level,
         multiplier = PENALTY_MULTIPLIERS[level] or 1.0,
@@ -271,7 +271,7 @@ local function set_penalty_level(ip, user_id, level, duration, reason)
         reason = reason,
         timestamp = ngx.time()
     }
-    
+
     local success, encoded = pcall(cjson.encode, penalty_data)
     if success then
         rate_limit_shm:set(penalty_key, encoded, duration)
@@ -292,25 +292,25 @@ local function detect_burst(ip, user_id, current_rates, config)
     if not burst_shm then
         return {detected = false, severity = "NONE"}
     end
-    
+
     local identifier = user_id and (ip .. ":" .. user_id) or ip
     local baseline_key = KEY_PREFIXES.BASELINE .. identifier
-    
+
     -- Get baseline rate (average over longer period)
     local baseline_data = burst_shm:get(baseline_key)
     local baseline_rate = 10  -- Default baseline if no history
-    
+
     if baseline_data then
         local success, baseline = pcall(cjson.decode, baseline_data)
         if success and baseline.rate then
             baseline_rate = baseline.rate
         end
     end
-    
+
     -- Compare current minute rate to baseline
     local minute_rate = current_rates.minute and current_rates.minute.total or 0
     local burst_ratio = baseline_rate > 0 and (minute_rate / baseline_rate * 100) or 0
-    
+
     local burst_result = {
         detected = false,
         severity = "NONE",
@@ -318,7 +318,7 @@ local function detect_burst(ip, user_id, current_rates, config)
         baseline_rate = baseline_rate,
         current_rate = minute_rate
     }
-    
+
     -- Determine burst severity
     if burst_ratio >= BURST_THRESHOLDS.SEVERE then
         burst_result.detected = true
@@ -330,7 +330,7 @@ local function detect_burst(ip, user_id, current_rates, config)
         burst_result.detected = true
         burst_result.severity = "LIGHT"
     end
-    
+
     -- Update baseline rate (exponential moving average)
     if minute_rate > 0 then
         local new_baseline = (baseline_rate * 0.9) + (minute_rate * 0.1)
@@ -339,13 +339,13 @@ local function detect_burst(ip, user_id, current_rates, config)
             updated_at = ngx.time(),
             sample_count = (baseline.sample_count or 0) + 1
         }
-        
+
         local success, encoded = pcall(cjson.encode, new_baseline_data)
         if success then
             burst_shm:set(baseline_key, encoded, TIME_WINDOWS.DAY)
         end
     end
-    
+
     return burst_result
 end
 
@@ -358,16 +358,16 @@ end
 ---
 local function calculate_dynamic_limit(base_limit, threat_level, penalty)
     local limit = base_limit
-    
+
     -- Apply threat level adjustment
     if threat_level > 5 then
         local threat_multiplier = 1.0 - ((threat_level - 5) * 0.1)  -- Reduce limit as threat increases
         limit = limit * threat_multiplier
     end
-    
+
     -- Apply penalty multiplier
     limit = limit * penalty.multiplier
-    
+
     -- Ensure minimum limit
     return math.max(limit, 1)
 end
@@ -388,7 +388,7 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
             message = "No IP address provided"
         }
     end
-    
+
     -- Check if whitelisted
     if is_whitelisted(ip, user_id, config) then
         return {
@@ -398,19 +398,19 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
             whitelisted = true
         }
     end
-    
+
     -- Get current penalty level
     local penalty = get_penalty_level(ip, user_id)
-    
+
     -- Get current rates for all time windows
     local current_rates = {}
     for window_name, window_size in pairs(TIME_WINDOWS) do
         current_rates[window_name:lower()] = increment_sliding_window(ip, user_id, window_size, 1)
     end
-    
+
     -- Detect burst patterns
     local burst_result = detect_burst(ip, user_id, current_rates, config)
-    
+
     -- Get rate limits from config with dynamic adjustment
     local base_limits = {
         minute = config.rate_limit_per_minute or 60,
@@ -418,17 +418,17 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
         hour = config.rate_limit_per_hour or 3600,
         day = config.rate_limit_per_day or 86400
     }
-    
+
     -- Calculate dynamic limits
     local dynamic_limits = {}
     for window, base_limit in pairs(base_limits) do
         dynamic_limits[window] = calculate_dynamic_limit(base_limit, threat_level or 0, penalty)
     end
-    
+
     -- Check each time window
     local violations = {}
     local highest_violation_code = RATE_LIMIT_CODES.ALLOWED
-    
+
     for window, limit in pairs(dynamic_limits) do
         local current_rate = current_rates[window]
         if current_rate and current_rate.total > limit then
@@ -439,7 +439,7 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
                 percentage = (current_rate.total / limit) * 100
             }
             table.insert(violations, violation)
-            
+
             -- Determine violation severity
             if violation.percentage >= 200 then
                 highest_violation_code = RATE_LIMIT_CODES.BLOCKED
@@ -450,11 +450,11 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
             end
         end
     end
-    
+
     -- Handle burst detection
     if burst_result.detected then
         highest_violation_code = RATE_LIMIT_CODES.BURST_DETECTED
-        
+
         -- Apply progressive penalties for burst detection
         if burst_result.severity == "SEVERE" then
             set_penalty_level(ip, user_id, "BLOCKED", 3600, "Severe burst detected")
@@ -464,7 +464,7 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
             set_penalty_level(ip, user_id, "WARNING", 600, "Light burst detected")
         end
     end
-    
+
     -- Build result
     local result = {
         allowed = highest_violation_code == RATE_LIMIT_CODES.ALLOWED,
@@ -476,7 +476,7 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
         burst_detection = burst_result,
         threat_level = threat_level
     }
-    
+
     -- Set appropriate message
     if highest_violation_code == RATE_LIMIT_CODES.BLOCKED then
         result.message = "Rate limit exceeded - request blocked"
@@ -489,7 +489,7 @@ function rate_limiter.check_rate_limits(ip, user_id, threat_level, config)
     else
         result.message = "Request allowed"
     end
-    
+
     return result
 end
 
@@ -506,31 +506,31 @@ function rate_limiter.add_to_whitelist(ip, user_id, duration, reason)
     if not rate_limit_shm then
         return false
     end
-    
+
     local whitelist_data = {
         reason = reason or "Manual addition",
         timestamp = ngx.time(),
         duration = duration
     }
-    
+
     local success, encoded = pcall(cjson.encode, whitelist_data)
     if not success then
         return false
     end
-    
+
     local expiry = duration > 0 and duration or 0
-    
+
     if ip then
         local whitelist_key = KEY_PREFIXES.WHITELIST .. ip
         rate_limit_shm:set(whitelist_key, encoded, expiry)
     end
-    
+
     if user_id then
         local user_whitelist_key = KEY_PREFIXES.WHITELIST .. "user:" .. user_id
         rate_limit_shm:set(user_whitelist_key, encoded, expiry)
     end
-    
-    kong.log.info("[Kong Guard AI Rate Limiter] Added to whitelist: ", ip or "unknown", 
+
+    kong.log.info("[Kong Guard AI Rate Limiter] Added to whitelist: ", ip or "unknown",
                   user_id and (" user:" .. user_id) or "", " for ", duration, "s")
     return true
 end
@@ -546,17 +546,17 @@ function rate_limiter.remove_from_whitelist(ip, user_id)
     if not rate_limit_shm then
         return false
     end
-    
+
     if ip then
         local whitelist_key = KEY_PREFIXES.WHITELIST .. ip
         rate_limit_shm:delete(whitelist_key)
     end
-    
+
     if user_id then
         local user_whitelist_key = KEY_PREFIXES.WHITELIST .. "user:" .. user_id
         rate_limit_shm:delete(user_whitelist_key)
     end
-    
+
     kong.log.info("[Kong Guard AI Rate Limiter] Removed from whitelist: ", ip or "unknown",
                   user_id and (" user:" .. user_id) or "")
     return true
@@ -573,11 +573,11 @@ function rate_limiter.clear_penalty(ip, user_id)
     if not rate_limit_shm then
         return false
     end
-    
+
     local identifier = user_id and (ip .. ":" .. user_id) or ip
     local penalty_key = KEY_PREFIXES.PENALTY .. identifier
     rate_limit_shm:delete(penalty_key)
-    
+
     kong.log.info("[Kong Guard AI Rate Limiter] Cleared penalty for: ", identifier)
     return true
 end
@@ -594,18 +594,18 @@ function rate_limiter.get_statistics(ip, user_id)
         global = {},
         per_ip = {}
     }
-    
+
     -- Get global statistics from shared memory
     local rate_limit_shm = ngx.shared[RATE_LIMIT_DICT]
     local burst_shm = ngx.shared[BURST_DICT]
-    
+
     if rate_limit_shm then
         stats.global.memory_usage = {
             capacity = rate_limit_shm:capacity(),
             free_space = rate_limit_shm:free_space()
         }
     end
-    
+
     -- Get per-IP statistics if IP provided
     if ip then
         local current_rates = {}
@@ -613,9 +613,9 @@ function rate_limiter.get_statistics(ip, user_id)
             local window_data = increment_sliding_window(ip, user_id, window_size, 0)  -- Read-only
             current_rates[window_name:lower()] = window_data
         end
-        
+
         local penalty = get_penalty_level(ip, user_id)
-        
+
         stats.per_ip = {
             ip = ip,
             user_id = user_id,
@@ -624,7 +624,7 @@ function rate_limiter.get_statistics(ip, user_id)
             whitelisted = is_whitelisted(ip, user_id, {ip_whitelist = {}})
         }
     end
-    
+
     return stats
 end
 
@@ -637,16 +637,16 @@ function rate_limiter.cleanup()
         cleaned_entries = 0,
         start_time = ngx.now()
     }
-    
+
     -- Note: Cleanup happens automatically via TTL on individual keys
     -- This function mainly serves for monitoring purposes
-    
+
     cleanup_stats.end_time = ngx.now()
     cleanup_stats.duration_ms = (cleanup_stats.end_time - cleanup_stats.start_time) * 1000
-    
+
     kong.log.debug("[Kong Guard AI Rate Limiter] Cleanup completed in ",
                    string.format("%.2f", cleanup_stats.duration_ms), "ms")
-    
+
     return cleanup_stats
 end
 

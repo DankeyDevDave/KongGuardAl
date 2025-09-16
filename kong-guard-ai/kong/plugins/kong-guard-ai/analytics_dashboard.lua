@@ -31,7 +31,7 @@ local THREAT_INTEL_DICT = "kong_guard_ai_threat_intel"
 -- Time window constants for analytics
 local ANALYTICS_WINDOWS = {
     REALTIME = 300,     -- 5 minutes
-    SHORT = 1800,       -- 30 minutes  
+    SHORT = 1800,       -- 30 minutes
     MEDIUM = 7200,      -- 2 hours
     LONG = 86400,       -- 24 hours
     WEEKLY = 604800     -- 7 days
@@ -40,7 +40,7 @@ local ANALYTICS_WINDOWS = {
 -- Threat intelligence categories
 local THREAT_CATEGORIES = {
     MALWARE = "malware",
-    BOTNET = "botnet", 
+    BOTNET = "botnet",
     PHISHING = "phishing",
     SCANNER = "scanner",
     EXPLOIT = "exploit",
@@ -51,14 +51,14 @@ local THREAT_CATEGORIES = {
 
 -- Geographic threat analysis regions
 local GEO_REGIONS = {
-    "North America", "South America", "Europe", "Asia Pacific", 
+    "North America", "South America", "Europe", "Asia Pacific",
     "Middle East", "Africa", "Unknown"
 }
 
 -- Compliance frameworks supported
 local COMPLIANCE_FRAMEWORKS = {
     PCI_DSS = "pci_dss",
-    SOX = "sox", 
+    SOX = "sox",
     GDPR = "gdpr",
     HIPAA = "hipaa",
     ISO27001 = "iso27001"
@@ -86,25 +86,25 @@ local ANALYTICS_PREFIXES = {
 function analytics_dashboard.init_worker(config)
     local analytics_shm = ngx.shared[ANALYTICS_DICT]
     local threat_intel_shm = ngx.shared[THREAT_INTEL_DICT]
-    
+
     if not analytics_shm then
         kong.log.err("[Kong Guard AI Analytics] Shared memory zone '", ANALYTICS_DICT, "' not found")
         return false
     end
-    
+
     if not threat_intel_shm then
         kong.log.err("[Kong Guard AI Analytics] Shared memory zone '", THREAT_INTEL_DICT, "' not found")
         return false
     end
-    
+
     -- Initialize analytics metadata
     local current_time = ngx.time()
     analytics_shm:set("init_time", current_time)
     analytics_shm:set("version", "1.0.0")
-    
+
     -- Initialize threat intelligence feeds
     analytics_dashboard.init_threat_intelligence(config)
-    
+
     kong.log.info("[Kong Guard AI Analytics] Dashboard initialized successfully")
     return true
 end
@@ -118,7 +118,7 @@ function analytics_dashboard.init_threat_intelligence(config)
     if not threat_intel_shm then
         return
     end
-    
+
     -- Initialize threat intel feed timestamps
     local feeds = {
         "alienvault_otx",
@@ -127,12 +127,12 @@ function analytics_dashboard.init_threat_intelligence(config)
         "emerging_threats",
         "virustotal_api"
     }
-    
+
     for _, feed in ipairs(feeds) do
         local last_update_key = ANALYTICS_PREFIXES.THREAT_INTEL .. feed .. ":last_update"
         threat_intel_shm:set(last_update_key, 0)  -- Never updated
     end
-    
+
     kong.log.info("[Kong Guard AI Analytics] Threat intelligence feeds initialized")
 end
 
@@ -147,18 +147,18 @@ function analytics_dashboard.record_threat_event(threat_data, request_metadata, 
     if not analytics_shm then
         return
     end
-    
+
     local current_time = ngx.time()
     local threat_type = threat_data.threat_type or "unknown"
     local client_ip = request_metadata.client_ip
-    
+
     -- Record threat count by type and time window
     for window_name, window_size in pairs(ANALYTICS_WINDOWS) do
         local bucket = math.floor(current_time / (window_size / 10))
         local threat_key = ANALYTICS_PREFIXES.THREAT_COUNT .. threat_type .. ":" .. window_name .. ":" .. bucket
         analytics_shm:incr(threat_key, 1, 0, window_size * 2)
     end
-    
+
     -- Record attack pattern data
     local pattern_key = ANALYTICS_PREFIXES.ATTACK_PATTERN .. client_ip .. ":" .. threat_type
     local pattern_data = {
@@ -169,7 +169,7 @@ function analytics_dashboard.record_threat_event(threat_data, request_metadata, 
         path = request_metadata.path,
         method = request_metadata.method
     }
-    
+
     local existing_pattern = analytics_shm:get(pattern_key)
     if existing_pattern then
         local success, existing = pcall(cjson.decode, existing_pattern)
@@ -180,18 +180,18 @@ function analytics_dashboard.record_threat_event(threat_data, request_metadata, 
     else
         pattern_data.first_seen = current_time
     end
-    
+
     local success, encoded_pattern = pcall(cjson.encode, pattern_data)
     if success then
         analytics_shm:set(pattern_key, encoded_pattern, ANALYTICS_WINDOWS.WEEKLY)
     end
-    
+
     -- Update geographic threat data
     analytics_dashboard.update_geo_threat_data(client_ip, threat_data, config)
-    
+
     -- Update threat correlations
     analytics_dashboard.update_threat_correlations(threat_data, request_metadata, config)
-    
+
     -- Check for anomalies
     analytics_dashboard.detect_anomalies(threat_type, request_metadata, config)
 end
@@ -207,21 +207,21 @@ function analytics_dashboard.update_geo_threat_data(client_ip, threat_data, conf
     if not analytics_shm then
         return
     end
-    
+
     -- Mock geolocation (in production, integrate with GeoIP service)
     local country_code = analytics_dashboard.get_country_from_ip(client_ip)
     local region = analytics_dashboard.get_region_from_country(country_code)
-    
+
     local current_time = ngx.time()
     local threat_type = threat_data.threat_type
-    
+
     -- Update regional threat statistics
     for window_name, window_size in pairs(ANALYTICS_WINDOWS) do
         local bucket = math.floor(current_time / (window_size / 10))
         local geo_key = ANALYTICS_PREFIXES.GEO_DATA .. region .. ":" .. threat_type .. ":" .. window_name .. ":" .. bucket
         analytics_shm:incr(geo_key, 1, 0, window_size * 2)
     end
-    
+
     -- Update country-specific data
     local country_key = ANALYTICS_PREFIXES.GEO_DATA .. "country:" .. country_code .. ":" .. threat_type
     local country_data = {
@@ -229,7 +229,7 @@ function analytics_dashboard.update_geo_threat_data(client_ip, threat_data, conf
         last_seen = current_time,
         threat_level_avg = threat_data.threat_level
     }
-    
+
     local existing_country = analytics_shm:get(country_key)
     if existing_country then
         local success, existing = pcall(cjson.decode, existing_country)
@@ -238,7 +238,7 @@ function analytics_dashboard.update_geo_threat_data(client_ip, threat_data, conf
             country_data.threat_level_avg = ((existing.threat_level_avg * existing.count) + threat_data.threat_level) / country_data.count
         end
     end
-    
+
     local success, encoded_country = pcall(cjson.encode, country_data)
     if success then
         analytics_shm:set(country_key, encoded_country, ANALYTICS_WINDOWS.WEEKLY)
@@ -271,7 +271,7 @@ function analytics_dashboard.get_region_from_country(country_code)
         ["AE"] = "Middle East", ["SA"] = "Middle East", ["IL"] = "Middle East",
         ["ZA"] = "Africa", ["NG"] = "Africa", ["EG"] = "Africa"
     }
-    
+
     return country_to_region[country_code] or "Unknown"
 end
 
@@ -286,25 +286,25 @@ function analytics_dashboard.update_threat_correlations(threat_data, request_met
     if not analytics_shm then
         return
     end
-    
+
     local current_time = ngx.time()
     local threat_type = threat_data.threat_type
     local client_ip = request_metadata.client_ip
-    
+
     -- Look for correlated threats in the last 5 minutes
     local correlation_window = 300  -- 5 minutes
     local correlation_key = ANALYTICS_PREFIXES.CORRELATION .. client_ip
-    
+
     local existing_correlations = analytics_shm:get(correlation_key)
     local correlations = {}
-    
+
     if existing_correlations then
         local success, existing = pcall(cjson.decode, existing_correlations)
         if success then
             correlations = existing
         end
     end
-    
+
     -- Clean old correlations
     local cleaned_correlations = {}
     for _, corr in ipairs(correlations) do
@@ -312,7 +312,7 @@ function analytics_dashboard.update_threat_correlations(threat_data, request_met
             table.insert(cleaned_correlations, corr)
         end
     end
-    
+
     -- Add new threat to correlations
     table.insert(cleaned_correlations, {
         threat_type = threat_type,
@@ -321,16 +321,16 @@ function analytics_dashboard.update_threat_correlations(threat_data, request_met
         path = request_metadata.path,
         method = request_metadata.method
     })
-    
+
     -- Detect correlation patterns
     if #cleaned_correlations >= 3 then
         local pattern_score = analytics_dashboard.calculate_correlation_score(cleaned_correlations)
         if pattern_score > 0.7 then
-            kong.log.warn("[Kong Guard AI Analytics] High correlation detected for IP: ", client_ip, 
+            kong.log.warn("[Kong Guard AI Analytics] High correlation detected for IP: ", client_ip,
                           " score: ", string.format("%.2f", pattern_score))
         end
     end
-    
+
     local success, encoded = pcall(cjson.encode, cleaned_correlations)
     if success then
         analytics_shm:set(correlation_key, encoded, correlation_window)
@@ -346,21 +346,21 @@ function analytics_dashboard.calculate_correlation_score(correlations)
     if #correlations < 2 then
         return 0
     end
-    
+
     local score = 0
     local total_comparisons = 0
-    
+
     -- Check threat type diversity
     local threat_types = {}
     for _, corr in ipairs(correlations) do
         threat_types[corr.threat_type] = true
     end
     local type_diversity = #correlations > 1 and (table.getn(threat_types) / #correlations) or 0
-    
+
     -- Check temporal clustering
     local time_span = correlations[#correlations].timestamp - correlations[1].timestamp
     local temporal_score = time_span < 60 and 1.0 or (300 - time_span) / 300
-    
+
     -- Check threat level escalation
     local escalation_score = 0
     for i = 2, #correlations do
@@ -368,7 +368,7 @@ function analytics_dashboard.calculate_correlation_score(correlations)
             escalation_score = escalation_score + 0.2
         end
     end
-    
+
     score = (type_diversity * 0.4) + (temporal_score * 0.4) + (math.min(escalation_score, 1.0) * 0.2)
     return math.min(score, 1.0)
 end
@@ -384,29 +384,29 @@ function analytics_dashboard.detect_anomalies(threat_type, request_metadata, con
     if not analytics_shm then
         return
     end
-    
+
     local current_time = ngx.time()
     local hour_bucket = math.floor(current_time / 3600)
-    
+
     -- Get baseline for this threat type and hour
     local baseline_key = ANALYTICS_PREFIXES.BASELINE .. threat_type .. ":" .. (hour_bucket % 24)
     local baseline_data = analytics_shm:get(baseline_key)
     local baseline_count = 1
-    
+
     if baseline_data then
         local success, baseline = pcall(cjson.decode, baseline_data)
         if success then
             baseline_count = baseline.avg_count or 1
         end
     end
-    
+
     -- Get current hour count
     local current_key = ANALYTICS_PREFIXES.THREAT_COUNT .. threat_type .. ":REALTIME:" .. hour_bucket
     local current_count = analytics_shm:get(current_key) or 0
-    
+
     -- Calculate anomaly score
     local anomaly_ratio = current_count > 0 and (current_count / baseline_count) or 0
-    
+
     if anomaly_ratio > 3.0 then  -- 300% above baseline
         local anomaly_data = {
             threat_type = threat_type,
@@ -416,23 +416,23 @@ function analytics_dashboard.detect_anomalies(threat_type, request_metadata, con
             timestamp = current_time,
             severity = anomaly_ratio > 10 and "HIGH" or (anomaly_ratio > 5 and "MEDIUM" or "LOW")
         }
-        
+
         local anomaly_key = ANALYTICS_PREFIXES.ANOMALY .. threat_type .. ":" .. current_time
         local success, encoded = pcall(cjson.encode, anomaly_data)
         if success then
             analytics_shm:set(anomaly_key, encoded, ANALYTICS_WINDOWS.LONG)
-            kong.log.warn("[Kong Guard AI Analytics] Anomaly detected: ", threat_type, 
+            kong.log.warn("[Kong Guard AI Analytics] Anomaly detected: ", threat_type,
                           " ratio: ", string.format("%.2f", anomaly_ratio))
         end
     end
-    
+
     -- Update baseline with exponential moving average
     local new_baseline = {
         avg_count = (baseline_count * 0.9) + (current_count * 0.1),
         last_updated = current_time,
         sample_count = (baseline.sample_count or 0) + 1
     }
-    
+
     local success, encoded_baseline = pcall(cjson.encode, new_baseline)
     if success then
         analytics_shm:set(baseline_key, encoded_baseline, ANALYTICS_WINDOWS.WEEKLY)
@@ -449,14 +449,14 @@ function analytics_dashboard.generate_threat_predictions(config)
     if not analytics_shm then
         return {}
     end
-    
+
     local predictions = {}
     local current_time = ngx.time()
-    
+
     -- Analyze trends for each threat type
     for threat_type, _ in pairs(THREAT_CATEGORIES) do
         local trend_data = analytics_dashboard.analyze_threat_trend(threat_type, config)
-        
+
         if trend_data.sample_count > 10 then  -- Need sufficient data
             local prediction = {
                 threat_type = threat_type,
@@ -466,11 +466,11 @@ function analytics_dashboard.generate_threat_predictions(config)
                 timeframe = "next_24h",
                 risk_level = analytics_dashboard.calculate_risk_level(trend_data)
             }
-            
+
             table.insert(predictions, prediction)
         end
     end
-    
+
     return predictions
 end
 
@@ -485,7 +485,7 @@ function analytics_dashboard.analyze_threat_trend(threat_type, config)
     if not analytics_shm then
         return {sample_count = 0}
     end
-    
+
     local current_time = ngx.time()
     local trend_data = {
         threat_type = threat_type,
@@ -494,7 +494,7 @@ function analytics_dashboard.analyze_threat_trend(threat_type, config)
         confidence = 0,
         predicted_increase = 0
     }
-    
+
     -- Collect hourly data for the last 24 hours
     local hourly_counts = {}
     for i = 0, 23 do
@@ -504,23 +504,23 @@ function analytics_dashboard.analyze_threat_trend(threat_type, config)
         table.insert(hourly_counts, 1, count)  -- Insert at beginning for chronological order
         trend_data.sample_count = trend_data.sample_count + count
     end
-    
+
     -- Calculate linear regression for trend
     if #hourly_counts >= 12 then  -- Need at least 12 hours of data
         local slope = analytics_dashboard.calculate_linear_regression_slope(hourly_counts)
-        
+
         if slope > 0.1 then
             trend_data.trend_direction = "increasing"
             trend_data.predicted_increase = slope * 24  -- Predict next 24 hours
         elseif slope < -0.1 then
-            trend_data.trend_direction = "decreasing" 
+            trend_data.trend_direction = "decreasing"
             trend_data.predicted_increase = slope * 24
         end
-        
+
         -- Calculate confidence based on data consistency
         trend_data.confidence = analytics_dashboard.calculate_trend_confidence(hourly_counts, slope)
     end
-    
+
     return trend_data
 end
 
@@ -534,12 +534,12 @@ function analytics_dashboard.calculate_linear_regression_slope(data_points)
     if n < 2 then
         return 0
     end
-    
+
     local sum_x = 0
     local sum_y = 0
     local sum_xy = 0
     local sum_x2 = 0
-    
+
     for i, y in ipairs(data_points) do
         local x = i
         sum_x = sum_x + x
@@ -547,12 +547,12 @@ function analytics_dashboard.calculate_linear_regression_slope(data_points)
         sum_xy = sum_xy + (x * y)
         sum_x2 = sum_x2 + (x * x)
     end
-    
+
     local denominator = (n * sum_x2) - (sum_x * sum_x)
     if denominator == 0 then
         return 0
     end
-    
+
     return ((n * sum_xy) - (sum_x * sum_y)) / denominator
 end
 
@@ -567,27 +567,27 @@ function analytics_dashboard.calculate_trend_confidence(data_points, slope)
     if n < 3 then
         return 0
     end
-    
+
     -- Calculate R-squared for goodness of fit
     local mean_y = 0
     for _, y in ipairs(data_points) do
         mean_y = mean_y + y
     end
     mean_y = mean_y / n
-    
+
     local ss_res = 0  -- Sum of squares of residuals
     local ss_tot = 0  -- Total sum of squares
-    
+
     for i, y in ipairs(data_points) do
         local predicted = slope * i
         ss_res = ss_res + ((y - predicted) ^ 2)
         ss_tot = ss_tot + ((y - mean_y) ^ 2)
     end
-    
+
     if ss_tot == 0 then
         return 0
     end
-    
+
     local r_squared = 1 - (ss_res / ss_tot)
     return math.max(0, math.min(1, r_squared))
 end
@@ -607,7 +607,7 @@ function analytics_dashboard.calculate_risk_level(trend_data)
             return "MEDIUM"
         end
     end
-    
+
     return "LOW"
 end
 
@@ -628,7 +628,7 @@ function analytics_dashboard.generate_compliance_report(framework, timeframe, co
         metrics = {},
         recommendations = {}
     }
-    
+
     if framework == COMPLIANCE_FRAMEWORKS.PCI_DSS then
         report = analytics_dashboard.generate_pci_dss_report(timeframe, config)
     elseif framework == COMPLIANCE_FRAMEWORKS.GDPR then
@@ -636,7 +636,7 @@ function analytics_dashboard.generate_compliance_report(framework, timeframe, co
     elseif framework == COMPLIANCE_FRAMEWORKS.SOX then
         report = analytics_dashboard.generate_sox_report(timeframe, config)
     end
-    
+
     return report
 end
 
@@ -655,7 +655,7 @@ function analytics_dashboard.generate_pci_dss_report(timeframe, config)
         compliance_score = 85,  -- Mock score
         requirements = {}
     }
-    
+
     -- PCI DSS Requirement 6.5.1 - Injection flaws
     local injection_threats = analytics_dashboard.get_threat_count_for_period("sql_injection", timeframe)
     table.insert(report.requirements, {
@@ -665,17 +665,17 @@ function analytics_dashboard.generate_pci_dss_report(timeframe, config)
         threat_count = injection_threats,
         details = injection_threats > 0 and "SQL injection attempts detected" or "No injection attempts"
     })
-    
+
     -- PCI DSS Requirement 6.5.7 - Cross-site scripting
     local xss_threats = analytics_dashboard.get_threat_count_for_period("xss", timeframe)
     table.insert(report.requirements, {
-        requirement = "6.5.7", 
+        requirement = "6.5.7",
         description = "Cross-site scripting (XSS)",
         status = xss_threats > 0 and "NON_COMPLIANT" or "COMPLIANT",
         threat_count = xss_threats,
         details = xss_threats > 0 and "XSS attempts detected" or "No XSS attempts"
     })
-    
+
     return report
 end
 
@@ -726,11 +726,11 @@ function analytics_dashboard.get_threat_count_for_period(threat_type, timeframe)
     if not analytics_shm then
         return 0
     end
-    
+
     local total_count = 0
     local current_time = ngx.time()
     local period_seconds = timeframe == "daily" and 86400 or (timeframe == "weekly" and 604800 or 2592000)
-    
+
     -- Sum counts across time buckets for the period
     local buckets = math.floor(period_seconds / 300)  -- 5-minute buckets
     for i = 0, buckets - 1 do
@@ -739,7 +739,7 @@ function analytics_dashboard.get_threat_count_for_period(threat_type, timeframe)
         local count = analytics_shm:get(key) or 0
         total_count = total_count + count
     end
-    
+
     return total_count
 end
 
@@ -750,7 +750,7 @@ end
 ---
 function analytics_dashboard.generate_executive_kpis(config)
     local current_time = ngx.time()
-    
+
     return {
         generated_at = current_time,
         security_posture = {
@@ -768,7 +768,7 @@ function analytics_dashboard.generate_executive_kpis(config)
         },
         compliance_status = {
             pci_dss = "COMPLIANT",
-            gdpr = "COMPLIANT", 
+            gdpr = "COMPLIANT",
             sox = "COMPLIANT",
             last_audit = current_time - 86400  -- 1 day ago
         },
@@ -789,15 +789,15 @@ end
 function analytics_dashboard.handle_dashboard_request(config)
     local request_path = kong.request.get_path()
     local analytics_path = config.analytics_endpoint_path or "/_guard_ai/analytics"
-    
+
     if not string.find(request_path, analytics_path, 1, true) then
         return false
     end
-    
+
     -- Extract dashboard endpoint
     local endpoint = string.sub(request_path, #analytics_path + 1)
     local response_data = {}
-    
+
     if endpoint == "/kpis" or endpoint == "/kpis/" then
         response_data = analytics_dashboard.generate_executive_kpis(config)
     elseif endpoint == "/threats" or endpoint == "/threats/" then
@@ -816,11 +816,11 @@ function analytics_dashboard.handle_dashboard_request(config)
             available_endpoints = {"/kpis", "/threats", "/geo", "/predictions", "/compliance"}
         }
     end
-    
+
     kong.response.set_status(200)
     kong.response.set_header("Content-Type", "application/json")
     kong.response.exit(200, response_data)
-    
+
     return true
 end
 
@@ -831,7 +831,7 @@ end
 ---
 function analytics_dashboard.get_real_time_threats(config)
     local current_time = ngx.time()
-    
+
     return {
         timestamp = current_time,
         active_threats = {

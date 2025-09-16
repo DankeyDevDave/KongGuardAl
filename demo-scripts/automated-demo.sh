@@ -29,9 +29,9 @@ send_attack() {
     local path="$4"
     local query="$5"
     local body="$6"
-    
+
     echo -e "${CYAN}[$(date +%H:%M:%S)]${NC} ${YELLOW}Launching:${NC} $description"
-    
+
     curl -s -X POST "$AI_SERVICE/analyze" \
         -H "Content-Type: application/json" \
         -d "{
@@ -54,7 +54,7 @@ send_attack() {
                 \"anomaly_score\": 0.1
             }
         }" > /dev/null
-    
+
     sleep 2
 }
 
@@ -166,7 +166,7 @@ echo ""
 echo "Demo Highlights Demonstrated:"
 echo -e "  ${GREEN}✓${NC} Real-time AI threat analysis"
 echo -e "  ${GREEN}✓${NC} SQL injection detection"
-echo -e "  ${GREEN}✓${NC} XSS attack prevention" 
+echo -e "  ${GREEN}✓${NC} XSS attack prevention"
 echo -e "  ${GREEN}✓${NC} Path traversal blocking"
 echo -e "  ${GREEN}✓${NC} Zero-day pattern recognition"
 echo -e "  ${GREEN}✓${NC} DDoS attack mitigation"

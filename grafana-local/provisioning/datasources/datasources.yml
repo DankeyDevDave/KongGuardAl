@@ -13,7 +13,7 @@ datasources:
     access: proxy
     url: http://host.docker.internal:18002/metrics
     editable: true
-    
+
   - name: PostgreSQL
     type: postgres
     access: proxy

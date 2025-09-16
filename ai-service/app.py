@@ -4,25 +4,32 @@ Kong Guard AI - Enterprise AI Threat Analysis Service
 Real-time AI-powered threat detection using LLMs
 """
 
-import os
+import asyncio
 import json
-import time
-import hashlib
+import logging
+import os
 import subprocess
-import threading
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta, timezone
-from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
+import sys
+import time
+from collections import defaultdict
+from collections import deque
+from datetime import UTC
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+from typing import Optional
+
+import httpx
+import uvicorn
+from fastapi import BackgroundTasks
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel, Field
-import uvicorn
-import httpx
-from collections import defaultdict, deque
-import asyncio
-import logging
-import sys
-from pathlib import Path
+from pydantic import BaseModel
+from pydantic import Field
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +41,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Import ML models
 try:
     from ml_models.model_manager import ModelManager
+
     ML_ENABLED = True
     logger.info("ML models loaded successfully")
 except ImportError as e:
@@ -44,7 +52,7 @@ except ImportError as e:
 app = FastAPI(
     title="Kong Guard AI - Threat Analysis Service",
     description="Enterprise AI-powered API threat detection",
-    version="2.0.0"
+    version="2.0.0",
 )
 
 # CORS configuration
@@ -60,9 +68,10 @@ app.add_middleware(
 # WebSocket Connection Manager
 # ============================================================================
 
+
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -82,6 +91,7 @@ class ConnectionManager:
                 # Remove dead connections
                 self.active_connections.remove(connection)
 
+
 manager = ConnectionManager()
 
 # ============================================================================
@@ -99,6 +109,7 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 # Data Models
 # ============================================================================
 
+
 class RequestFeatures(BaseModel):
     method: str
     path: str
@@ -111,7 +122,8 @@ class RequestFeatures(BaseModel):
     hour_of_day: int
     query: Optional[str] = ""
     body: Optional[str] = ""
-    headers: Optional[Dict[str, str]] = {}
+    headers: Optional[dict[str, str]] = {}
+
 
 class RequestContext(BaseModel):
     previous_requests: int = 0
@@ -120,10 +132,12 @@ class RequestContext(BaseModel):
     ip_reputation: Optional[str] = "unknown"
     geo_location: Optional[str] = None
 
+
 class ThreatAnalysisRequest(BaseModel):
     features: RequestFeatures
     context: RequestContext
-    config: Optional[Dict[str, Any]] = {}
+    config: Optional[dict[str, Any]] = {}
+
 
 class ThreatAnalysisResponse(BaseModel):
     threat_score: float = Field(ge=0.0, le=1.0)
@@ -131,14 +145,16 @@ class ThreatAnalysisResponse(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     reasoning: str
     recommended_action: str
-    indicators: List[str]
+    indicators: list[str]
     ai_model: str
     processing_time: float
-    detailed_analysis: Optional[Dict[str, Any]] = None
+    detailed_analysis: Optional[dict[str, Any]] = None
+
 
 # ============================================================================
 # Threat Intelligence Database (In-Memory)
 # ============================================================================
+
 
 class ThreatIntelligence:
     def __init__(self):
@@ -147,55 +163,49 @@ class ThreatIntelligence:
         self.attack_patterns = deque(maxlen=1000)
         self.false_positives = set()
         self.threat_signatures = self._load_threat_signatures()
-        
+
     def _load_threat_signatures(self):
         """Load known threat signatures"""
         return {
             "sql_injection": [
-                "union select", "drop table", "'; drop", "1=1", "or 1=1",
-                "exec(", "execute(", "sp_executesql", "xp_cmdshell"
+                "union select",
+                "drop table",
+                "'; drop",
+                "1=1",
+                "or 1=1",
+                "exec(",
+                "execute(",
+                "sp_executesql",
+                "xp_cmdshell",
             ],
-            "xss": [
-                "<script", "javascript:", "onerror=", "onload=", 
-                "alert(", "document.cookie", "eval(", "<iframe"
-            ],
-            "path_traversal": [
-                "../", "..\\", "%2e%2e", "/etc/passwd", 
-                "c:\\windows", "/proc/self"
-            ],
-            "command_injection": [
-                "; ls", "| cat", "&& whoami", "$(", "`", 
-                "| nc ", "; wget", "&& curl"
-            ],
-            "xxe": [
-                "<!DOCTYPE", "<!ENTITY", "SYSTEM", "file://", 
-                "php://", "expect://", "data:text"
-            ],
-            "log4j": [
-                "${jndi:", "${ldap:", "${rmi:", "${dns:", "${env:"
-            ]
+            "xss": ["<script", "javascript:", "onerror=", "onload=", "alert(", "document.cookie", "eval(", "<iframe"],
+            "path_traversal": ["../", "..\\", "%2e%2e", "/etc/passwd", "c:\\windows", "/proc/self"],
+            "command_injection": ["; ls", "| cat", "&& whoami", "$(", "`", "| nc ", "; wget", "&& curl"],
+            "xxe": ["<!DOCTYPE", "<!ENTITY", "SYSTEM", "file://", "php://", "expect://", "data:text"],
+            "log4j": ["${jndi:", "${ldap:", "${rmi:", "${dns:", "${env:"],
         }
-    
+
     def add_threat(self, ip: str, threat_type: str):
         self.known_attacks[threat_type] += 1
         if self.known_attacks[threat_type] > 10:
             self.blocked_ips.add(ip)
-    
+
     def is_blocked(self, ip: str) -> bool:
         return ip in self.blocked_ips
-    
-    def check_signatures(self, content: str) -> List[str]:
+
+    def check_signatures(self, content: str) -> list[str]:
         """Check content against threat signatures"""
         found_threats = []
         content_lower = content.lower()
-        
+
         for threat_type, patterns in self.threat_signatures.items():
             for pattern in patterns:
                 if pattern.lower() in content_lower:
                     found_threats.append(threat_type)
                     break
-        
+
         return found_threats
+
 
 threat_intel = ThreatIntelligence()
 
@@ -210,53 +220,49 @@ else:
 # AI Providers
 # ============================================================================
 
+
 class AIProvider:
-    async def analyze(self, features: RequestFeatures, context: RequestContext) -> Dict:
+    async def analyze(self, features: RequestFeatures, context: RequestContext) -> dict:
         raise NotImplementedError
+
 
 class OpenAIProvider(AIProvider):
     def __init__(self):
         self.api_key = OPENAI_API_KEY
         self.model = "gpt-4o-mini"  # Fast and cost-effective
         self.url = "https://api.openai.com/v1/chat/completions"
-    
-    async def analyze(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    async def analyze(self, features: RequestFeatures, context: RequestContext) -> dict:
         if not self.api_key:
             raise HTTPException(status_code=500, detail="OpenAI API key not configured")
-        
+
         prompt = self._build_prompt(features, context)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
                     self.url,
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
+                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
                     json={
                         "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": SYSTEM_PROMPT},
-                            {"role": "user", "content": prompt}
-                        ],
+                        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
                         "temperature": 0.1,
                         "max_tokens": 500,
-                        "response_format": {"type": "json_object"}
+                        "response_format": {"type": "json_object"},
                     },
-                    timeout=10.0
+                    timeout=10.0,
                 )
                 response.raise_for_status()
                 data = response.json()
-                
+
                 # Parse the AI response
                 ai_content = data["choices"][0]["message"]["content"]
                 return json.loads(ai_content)
-                
+
             except Exception as e:
                 logger.error(f"OpenAI API error: {e}")
                 return self._fallback_analysis(features, context)
-    
+
     def _build_prompt(self, features: RequestFeatures, context: RequestContext) -> str:
         return f"""Analyze this HTTP request for security threats:
 
@@ -269,12 +275,12 @@ Failed Auth Attempts: {context.failed_attempts}
 Anomaly Score: {context.anomaly_score}
 
 Identify threats and return JSON with: threat_score (0-1), threat_type, confidence (0-1), reasoning, recommended_action (block/rate_limit/monitor/allow), indicators (list)"""
-    
-    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> dict:
         """Fallback to signature-based detection"""
         content = f"{features.path} {features.query} {features.body or ''}"
         threats = threat_intel.check_signatures(content)
-        
+
         if threats:
             return {
                 "threat_score": 0.9,
@@ -282,7 +288,7 @@ Identify threats and return JSON with: threat_score (0-1), threat_type, confiden
                 "confidence": 0.8,
                 "reasoning": f"Signature match for {threats[0]}",
                 "recommended_action": "block",
-                "indicators": threats
+                "indicators": threats,
             }
         return {
             "threat_score": 0.0,
@@ -290,52 +296,48 @@ Identify threats and return JSON with: threat_score (0-1), threat_type, confiden
             "confidence": 0.9,
             "reasoning": "No threats detected",
             "recommended_action": "allow",
-            "indicators": []
+            "indicators": [],
         }
+
 
 class GroqProvider(AIProvider):
     """Ultra-fast inference with Groq"""
+
     def __init__(self):
         self.api_key = GROQ_API_KEY
         self.model = "mixtral-8x7b-32768"  # Fast Mixtral model
         self.url = "https://api.groq.com/openai/v1/chat/completions"
-    
-    async def analyze(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    async def analyze(self, features: RequestFeatures, context: RequestContext) -> dict:
         if not self.api_key:
             raise HTTPException(status_code=500, detail="Groq API key not configured")
-        
+
         prompt = self._build_prompt(features, context)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
                     self.url,
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
+                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
                     json={
                         "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": SYSTEM_PROMPT},
-                            {"role": "user", "content": prompt}
-                        ],
+                        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
                         "temperature": 0.1,
-                        "max_tokens": 500
+                        "max_tokens": 500,
                     },
-                    timeout=5.0  # Groq is very fast
+                    timeout=5.0,  # Groq is very fast
                 )
                 response.raise_for_status()
                 data = response.json()
-                
+
                 # Parse the AI response
                 ai_content = data["choices"][0]["message"]["content"]
                 return self._parse_ai_response(ai_content)
-                
+
             except Exception as e:
                 logger.error(f"Groq API error: {e}")
                 return self._fallback_analysis(features, context)
-    
+
     def _build_prompt(self, features: RequestFeatures, context: RequestContext) -> str:
         return f"""Analyze HTTP request for threats:
 Method: {features.method} {features.path}
@@ -344,17 +346,18 @@ Query: {features.query}
 Body: {features.body[:200] if features.body else 'None'}
 
 Return JSON: threat_score, threat_type, confidence, reasoning, recommended_action, indicators"""
-    
-    def _parse_ai_response(self, content: str) -> Dict:
+
+    def _parse_ai_response(self, content: str) -> dict:
         try:
             # Try to extract JSON from the response
             import re
-            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
         except:
             pass
-        
+
         # Fallback parsing
         return {
             "threat_score": 0.5,
@@ -362,13 +365,13 @@ Return JSON: threat_score, threat_type, confidence, reasoning, recommended_actio
             "confidence": 0.5,
             "reasoning": content[:200],
             "recommended_action": "monitor",
-            "indicators": []
+            "indicators": [],
         }
-    
-    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> dict:
         content = f"{features.path} {features.query} {features.body or ''}"
         threats = threat_intel.check_signatures(content)
-        
+
         if threats:
             return {
                 "threat_score": 0.9,
@@ -376,7 +379,7 @@ Return JSON: threat_score, threat_type, confidence, reasoning, recommended_actio
                 "confidence": 0.8,
                 "reasoning": f"Signature match for {threats[0]}",
                 "recommended_action": "block",
-                "indicators": threats
+                "indicators": threats,
             }
         return {
             "threat_score": 0.0,
@@ -384,65 +387,56 @@ Return JSON: threat_score, threat_type, confidence, reasoning, recommended_actio
             "confidence": 0.9,
             "reasoning": "No threats detected",
             "recommended_action": "allow",
-            "indicators": []
+            "indicators": [],
         }
+
 
 class GeminiProvider(AIProvider):
     """Google Gemini Flash 2.5 - Fast and efficient"""
+
     def __init__(self):
         self.api_key = GEMINI_API_KEY
         self.model = "gemini-2.0-flash-exp"  # Latest Flash 2.5 model
         self.url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
-    
-    async def analyze(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    async def analyze(self, features: RequestFeatures, context: RequestContext) -> dict:
         if not self.api_key:
             raise HTTPException(status_code=500, detail="Gemini API key not configured")
-        
+
         prompt = self._build_prompt(features, context)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
                     f"{self.url}?key={self.api_key}",
-                    headers={
-                        "Content-Type": "application/json"
-                    },
+                    headers={"Content-Type": "application/json"},
                     json={
-                        "contents": [{
-                            "parts": [{
-                                "text": f"{SYSTEM_PROMPT}\n\n{prompt}"
-                            }]
-                        }],
+                        "contents": [{"parts": [{"text": f"{SYSTEM_PROMPT}\n\n{prompt}"}]}],
                         "generationConfig": {
                             "temperature": 0.1,
                             "topP": 0.1,
                             "topK": 1,
                             "maxOutputTokens": 1024,
-                            "responseMimeType": "application/json"
+                            "responseMimeType": "application/json",
                         },
-                        "safetySettings": [
-                            {
-                                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                                "threshold": "BLOCK_NONE"
-                            }
-                        ]
+                        "safetySettings": [{"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}],
                     },
-                    timeout=10.0
+                    timeout=10.0,
                 )
                 response.raise_for_status()
                 data = response.json()
-                
+
                 # Parse Gemini response
                 if "candidates" in data and data["candidates"]:
                     content = data["candidates"][0]["content"]["parts"][0]["text"]
                     return json.loads(content)
                 else:
                     return self._fallback_analysis(features, context)
-                    
+
             except Exception as e:
                 logger.error(f"Gemini API error: {e}")
                 return self._fallback_analysis(features, context)
-    
+
     def _build_prompt(self, features: RequestFeatures, context: RequestContext) -> str:
         return f"""Analyze this HTTP request for security threats:
 
@@ -466,12 +460,12 @@ Identify all security threats and return a JSON response with these exact fields
     "recommended_action": "(block|rate_limit|monitor|allow)",
     "indicators": ["list", "of", "threat", "indicators"]
 }}"""
-    
-    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> dict:
         """Fallback to signature-based detection"""
         content = f"{features.path} {features.query} {features.body or ''}"
         threats = threat_intel.check_signatures(content)
-        
+
         if threats:
             return {
                 "threat_score": 0.9,
@@ -479,9 +473,9 @@ Identify all security threats and return a JSON response with these exact fields
                 "confidence": 0.8,
                 "reasoning": f"Signature match for {threats[0]}",
                 "recommended_action": "block",
-                "indicators": threats
+                "indicators": threats,
             }
-        
+
         # Check for rate-based threats
         if features.requests_per_minute > 100:
             return {
@@ -490,27 +484,29 @@ Identify all security threats and return a JSON response with these exact fields
                 "confidence": 0.75,
                 "reasoning": f"High request rate: {features.requests_per_minute}/min",
                 "recommended_action": "rate_limit",
-                "indicators": ["high_request_rate"]
+                "indicators": ["high_request_rate"],
             }
-        
+
         return {
             "threat_score": 0.0,
             "threat_type": "none",
             "confidence": 0.9,
             "reasoning": "No threats detected",
             "recommended_action": "allow",
-            "indicators": []
+            "indicators": [],
         }
+
 
 class SignatureBasedProvider(AIProvider):
     """Fallback provider using signature-based detection"""
+
     def __init__(self):
         self.threat_intel = threat_intel
-    
-    async def analyze(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    async def analyze(self, features: RequestFeatures, context: RequestContext) -> dict:
         content = f"{features.path} {features.query} {features.body or ''}"
         threats = self.threat_intel.check_signatures(content)
-        
+
         if threats:
             return {
                 "threat_score": 0.9,
@@ -518,9 +514,9 @@ class SignatureBasedProvider(AIProvider):
                 "confidence": 0.8,
                 "reasoning": f"Signature match for {threats[0]}",
                 "recommended_action": "block",
-                "indicators": threats
+                "indicators": threats,
             }
-        
+
         # Check for rate-based threats
         if features.requests_per_minute > 100:
             return {
@@ -529,49 +525,46 @@ class SignatureBasedProvider(AIProvider):
                 "confidence": 0.75,
                 "reasoning": f"High request rate: {features.requests_per_minute}/min",
                 "recommended_action": "rate_limit",
-                "indicators": ["high_request_rate"]
+                "indicators": ["high_request_rate"],
             }
-        
+
         return {
             "threat_score": 0.0,
             "threat_type": "none",
             "confidence": 0.9,
             "reasoning": "No threats detected",
             "recommended_action": "allow",
-            "indicators": []
+            "indicators": [],
         }
+
 
 class OllamaProvider(AIProvider):
     """Local LLM with Ollama"""
+
     def __init__(self):
         self.url = f"{OLLAMA_URL}/api/generate"
         self.model = "llama2"  # or "mistral", "codellama", etc.
-    
-    async def analyze(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    async def analyze(self, features: RequestFeatures, context: RequestContext) -> dict:
         prompt = self._build_prompt(features, context)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
                     self.url,
-                    json={
-                        "model": self.model,
-                        "prompt": prompt,
-                        "stream": False,
-                        "temperature": 0.1
-                    },
-                    timeout=30.0
+                    json={"model": self.model, "prompt": prompt, "stream": False, "temperature": 0.1},
+                    timeout=30.0,
                 )
                 response.raise_for_status()
                 data = response.json()
-                
+
                 # Parse the response
                 return self._parse_response(data.get("response", ""))
-                
+
             except Exception as e:
                 logger.error(f"Ollama error: {e}")
                 return self._fallback_analysis(features, context)
-    
+
     def _build_prompt(self, features: RequestFeatures, context: RequestContext) -> str:
         return f"""Analyze this HTTP request for security threats. Return only JSON.
 
@@ -581,17 +574,18 @@ Body: {features.body[:200] if features.body else 'None'}
 Client: {features.client_ip} ({features.requests_per_minute} req/min)
 
 JSON format: {{"threat_score": 0-1, "threat_type": "type", "confidence": 0-1, "reasoning": "why", "recommended_action": "block|allow|monitor", "indicators": ["list"]}}"""
-    
-    def _parse_response(self, response: str) -> Dict:
+
+    def _parse_response(self, response: str) -> dict:
         try:
             # Extract JSON from response
             import re
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+
+            json_match = re.search(r"\{.*\}", response, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
         except:
             pass
-        
+
         # Basic analysis if JSON parsing fails
         response_lower = response.lower()
         if any(word in response_lower for word in ["sql", "injection", "attack", "malicious"]):
@@ -601,22 +595,22 @@ JSON format: {{"threat_score": 0-1, "threat_type": "type", "confidence": 0-1, "r
                 "confidence": 0.6,
                 "reasoning": "AI detected suspicious patterns",
                 "recommended_action": "block",
-                "indicators": ["ai_detection"]
+                "indicators": ["ai_detection"],
             }
-        
+
         return {
             "threat_score": 0.1,
             "threat_type": "none",
             "confidence": 0.7,
             "reasoning": "No clear threats identified",
             "recommended_action": "allow",
-            "indicators": []
+            "indicators": [],
         }
-    
-    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> Dict:
+
+    def _fallback_analysis(self, features: RequestFeatures, context: RequestContext) -> dict:
         content = f"{features.path} {features.query} {features.body or ''}"
         threats = threat_intel.check_signatures(content)
-        
+
         if threats:
             return {
                 "threat_score": 0.9,
@@ -624,7 +618,7 @@ JSON format: {{"threat_score": 0-1, "threat_type": "type", "confidence": 0-1, "r
                 "confidence": 0.8,
                 "reasoning": f"Signature match for {threats[0]}",
                 "recommended_action": "block",
-                "indicators": threats
+                "indicators": threats,
             }
         return {
             "threat_score": 0.0,
@@ -632,8 +626,9 @@ JSON format: {{"threat_score": 0-1, "threat_type": "type", "confidence": 0-1, "r
             "confidence": 0.9,
             "reasoning": "No threats detected",
             "recommended_action": "allow",
-            "indicators": []
+            "indicators": [],
         }
+
 
 # ============================================================================
 # System Prompt for AI
@@ -642,7 +637,7 @@ JSON format: {{"threat_score": 0-1, "threat_type": "type", "confidence": 0-1, "r
 SYSTEM_PROMPT = """You are an advanced API security AI specializing in threat detection.
 Analyze HTTP requests for security threats including:
 - SQL Injection
-- XSS (Cross-site scripting)  
+- XSS (Cross-site scripting)
 - Command injection
 - Path traversal
 - XXE attacks
@@ -664,6 +659,7 @@ Provide analysis as JSON with these fields:
 # AI Provider Factory
 # ============================================================================
 
+
 def get_ai_provider() -> AIProvider:
     """Get the configured AI provider"""
     if AI_PROVIDER == "openai" and OPENAI_API_KEY:
@@ -678,9 +674,11 @@ def get_ai_provider() -> AIProvider:
         # Default to signature-based detection when no API keys are available
         return SignatureBasedProvider()
 
+
 # ============================================================================
 # API Endpoints
 # ============================================================================
+
 
 @app.get("/")
 async def root():
@@ -695,70 +693,73 @@ async def root():
             "Multiple AI provider support",
             "Threat signature detection",
             "Learning from feedback",
-            "High-performance inference"
-        ]
+            "High-performance inference",
+        ],
     }
+
 
 @app.post("/analyze", response_model=ThreatAnalysisResponse)
 async def analyze_threat(request: ThreatAnalysisRequest):
     """Analyze a request for threats using AI and ML models"""
     start_time = time.time()
-    
+
     # Try ML-based analysis first if available
     if ML_ENABLED and model_manager:
         try:
             # Convert request to ML format
             ml_request = {
-                'method': request.features.method,
-                'path': request.features.path,
-                'client_ip': request.features.client_ip,
-                'user_agent': request.features.user_agent,
-                'requests_per_minute': request.features.requests_per_minute,
-                'content_length': request.features.content_length,
-                'query_params': {},  # Would need to parse from query
-                'headers': request.features.headers or {},
-                'query': request.features.query,
-                'body': request.features.body,
+                "method": request.features.method,
+                "path": request.features.path,
+                "client_ip": request.features.client_ip,
+                "user_agent": request.features.user_agent,
+                "requests_per_minute": request.features.requests_per_minute,
+                "content_length": request.features.content_length,
+                "query_params": {},  # Would need to parse from query
+                "headers": request.features.headers or {},
+                "query": request.features.query,
+                "body": request.features.body,
             }
-            
+
             # Get ML analysis
             ml_result = model_manager.analyze_request(ml_request)
-            
+
             # Convert ML result to response format
-            if ml_result['threat_score'] > 0.3:
+            if ml_result["threat_score"] > 0.3:
                 # Broadcast to WebSocket
-                await broadcast_threat_analysis({
-                    "type": "ml_threat_analysis",
-                    "threat_score": ml_result['threat_score'],
-                    "threat_type": ml_result['classification']['attack_type'],
-                    "confidence": ml_result['classification']['confidence'],
-                    "reasoning": ml_result['anomaly']['reason'],
-                    "recommended_action": ml_result['action']['action'],
-                    "method": request.features.method,
-                    "path": request.features.path,
-                    "client_ip": request.features.client_ip,
-                    "processing_time_ms": ml_result['processing_time_ms'],
-                    "timestamp": datetime.now().isoformat()
-                })
-                
+                await broadcast_threat_analysis(
+                    {
+                        "type": "ml_threat_analysis",
+                        "threat_score": ml_result["threat_score"],
+                        "threat_type": ml_result["classification"]["attack_type"],
+                        "confidence": ml_result["classification"]["confidence"],
+                        "reasoning": ml_result["anomaly"]["reason"],
+                        "recommended_action": ml_result["action"]["action"],
+                        "method": request.features.method,
+                        "path": request.features.path,
+                        "client_ip": request.features.client_ip,
+                        "processing_time_ms": ml_result["processing_time_ms"],
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+
                 return ThreatAnalysisResponse(
-                    threat_score=ml_result['threat_score'],
-                    threat_type=ml_result['classification']['attack_type'],
-                    confidence=ml_result['classification']['confidence'],
+                    threat_score=ml_result["threat_score"],
+                    threat_type=ml_result["classification"]["attack_type"],
+                    confidence=ml_result["classification"]["confidence"],
                     reasoning=f"ML: {ml_result['anomaly']['reason']}",
-                    recommended_action=ml_result['action']['action'],
-                    indicators=ml_result['classification']['top_3'],
+                    recommended_action=ml_result["action"]["action"],
+                    indicators=ml_result["classification"]["top_3"],
                     ai_model="ml/ensemble",
                     processing_time=time.time() - start_time,
-                    detailed_analysis=ml_result
+                    detailed_analysis=ml_result,
                 )
         except Exception as e:
             logger.warning(f"ML analysis failed, falling back to AI: {e}")
             # Continue with AI analysis
-    
+
     # Original AI-based analysis code follows
     start_time = time.time()  # Reset for AI analysis
-    
+
     # Check if IP is already blocked
     if threat_intel.is_blocked(request.features.client_ip):
         return ThreatAnalysisResponse(
@@ -769,23 +770,20 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             recommended_action="block",
             indicators=["blocklist"],
             ai_model="threat_intel",
-            processing_time=time.time() - start_time
+            processing_time=time.time() - start_time,
         )
-    
+
     # Get AI provider
     ai_provider = get_ai_provider()
-    
+
     try:
         # Perform AI analysis
         ai_result = await ai_provider.analyze(request.features, request.context)
-        
+
         # Track threats
         if ai_result.get("threat_score", 0) > 0.8:
-            threat_intel.add_threat(
-                request.features.client_ip,
-                ai_result.get("threat_type", "unknown")
-            )
-        
+            threat_intel.add_threat(request.features.client_ip, ai_result.get("threat_type", "unknown"))
+
         # Build response
         response = ThreatAnalysisResponse(
             threat_score=ai_result.get("threat_score", 0),
@@ -796,37 +794,39 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             indicators=ai_result.get("indicators", []),
             ai_model=f"{AI_PROVIDER}/{getattr(ai_provider, 'model', 'unknown')}",
             processing_time=time.time() - start_time,
-            detailed_analysis=ai_result
+            detailed_analysis=ai_result,
         )
-        
+
         # Broadcast to WebSocket clients
         try:
-            await broadcast_threat_analysis({
-                "type": "threat_analysis",
-                "threat_score": response.threat_score,
-                "threat_type": response.threat_type,
-                "confidence": response.confidence,
-                "reasoning": response.reasoning,
-                "recommended_action": response.recommended_action,
-                "method": request.features.method,
-                "path": request.features.path,
-                "client_ip": request.features.client_ip,
-                "query": request.features.query,
-                "processing_time_ms": response.processing_time * 1000,
-                "timestamp": datetime.now().isoformat()
-            })
+            await broadcast_threat_analysis(
+                {
+                    "type": "threat_analysis",
+                    "threat_score": response.threat_score,
+                    "threat_type": response.threat_type,
+                    "confidence": response.confidence,
+                    "reasoning": response.reasoning,
+                    "recommended_action": response.recommended_action,
+                    "method": request.features.method,
+                    "path": request.features.path,
+                    "client_ip": request.features.client_ip,
+                    "query": request.features.query,
+                    "processing_time_ms": response.processing_time * 1000,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
         except Exception as ws_error:
             logger.warning(f"WebSocket broadcast failed: {ws_error}")
-        
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Analysis error: {e}")
-        
+
         # Fallback to signature detection
         content = f"{request.features.path} {request.features.query} {request.features.body or ''}"
         threats = threat_intel.check_signatures(content)
-        
+
         if threats:
             return ThreatAnalysisResponse(
                 threat_score=0.9,
@@ -836,9 +836,9 @@ async def analyze_threat(request: ThreatAnalysisRequest):
                 recommended_action="block",
                 indicators=threats,
                 ai_model="signature_detection",
-                processing_time=time.time() - start_time
+                processing_time=time.time() - start_time,
             )
-        
+
         return ThreatAnalysisResponse(
             threat_score=0.0,
             threat_type="none",
@@ -847,15 +847,12 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             recommended_action="allow",
             indicators=[],
             ai_model="fallback",
-            processing_time=time.time() - start_time
+            processing_time=time.time() - start_time,
         )
 
+
 @app.post("/feedback")
-async def provide_feedback(
-    threat_id: str,
-    false_positive: bool = False,
-    confirmed_threat: bool = False
-):
+async def provide_feedback(threat_id: str, false_positive: bool = False, confirmed_threat: bool = False):
     """Provide feedback on threat detection"""
     # In production, this would update the model or adjust thresholds
     if false_positive:
@@ -865,6 +862,7 @@ async def provide_feedback(
         return {"status": "recorded", "action": "threat_confirmed"}
     return {"status": "no_action"}
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -873,49 +871,51 @@ async def health_check():
         "service": "Kong Guard AI",
         "ai_provider": AI_PROVIDER,
         "ml_enabled": ML_ENABLED,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
+
 
 @app.get("/metrics", response_class=PlainTextResponse)
 async def get_metrics():
     """Prometheus metrics endpoint"""
     metrics = []
-    
+
     # Service status
     metrics.append("# HELP kong_guard_ai_up Kong Guard AI service status")
     metrics.append("# TYPE kong_guard_ai_up gauge")
     metrics.append("kong_guard_ai_up 1")
-    
+
     # Threat metrics
     total_threats = sum(threat_intel.known_attacks.values())
-    metrics.append(f"# HELP kong_guard_threats_detected_total Total threats detected")
-    metrics.append(f"# TYPE kong_guard_threats_detected_total counter")
+    metrics.append("# HELP kong_guard_threats_detected_total Total threats detected")
+    metrics.append("# TYPE kong_guard_threats_detected_total counter")
     metrics.append(f"kong_guard_threats_detected_total {total_threats}")
-    
+
     # Threat by type
     metrics.append("# HELP kong_guard_threats_by_type Threats by type")
     metrics.append("# TYPE kong_guard_threats_by_type gauge")
     for threat_type, count in threat_intel.known_attacks.items():
         metrics.append(f'kong_guard_threats_by_type{{threat_type="{threat_type}"}} {count}')
-    
+
     # Blocked IPs
-    metrics.append(f"# HELP kong_guard_blocked_ips_total Total blocked IPs")
-    metrics.append(f"# TYPE kong_guard_blocked_ips_total gauge")
+    metrics.append("# HELP kong_guard_blocked_ips_total Total blocked IPs")
+    metrics.append("# TYPE kong_guard_blocked_ips_total gauge")
     metrics.append(f"kong_guard_blocked_ips_total {len(threat_intel.blocked_ips)}")
-    
+
     # False positives
-    metrics.append(f"# HELP kong_guard_false_positives_total Total false positives")
-    metrics.append(f"# TYPE kong_guard_false_positives_total gauge")
+    metrics.append("# HELP kong_guard_false_positives_total Total false positives")
+    metrics.append("# TYPE kong_guard_false_positives_total gauge")
     metrics.append(f"kong_guard_false_positives_total {len(threat_intel.false_positives)}")
-    
+
     # ML model metrics if available
     if ML_ENABLED and model_manager:
         model_status = model_manager.get_model_status()
-        metrics.append(f"# HELP kong_guard_ml_models_loaded ML models loaded")
-        metrics.append(f"# TYPE kong_guard_ml_models_loaded gauge")
+        metrics.append("# HELP kong_guard_ml_models_loaded ML models loaded")
+        metrics.append("# TYPE kong_guard_ml_models_loaded gauge")
         metrics.append(f"kong_guard_ml_models_loaded {1 if model_status.get('models_loaded') else 0}")
-    
+
     return "\n".join(metrics)
+
 
 @app.get("/stats")
 async def get_statistics():
@@ -925,33 +925,36 @@ async def get_statistics():
         "threat_types": dict(threat_intel.known_attacks),
         "blocked_ips": len(threat_intel.blocked_ips),
         "false_positives": len(threat_intel.false_positives),
-        "ai_provider": AI_PROVIDER
+        "ai_provider": AI_PROVIDER,
     }
-    
+
     # Add ML model stats if available
     if ML_ENABLED and model_manager:
         stats["ml_models"] = model_manager.get_model_status()
-    
+
     return stats
+
 
 # ============================================================================
 # ML Model Management Endpoints
 # ============================================================================
+
 
 @app.get("/ml/status")
 async def get_ml_status():
     """Get ML model status and metrics"""
     if not ML_ENABLED or not model_manager:
         raise HTTPException(status_code=503, detail="ML models not available")
-    
+
     return model_manager.get_model_status()
+
 
 @app.post("/ml/train")
 async def train_ml_models(background_tasks: BackgroundTasks):
     """Trigger ML model training"""
     if not ML_ENABLED or not model_manager:
         raise HTTPException(status_code=503, detail="ML models not available")
-    
+
     # Run training in background
     def train_task():
         try:
@@ -961,70 +964,71 @@ async def train_ml_models(background_tasks: BackgroundTasks):
             logger.info("ML model training complete")
         except Exception as e:
             logger.error(f"Training failed: {e}")
-    
+
     background_tasks.add_task(train_task)
     return {"status": "training_started", "message": "Model training initiated in background"}
 
+
 @app.post("/ml/feedback")
-async def provide_ml_feedback(
-    request_id: str,
-    correct_label: str,
-    was_correct: bool
-):
+async def provide_ml_feedback(request_id: str, correct_label: str, was_correct: bool):
     """Provide feedback to ML models for continuous learning"""
     if not ML_ENABLED or not model_manager:
         raise HTTPException(status_code=503, detail="ML models not available")
-    
+
     model_manager.provide_feedback(request_id, correct_label, was_correct)
     return {"status": "feedback_recorded"}
+
 
 @app.post("/ml/analyze")
 async def analyze_with_ml(request: ThreatAnalysisRequest):
     """Direct ML-only analysis endpoint"""
     if not ML_ENABLED or not model_manager:
         raise HTTPException(status_code=503, detail="ML models not available")
-    
+
     start_time = time.time()
-    
+
     # Convert to ML format
     ml_request = {
-        'method': request.features.method,
-        'path': request.features.path,
-        'client_ip': request.features.client_ip,
-        'user_agent': request.features.user_agent,
-        'requests_per_minute': request.features.requests_per_minute,
-        'content_length': request.features.content_length,
-        'query_params': {},
-        'headers': request.features.headers or {},
-        'query': request.features.query,
-        'body': request.features.body,
+        "method": request.features.method,
+        "path": request.features.path,
+        "client_ip": request.features.client_ip,
+        "user_agent": request.features.user_agent,
+        "requests_per_minute": request.features.requests_per_minute,
+        "content_length": request.features.content_length,
+        "query_params": {},
+        "headers": request.features.headers or {},
+        "query": request.features.query,
+        "body": request.features.body,
     }
-    
+
     # Get ML analysis
     ml_result = model_manager.analyze_request(ml_request)
-    
+
     return ThreatAnalysisResponse(
-        threat_score=ml_result['threat_score'],
-        threat_type=ml_result['classification']['attack_type'],
-        confidence=ml_result['classification']['confidence'],
-        reasoning=ml_result['anomaly']['reason'],
-        recommended_action=ml_result['action']['action'],
-        indicators=ml_result['classification']['top_3'],
+        threat_score=ml_result["threat_score"],
+        threat_type=ml_result["classification"]["attack_type"],
+        confidence=ml_result["classification"]["confidence"],
+        reasoning=ml_result["anomaly"]["reason"],
+        recommended_action=ml_result["action"]["action"],
+        indicators=ml_result["classification"]["top_3"],
         ai_model="ml/ensemble",
         processing_time=time.time() - start_time,
-        detailed_analysis=ml_result
+        detailed_analysis=ml_result,
     )
+
 
 # ============================================================================
 # Attack Flood Simulation API
 # ============================================================================
 
+
 class AttackFloodRequest(BaseModel):
     intensity: str = Field(..., description="Attack intensity: low, medium, high, extreme")
     strategy: str = Field(..., description="Attack strategy: wave, sustained, stealth, blended, escalation")
     duration: int = Field(60, description="Attack duration in seconds")
-    targets: List[str] = Field(["unprotected", "cloud", "local"], description="Target tiers")
+    targets: list[str] = Field(["unprotected", "cloud", "local"], description="Target tiers")
     record_metrics: bool = Field(True, description="Record detailed metrics to database")
+
 
 class AttackFloodResponse(BaseModel):
     run_id: int
@@ -1032,14 +1036,17 @@ class AttackFloodResponse(BaseModel):
     message: str
     config: dict
 
+
 class AttackStatsResponse(BaseModel):
     run_id: int
     total_attacks: int
     duration: float
     results_summary: dict
 
+
 # Global attack flood management
 attack_processes = {}
+
 
 @app.post("/api/attack/flood", response_model=AttackFloodResponse)
 async def launch_attack_flood(request: AttackFloodRequest, background_tasks: BackgroundTasks):
@@ -1047,12 +1054,12 @@ async def launch_attack_flood(request: AttackFloodRequest, background_tasks: Bac
     try:
         # Generate unique run ID
         run_id = int(time.time() * 1000)  # Timestamp-based ID
-        
+
         # Validate inputs to prevent command injection
         allowed_intensities = {"low", "medium", "high", "extreme"}
         allowed_strategies = {"wave", "sustained", "stealth", "blended", "escalation"}
         allowed_targets = {"unprotected", "cloud", "local"}
-        
+
         if request.intensity not in allowed_intensities:
             raise HTTPException(status_code=400, detail="Invalid intensity parameter")
         if request.strategy not in allowed_strategies:
@@ -1061,53 +1068,61 @@ async def launch_attack_flood(request: AttackFloodRequest, background_tasks: Bac
             raise HTTPException(status_code=400, detail="Invalid target parameter")
         if not (5 <= request.duration <= 300):  # 5 seconds to 5 minutes
             raise HTTPException(status_code=400, detail="Invalid duration parameter")
-        
+
         # Prepare attack command with validated inputs
         cmd = [
-            "python3", 
+            "python3",
             "attack_flood_simulator.py",
-            "--intensity", request.intensity,
-            "--strategy", request.strategy,
-            "--duration", str(request.duration),
-            "--targets"
+            "--intensity",
+            request.intensity,
+            "--strategy",
+            request.strategy,
+            "--duration",
+            str(request.duration),
+            "--targets",
         ] + request.targets
-        
+
         if not request.record_metrics:
             cmd.append("--no-record")
-        
+
         # Launch attack flood in background
         logger.info(f"Launching attack flood (Run ID: {run_id})")
-        logger.info(f"Sanitized command with validated parameters")
-        
+        logger.info("Sanitized command with validated parameters")
+
         # Start process in background
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd="..",  # Run from parent directory
-            text=True
+            cwd="..",
+            text=True,  # Run from parent directory
         )
-        
+
         attack_processes[run_id] = process
-        
+
         # Send WebSocket notification
-        await manager.broadcast(json.dumps({
-            "type": "attack_flood_started",
-            "run_id": run_id,
-            "config": request.dict(),
-            "timestamp": datetime.now().isoformat()
-        }))
-        
+        await manager.broadcast(
+            json.dumps(
+                {
+                    "type": "attack_flood_started",
+                    "run_id": run_id,
+                    "config": request.dict(),
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+        )
+
         return AttackFloodResponse(
             run_id=run_id,
             status="launched",
             message=f"Attack flood simulation launched with {request.intensity} intensity",
-            config=request.dict()
+            config=request.dict(),
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to launch attack flood: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to launch attack flood: {str(e)}")
+
 
 @app.post("/api/attack/flood/stop/{run_id}")
 async def stop_attack_flood(run_id: int):
@@ -1116,29 +1131,28 @@ async def stop_attack_flood(run_id: int):
         if run_id in attack_processes:
             process = attack_processes[run_id]
             process.terminate()
-            
+
             # Wait for process to terminate
             try:
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 process.kill()  # Force kill if not terminated
-            
+
             del attack_processes[run_id]
-            
+
             # Send WebSocket notification
-            await manager.broadcast(json.dumps({
-                "type": "attack_flood_stopped",
-                "run_id": run_id,
-                "timestamp": datetime.now().isoformat()
-            }))
-            
+            await manager.broadcast(
+                json.dumps({"type": "attack_flood_stopped", "run_id": run_id, "timestamp": datetime.now().isoformat()})
+            )
+
             return {"status": "stopped", "run_id": run_id}
         else:
             raise HTTPException(status_code=404, detail="Attack flood not found")
-            
+
     except Exception as e:
         logger.error(f"Failed to stop attack flood: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to stop attack flood: {str(e)}")
+
 
 @app.get("/api/attack/flood/status/{run_id}")
 async def get_attack_flood_status(run_id: int):
@@ -1146,7 +1160,7 @@ async def get_attack_flood_status(run_id: int):
     try:
         if run_id in attack_processes:
             process = attack_processes[run_id]
-            
+
             # Check if process is still running
             poll = process.poll()
             if poll is None:
@@ -1155,22 +1169,15 @@ async def get_attack_flood_status(run_id: int):
                 status = "completed" if poll == 0 else "failed"
                 # Clean up completed process
                 del attack_processes[run_id]
-            
-            return {
-                "run_id": run_id,
-                "status": status,
-                "return_code": poll
-            }
+
+            return {"run_id": run_id, "status": status, "return_code": poll}
         else:
-            return {
-                "run_id": run_id,
-                "status": "not_found",
-                "return_code": None
-            }
-            
+            return {"run_id": run_id, "status": "not_found", "return_code": None}
+
     except Exception as e:
         logger.error(f"Failed to get attack flood status: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get attack flood status: {str(e)}")
+
 
 @app.get("/api/attack/flood/results/{run_id}", response_model=AttackStatsResponse)
 async def get_attack_flood_results(run_id: int):
@@ -1178,142 +1185,147 @@ async def get_attack_flood_results(run_id: int):
     try:
         # Import Supabase interface
         from supabase_production import SupabaseProduction
-        
+
         # Connect to Supabase
         db = SupabaseProduction()
-        
+
         # Get run metadata using raw SQL
         result = db.execute_query(f"SELECT * FROM attack_runs WHERE run_id = {run_id};")
-        if not result['success'] or 'run_id' not in result['output']:
+        if not result["success"] or "run_id" not in result["output"]:
             raise HTTPException(status_code=404, detail="Attack run not found")
-        
+
         # Parse run data from output
-        lines = result['output'].strip().split('\n')
+        lines = result["output"].strip().split("\n")
         run_data = None
         for i, line in enumerate(lines):
             if str(run_id) in line:
-                run_data = line.split('|')
+                run_data = line.split("|")
                 break
-        
+
         # Get run metadata
-        cursor.execute('SELECT * FROM attack_runs WHERE run_id = ?', (run_id,))
+        cursor.execute("SELECT * FROM attack_runs WHERE run_id = ?", (run_id,))
         run_data = cursor.fetchone()
-        
+
         if not run_data:
             raise HTTPException(status_code=404, detail="Attack run not found")
-        
+
         # Get tier statistics from Supabase
-        stats_result = db.execute_query(f'''
-            SELECT tier, COUNT(*) as total_requests, 
+        stats_result = db.execute_query(
+            f"""
+            SELECT tier, COUNT(*) as total_requests,
                    COUNT(CASE WHEN blocked = true THEN 1 END) as attacks_blocked,
                    ROUND((COUNT(CASE WHEN blocked = true THEN 1 END)::NUMERIC / COUNT(*) * 100), 2) as detection_rate,
                    ROUND(AVG(response_time_ms), 2) as avg_response_time
             FROM attack_metrics WHERE run_id = {run_id}
             GROUP BY tier;
-        ''')
-        
+        """
+        )
+
         tier_stats = []
-        if stats_result['success']:
+        if stats_result["success"]:
             # Parse output into tier stats
-            lines = stats_result['output'].strip().split('\n')
+            lines = stats_result["output"].strip().split("\n")
             for line in lines[2:]:  # Skip header lines
-                if '|' in line:
-                    parts = [p.strip() for p in line.split('|')]
+                if "|" in line:
+                    parts = [p.strip() for p in line.split("|")]
                     if len(parts) >= 5 and parts[0]:  # Valid data row
                         tier_stats.append(parts)
-        
+
         # Get attack type summary from Supabase
-        summary_result = db.execute_query(f'''
-            SELECT attack_type, COUNT(*) as count, 
+        summary_result = db.execute_query(
+            f"""
+            SELECT attack_type, COUNT(*) as count,
                    AVG(threat_score) as avg_score,
                    COUNT(CASE WHEN blocked = true THEN 1 END) as blocked_count
             FROM attack_metrics WHERE run_id = {run_id}
             GROUP BY attack_type;
-        ''')
-        
+        """
+        )
+
         attack_summary = []
-        if summary_result['success']:
-            lines = summary_result['output'].strip().split('\n')
+        if summary_result["success"]:
+            lines = summary_result["output"].strip().split("\n")
             for line in lines[2:]:
-                if '|' in line:
-                    parts = [p.strip() for p in line.split('|')]
+                if "|" in line:
+                    parts = [p.strip() for p in line.split("|")]
                     if len(parts) >= 4 and parts[0]:
                         attack_summary.append(parts)
-        
+
         # Format results
         results_summary = {
             "tier_performance": {
                 row[0]: {
                     "total_requests": row[1],
-                    "attacks_blocked": row[2], 
+                    "attacks_blocked": row[2],
                     "detection_rate": row[3],
-                    "avg_response_time": row[4]
-                } for row in tier_stats
+                    "avg_response_time": row[4],
+                }
+                for row in tier_stats
             },
             "attack_breakdown": {
-                row[0]: {
-                    "count": row[1],
-                    "avg_threat_score": row[2],
-                    "blocked_count": row[3]
-                } for row in attack_summary
-            }
+                row[0]: {"count": row[1], "avg_threat_score": row[2], "blocked_count": row[3]} for row in attack_summary
+            },
         }
-        
+
         # Calculate duration
         start_time = datetime.fromisoformat(run_data[1]) if run_data[1] else datetime.now()
         end_time = datetime.fromisoformat(run_data[2]) if run_data[2] else datetime.now()
         duration = (end_time - start_time).total_seconds()
-        
+
         return AttackStatsResponse(
-            run_id=run_id,
-            total_attacks=run_data[3] or 0,
-            duration=duration,
-            results_summary=results_summary
+            run_id=run_id, total_attacks=run_data[3] or 0, duration=duration, results_summary=results_summary
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to get attack flood results: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get attack flood results: {str(e)}")
+
 
 @app.get("/api/attack/flood/list")
 async def list_attack_runs():
     """List all attack flood simulation runs"""
     try:
         from supabase_production import SupabaseProduction
-        
+
         db = SupabaseProduction()
-        
-        result = db.execute_query('''
+
+        result = db.execute_query(
+            """
             SELECT run_id, start_time, end_time, total_attacks, intensity_level, strategy, duration
-            FROM attack_runs 
-            ORDER BY start_time DESC 
+            FROM attack_runs
+            ORDER BY start_time DESC
             LIMIT 20;
-        ''')
-        
+        """
+        )
+
         runs = []
-        if result['success']:
-            lines = result['output'].strip().split('\n')
+        if result["success"]:
+            lines = result["output"].strip().split("\n")
             for line in lines[2:]:
-                if '|' in line:
-                    parts = [p.strip() for p in line.split('|')]
+                if "|" in line:
+                    parts = [p.strip() for p in line.split("|")]
                     if len(parts) >= 7 and parts[0].isdigit():
                         runs.append(parts)
-        
+
         return {
-            "runs": [{
-                "run_id": run[0],
-                "start_time": run[1],
-                "end_time": run[2],
-                "total_attacks": run[3],
-                "intensity": run[4],
-                "strategy": run[5],
-                "duration": run[6]
-            } for run in runs]
+            "runs": [
+                {
+                    "run_id": run[0],
+                    "start_time": run[1],
+                    "end_time": run[2],
+                    "total_attacks": run[3],
+                    "intensity": run[4],
+                    "strategy": run[5],
+                    "duration": run[6],
+                }
+                for run in runs
+            ]
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list attack runs: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list attack runs: {str(e)}")
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -1322,12 +1334,17 @@ async def websocket_endpoint(websocket: WebSocket):
     logger.info(f"WebSocket client connected. Total connections: {len(manager.active_connections)}")
     try:
         # Send initial connection message
-        await manager.send_personal_message(json.dumps({
-            "type": "connection",
-            "message": "Connected to Kong Guard AI Real-Time System",
-            "timestamp": datetime.now().isoformat()
-        }), websocket)
-        
+        await manager.send_personal_message(
+            json.dumps(
+                {
+                    "type": "connection",
+                    "message": "Connected to Kong Guard AI Real-Time System",
+                    "timestamp": datetime.now().isoformat(),
+                }
+            ),
+            websocket,
+        )
+
         # Keep connection alive indefinitely
         while True:
             await asyncio.sleep(1)
@@ -1337,6 +1354,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
+
 
 # Function to broadcast threat analysis results
 async def broadcast_threat_analysis(analysis_result: dict):
@@ -1348,14 +1366,16 @@ async def broadcast_threat_analysis(analysis_result: dict):
     else:
         await manager.broadcast(message)
 
+
 # ============================================================================
 # Main
 # ============================================================================
 
 if __name__ == "__main__":
     import os
+
     PORT = int(os.getenv("PORT", "18002"))
-    
+
     print("🚀 Kong Guard AI - Threat Analysis Service")
     print(f"📊 AI Provider: {AI_PROVIDER}")
     print(f"🤖 ML Models: {'Enabled' if ML_ENABLED else 'Disabled'}")
@@ -1367,7 +1387,7 @@ if __name__ == "__main__":
     print("  - Gemini Flash 2.5: Set GEMINI_API_KEY")
     print("  - Ollama (Local): Install and run Ollama")
     print("")
-    
+
     if ML_ENABLED:
         print("Machine Learning Models:")
         print("  ✅ Anomaly Detection (IsolationForest)")
@@ -1376,5 +1396,5 @@ if __name__ == "__main__":
         print("  ✅ Real-time threat scoring")
         print("  ✅ Continuous learning enabled")
         print("")
-    
+
     uvicorn.run(app, host="0.0.0.0", port=PORT)

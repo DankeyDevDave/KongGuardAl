@@ -9,44 +9,44 @@ return {
             if err then
                 return kong.response.exit(400, {error = "Invalid request body"})
             end
-            
+
             local feedback = cjson.decode(body)
             if not feedback then
                 return kong.response.exit(400, {error = "Invalid JSON"})
             end
-            
+
             -- Validate required fields
             if not feedback.incident_id or not feedback.decision_correct then
                 return kong.response.exit(400, {
                     error = "Missing required fields: incident_id, decision_correct"
                 })
             end
-            
+
             -- Store feedback in shared memory for learning
             local kong_cache = ngx.shared.kong_cache
             if kong_cache then
                 local feedback_key = "feedback:" .. feedback.incident_id
                 kong_cache:set(feedback_key, cjson.encode(feedback), 86400) -- Keep for 24 hours
-                
+
                 -- Update false positive rate if applicable
                 if feedback.decision_correct == false and feedback.actual_threat == "false_positive" then
                     local fp_count = kong_cache:incr("false_positive_count", 1, 0) or 1
                     local total_count = kong_cache:get("threat_counter") or 1
                     local fp_rate = fp_count / total_count
                     kong_cache:set("false_positive_rate", fp_rate)
-                    
+
                     -- Trigger threshold adjustment if FP rate is too high
                     if fp_rate > 0.05 then -- > 5% false positive rate
                         self:adjust_thresholds(feedback)
                     end
                 end
-                
+
                 -- Store for batch learning
                 local learning_queue = kong_cache:get("learning_queue") or ""
                 learning_queue = learning_queue .. feedback.incident_id .. ","
                 kong_cache:set("learning_queue", learning_queue, 3600)
             end
-            
+
             return kong.response.exit(200, {
                 status = "success",
                 message = "Feedback recorded",
@@ -54,7 +54,7 @@ return {
             })
         end
     },
-    
+
     ["/kong-guard-ai/status"] = {
         GET = function(self, dao, helpers)
             local kong_cache = ngx.shared.kong_cache
@@ -63,7 +63,7 @@ return {
                 operational = true,
                 metrics = {}
             }
-            
+
             if kong_cache then
                 status.metrics = {
                     threats_detected = kong_cache:get("threat_counter") or 0,
@@ -71,7 +71,7 @@ return {
                     active_blocks = 0,
                     active_rate_limits = 0
                 }
-                
+
                 -- Count active blocks and rate limits
                 local keys = kong_cache:get_keys()
                 for _, key in ipairs(keys) do
@@ -82,16 +82,16 @@ return {
                     end
                 end
             end
-            
+
             return kong.response.exit(200, status)
         end
     },
-    
+
     ["/kong-guard-ai/incidents"] = {
         GET = function(self, dao, helpers)
             local kong_cache = ngx.shared.kong_cache
             local incidents = {}
-            
+
             if kong_cache then
                 local keys = kong_cache:get_keys()
                 for _, key in ipairs(keys) do
@@ -103,25 +103,25 @@ return {
                     end
                 end
             end
-            
+
             -- Sort by timestamp (most recent first)
             table.sort(incidents, function(a, b)
                 return (a.timestamp or 0) > (b.timestamp or 0)
             end)
-            
+
             -- Limit to last 100 incidents
             local limited_incidents = {}
             for i = 1, math.min(#incidents, 100) do
                 table.insert(limited_incidents, incidents[i])
             end
-            
+
             return kong.response.exit(200, {
                 total = #incidents,
                 incidents = limited_incidents
             })
         end
     },
-    
+
     ["/kong-guard-ai/learn"] = {
         POST = function(self, dao, helpers)
             -- Trigger batch learning process
@@ -129,7 +129,7 @@ return {
             if not kong_cache then
                 return kong.response.exit(500, {error = "Cache not available"})
             end
-            
+
             local learning_queue = kong_cache:get("learning_queue")
             if not learning_queue or learning_queue == "" then
                 return kong.response.exit(200, {
@@ -137,18 +137,18 @@ return {
                     message = "No feedback data to process"
                 })
             end
-            
+
             -- Process feedback queue
             local incident_ids = {}
             for id in learning_queue:gmatch("([^,]+)") do
                 table.insert(incident_ids, id)
             end
-            
+
             local adjustments = self:process_learning_batch(incident_ids)
-            
+
             -- Clear the queue
             kong_cache:set("learning_queue", "", 3600)
-            
+
             return kong.response.exit(200, {
                 status = "success",
                 processed = #incident_ids,
@@ -164,11 +164,11 @@ function adjust_thresholds(feedback)
     if not kong_cache then
         return
     end
-    
+
     -- Get current thresholds
     local block_threshold = kong_cache:get("dynamic_block_threshold") or 0.8
     local rate_limit_threshold = kong_cache:get("dynamic_rate_limit_threshold") or 0.6
-    
+
     -- Adjust based on feedback
     if feedback.actual_threat == "false_positive" then
         -- Increase thresholds to reduce false positives
@@ -179,11 +179,11 @@ function adjust_thresholds(feedback)
         block_threshold = math.max(block_threshold - 0.01, 0.6)
         rate_limit_threshold = math.max(rate_limit_threshold - 0.01, 0.4)
     end
-    
+
     -- Store adjusted thresholds
     kong_cache:set("dynamic_block_threshold", block_threshold)
     kong_cache:set("dynamic_rate_limit_threshold", rate_limit_threshold)
-    
+
     kong.log.info("Thresholds adjusted", {
         block_threshold = block_threshold,
         rate_limit_threshold = rate_limit_threshold,
@@ -198,11 +198,11 @@ function process_learning_batch(incident_ids)
         patterns_added = 0,
         patterns_removed = 0
     }
-    
+
     -- Analyze feedback patterns
     local false_positives = 0
     local true_positives = 0
-    
+
     for _, id in ipairs(incident_ids) do
         local feedback_key = "feedback:" .. id
         local feedback_data = ngx.shared.kong_cache:get(feedback_key)
@@ -215,7 +215,7 @@ function process_learning_batch(incident_ids)
             end
         end
     end
-    
+
     -- Calculate accuracy
     local total = false_positives + true_positives
     if total > 0 then
@@ -224,6 +224,6 @@ function process_learning_batch(incident_ids)
             adjustments.thresholds_updated = true
         end
     end
-    
+
     return adjustments
 end

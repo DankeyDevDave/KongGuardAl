@@ -52,7 +52,7 @@ datasources:
     url: http://localhost:9090
     isDefault: true
     editable: true
-    
+
   - name: KongGuardAI-API
     type: prometheus
     access: proxy

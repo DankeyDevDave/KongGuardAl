@@ -7,7 +7,7 @@
 --
 -- FEATURES:
 -- - Real-time performance metrics collection
--- - Circuit breaker status monitoring  
+-- - Circuit breaker status monitoring
 -- - Memory usage tracking and alerts
 -- - Performance trend analysis
 -- - Integration with external monitoring systems
@@ -45,13 +45,13 @@ local dashboard_metrics = {
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Dashboard] Initializing performance dashboard")
-    
+
     -- Initialize dashboard metrics
     dashboard_metrics.last_update = ngx.time()
     dashboard_metrics.performance_samples = {}
     dashboard_metrics.alert_history = {}
     dashboard_metrics.system_status = "healthy"
-    
+
     kong.log.info("[Kong Guard AI Dashboard] Performance dashboard initialized")
 end
 
@@ -63,12 +63,12 @@ end
 function _M.handle_dashboard_request(conf)
     local request_path = kong.request.get_path()
     local request_method = kong.request.get_method()
-    
+
     -- Only handle GET requests to dashboard endpoints
     if request_method ~= "GET" then
         return false
     end
-    
+
     -- Handle different dashboard endpoints
     if request_path == DASHBOARD_CONFIG.ENDPOINT_PATH then
         return _M.serve_performance_dashboard(conf)
@@ -77,7 +77,7 @@ function _M.handle_dashboard_request(conf)
     elseif request_path == DASHBOARD_CONFIG.HEALTH_ENDPOINT then
         return _M.serve_health_endpoint(conf)
     end
-    
+
     return false
 end
 
@@ -88,37 +88,37 @@ end
 ---
 function _M.serve_performance_dashboard(conf)
     kong.log.debug("[Kong Guard AI Dashboard] Serving performance dashboard")
-    
+
     -- Get comprehensive performance data
     local dashboard_data = _M.get_comprehensive_dashboard_data()
-    
+
     -- Generate HTML dashboard
     local html_content = _M.generate_dashboard_html(dashboard_data)
-    
+
     -- Set response headers
     kong.response.set_header("Content-Type", "text/html; charset=UTF-8")
     kong.response.set_header("Cache-Control", "no-cache, no-store, must-revalidate")
     kong.response.set_header("Pragma", "no-cache")
     kong.response.set_header("Expires", "0")
-    
+
     -- Send response
     kong.response.exit(200, html_content)
-    
+
     return true
 end
 
 ---
 -- Serve metrics endpoint (JSON format for monitoring systems)
--- @param conf Plugin configuration 
+-- @param conf Plugin configuration
 -- @return Boolean indicating success
 ---
 function _M.serve_metrics_endpoint(conf)
     kong.log.debug("[Kong Guard AI Dashboard] Serving metrics endpoint")
-    
+
     -- Get performance data from optimizer
     local performance_data = performance_optimizer.get_performance_dashboard_data()
     local recommendations = performance_optimizer.get_optimization_recommendations()
-    
+
     -- Combine with dashboard-specific metrics
     local metrics_response = {
         timestamp = ngx.time(),
@@ -128,14 +128,14 @@ function _M.serve_metrics_endpoint(conf)
         uptime_seconds = ngx.time() - dashboard_metrics.last_update,
         version = "0.1.0"
     }
-    
+
     -- Set JSON response headers
     kong.response.set_header("Content-Type", "application/json")
     kong.response.set_header("Cache-Control", "no-cache")
-    
+
     -- Send JSON response
     kong.response.exit(200, json.encode(metrics_response))
-    
+
     return true
 end
 
@@ -146,14 +146,14 @@ end
 ---
 function _M.serve_health_endpoint(conf)
     kong.log.debug("[Kong Guard AI Dashboard] Serving health endpoint")
-    
+
     -- Get basic health status
     local performance_data = performance_optimizer.get_performance_dashboard_data()
-    
+
     -- Determine health status
     local health_status = "healthy"
     local health_details = {}
-    
+
     -- Check performance thresholds
     if performance_data.request_metrics.avg_processing_time_ms > DASHBOARD_CONFIG.CRITICAL_THRESHOLD_MS then
         health_status = "critical"
@@ -162,19 +162,19 @@ function _M.serve_health_endpoint(conf)
         health_status = "warning"
         table.insert(health_details, "Average processing time exceeds alert threshold")
     end
-    
+
     -- Check circuit breaker status
     if performance_data.circuit_breaker.state ~= "closed" then
         health_status = health_status == "critical" and "critical" or "warning"
         table.insert(health_details, "Circuit breaker is " .. performance_data.circuit_breaker.state)
     end
-    
+
     -- Check memory usage
     if performance_data.memory_metrics.memory_growth_kb > DASHBOARD_CONFIG.MEMORY_ALERT_THRESHOLD_MB * 1024 then
         health_status = health_status == "critical" and "critical" or "warning"
         table.insert(health_details, "Memory usage has grown significantly")
     end
-    
+
     local health_response = {
         status = health_status,
         timestamp = ngx.time(),
@@ -185,7 +185,7 @@ function _M.serve_health_endpoint(conf)
             memory_growth_kb = performance_data.memory_metrics.memory_growth_kb
         }
     }
-    
+
     -- Set appropriate HTTP status code
     local http_status = 200
     if health_status == "critical" then
@@ -193,10 +193,10 @@ function _M.serve_health_endpoint(conf)
     elseif health_status == "warning" then
         http_status = 200 -- Still OK, but with warnings
     end
-    
+
     kong.response.set_header("Content-Type", "application/json")
     kong.response.exit(http_status, json.encode(health_response))
-    
+
     return true
 end
 
@@ -208,13 +208,13 @@ function _M.get_comprehensive_dashboard_data()
     -- Get performance data from optimizer
     local performance_data = performance_optimizer.get_performance_dashboard_data()
     local recommendations = performance_optimizer.get_optimization_recommendations()
-    
+
     -- PHASE 4: Get path filter analytics
     local path_filter_analytics = path_filter.get_analytics()
-    
+
     -- Update dashboard metrics
     _M.update_dashboard_metrics(performance_data)
-    
+
     return {
         timestamp = ngx.time(),
         performance = performance_data,
@@ -237,7 +237,7 @@ end
 ---
 function _M.update_dashboard_metrics(performance_data)
     local current_time = ngx.time()
-    
+
     -- Add current performance sample
     table.insert(dashboard_metrics.performance_samples, {
         timestamp = current_time,
@@ -246,7 +246,7 @@ function _M.update_dashboard_metrics(performance_data)
         circuit_breaker_state = performance_data.circuit_breaker.state,
         cpu_usage_percent = performance_data.cpu_metrics.current_cpu_percent
     })
-    
+
     -- Keep only recent samples (last 60 minutes)
     local cutoff_time = current_time - (DASHBOARD_CONFIG.METRICS_RETENTION_MINUTES * 60)
     local filtered_samples = {}
@@ -256,10 +256,10 @@ function _M.update_dashboard_metrics(performance_data)
         end
     end
     dashboard_metrics.performance_samples = filtered_samples
-    
+
     -- Check for new alerts
     _M.check_and_record_alerts(performance_data)
-    
+
     -- Update system status
     dashboard_metrics.system_status = _M.determine_system_status(performance_data)
     dashboard_metrics.last_update = current_time
@@ -272,7 +272,7 @@ end
 function _M.check_and_record_alerts(performance_data)
     local current_time = ngx.time()
     local alerts = {}
-    
+
     -- Check processing time alerts
     if performance_data.request_metrics.avg_processing_time_ms > DASHBOARD_CONFIG.CRITICAL_THRESHOLD_MS then
         table.insert(alerts, {
@@ -291,7 +291,7 @@ function _M.check_and_record_alerts(performance_data)
             threshold = DASHBOARD_CONFIG.ALERT_THRESHOLD_MS
         })
     end
-    
+
     -- Check circuit breaker alerts
     if performance_data.circuit_breaker.state == "open" then
         table.insert(alerts, {
@@ -310,7 +310,7 @@ function _M.check_and_record_alerts(performance_data)
             failure_count = performance_data.circuit_breaker.failure_count
         })
     end
-    
+
     -- Check memory alerts
     if performance_data.memory_metrics.memory_growth_kb > DASHBOARD_CONFIG.MEMORY_ALERT_THRESHOLD_MB * 1024 then
         table.insert(alerts, {
@@ -321,13 +321,13 @@ function _M.check_and_record_alerts(performance_data)
             threshold = DASHBOARD_CONFIG.MEMORY_ALERT_THRESHOLD_MB * 1024
         })
     end
-    
+
     -- Record new alerts
     for _, alert in ipairs(alerts) do
         alert.timestamp = current_time
         table.insert(dashboard_metrics.alert_history, alert)
     end
-    
+
     -- Keep only recent alerts (last 24 hours)
     local cutoff_time = current_time - (24 * 60 * 60)
     local filtered_alerts = {}
@@ -349,24 +349,24 @@ function _M.determine_system_status(performance_data)
     if performance_data.circuit_breaker.state == "open" then
         return "critical"
     end
-    
+
     if performance_data.request_metrics.avg_processing_time_ms > DASHBOARD_CONFIG.CRITICAL_THRESHOLD_MS then
         return "critical"
     end
-    
+
     -- Check for warning conditions
     if performance_data.circuit_breaker.state == "half-open" then
         return "warning"
     end
-    
+
     if performance_data.request_metrics.avg_processing_time_ms > DASHBOARD_CONFIG.ALERT_THRESHOLD_MS then
         return "warning"
     end
-    
+
     if performance_data.memory_metrics.memory_growth_kb > DASHBOARD_CONFIG.MEMORY_ALERT_THRESHOLD_MB * 1024 then
         return "warning"
     end
-    
+
     return "healthy"
 end
 
@@ -378,7 +378,7 @@ end
 function _M.generate_dashboard_html(dashboard_data)
     local status_color = dashboard_data.system_status == "healthy" and "green" or
                         dashboard_data.system_status == "warning" and "orange" or "red"
-    
+
     local html = [[
 <!DOCTYPE html>
 <html>
@@ -420,7 +420,7 @@ function _M.generate_dashboard_html(dashboard_data)
             <span class="status ]] .. dashboard_data.system_status .. [[">]] .. dashboard_data.system_status:upper() .. [[</span>
             <span style="float: right;">Last Updated: ]] .. os.date("%Y-%m-%d %H:%M:%S", dashboard_data.timestamp) .. [[</span>
         </div>
-        
+
         <div class="card">
             <h2>Performance Metrics</h2>
             <div class="metric">
@@ -440,7 +440,7 @@ function _M.generate_dashboard_html(dashboard_data)
                 <div class="metric-label">CPU Usage</div>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>Circuit Breaker Status</h2>
             <p><strong>State:</strong> ]] .. dashboard_data.performance.circuit_breaker.state:upper() .. [[</p>
@@ -511,7 +511,7 @@ function _M.record_dashboard_event(event_type, event_data)
         type = event_type,
         data = event_data
     }
-    
+
     -- Log the event
     kong.log.info("[Kong Guard AI Dashboard] Event recorded: " .. event_type)
 end

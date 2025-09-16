@@ -19,7 +19,7 @@ services:
           notification_url: http://mock-attacker:80/webhook
           enable_learning: true
           log_level: info
-          
+
   - name: test-api
     url: http://demo-api:80
     routes:

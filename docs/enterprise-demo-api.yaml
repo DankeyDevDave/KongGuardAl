@@ -4,9 +4,9 @@ info:
   description: |
     Enterprise demonstration system for Kong Guard AI showcasing three-tier protection:
     - Unprotected Kong Gateway (Port 8000)
-    - Cloud AI Protected Kong Gateway (Port 8004) 
+    - Cloud AI Protected Kong Gateway (Port 8004)
     - Local AI Protected Kong Gateway (Port 8006)
-    
+
     This API provides endpoints for attack testing, comparison analysis, and video
     presentation automation for enterprise client demonstrations.
   version: 1.0.0
@@ -417,9 +417,9 @@ paths:
           in: query
           schema:
             type: string
-            enum: [1h, 24h, 7d, 30d]
-            default: 24h
-        - name: include_videos:
+            enum: ["1h", "24h", "7d", "30d"]
+            default: "24h"
+        - name: include_videos
           in: query
           schema:
             type: boolean

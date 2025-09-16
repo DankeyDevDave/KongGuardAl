@@ -101,7 +101,7 @@ show_progress() {
     local width=50
     local percentage=$((current * 100 / total))
     local filled=$((current * width / total))
-    
+
     printf "\r["
     printf "%${filled}s" | tr ' ' '='
     printf "%$((width - filled))s" | tr ' ' '>'
@@ -113,7 +113,7 @@ wait_with_dots() {
     local message=$1
     local max_dots=3
     local dots=0
-    
+
     while true; do
         printf "\r${message}"
         for ((i=0; i<dots; i++)); do
@@ -191,7 +191,7 @@ start_services() {
     echo ""
     print_status "$YELLOW" "📦 Launching containers:"
     cd "$SCRIPT_DIR"
-    
+
     # Start with visual feedback
     echo "  ├─ PostgreSQL database (Kong)"
     echo "  ├─ PostgreSQL database (Konga)"
@@ -201,9 +201,9 @@ start_services() {
     echo "  ├─ Demo API service"
     echo "  └─ Mock attacker service"
     echo ""
-    
+
     print_status "$BLUE" "🐳 Docker Compose starting services..."
-    
+
     if docker compose version &> /dev/null; then
         if ! docker compose up -d 2>&1 | tee -a "$LOG_FILE" | while IFS= read -r line; do
             if [[ "$line" == *"Creating"* ]]; then
@@ -233,7 +233,7 @@ start_services() {
             return 1
         fi
     fi
-    
+
     echo ""
     print_status "$GREEN" "✅ All containers launched successfully"
     return 0
@@ -244,9 +244,9 @@ wait_for_service() {
     local service_name=$1
     local check_command=$2
     local retries=0
-    
+
     printf "⏳ Waiting for %-20s " "$service_name"
-    
+
     # Show progress with visual indicator
     while [ $retries -lt $MAX_RETRIES ]; do
         if eval "$check_command" 2>/dev/null; then
@@ -254,16 +254,16 @@ wait_for_service() {
             return 0
         fi
         retries=$((retries + 1))
-        
+
         # Show progress indicator
         local progress=$((retries * 100 / MAX_RETRIES))
         if [ $((retries % 3)) -eq 0 ]; then
             printf "\r⏳ Waiting for %-20s [%3d%%]" "$service_name" "$progress"
         fi
-        
+
         sleep $RETRY_DELAY
     done
-    
+
     printf " ❌ Failed\n"
     print_status "$RED" "   └─ $service_name health check failed after $MAX_RETRIES attempts"
     echo "$service_name health check failed" >> "$ERROR_LOG"
@@ -303,13 +303,13 @@ check_konga() {
 # Function: Configure Kong Guard AI plugin
 configure_plugin() {
     print_status "$BLUE" "🔧 Configuring Kong Guard AI plugin..."
-    
+
     # Check if plugin is already configured
     if curl -s "$KONG_ADMIN_URL/plugins" | grep -q "kong-guard-ai"; then
         print_status "$GREEN" "✅ Kong Guard AI plugin already configured"
         return 0
     fi
-    
+
     # Create a test service if it doesn't exist
     curl -s -X POST "$KONG_ADMIN_URL/services" \
         -H "Content-Type: application/json" \
@@ -317,7 +317,7 @@ configure_plugin() {
             "name": "demo-service",
             "url": "http://demo-api"
         }' 2>&1 | tee -a "$LOG_FILE" || true
-    
+
     # Create a route for the service
     curl -s -X POST "$KONG_ADMIN_URL/services/demo-service/routes" \
         -H "Content-Type: application/json" \
@@ -325,7 +325,7 @@ configure_plugin() {
             "name": "demo-route",
             "paths": ["/demo"]
         }' 2>&1 | tee -a "$LOG_FILE" || true
-    
+
     # Enable Kong Guard AI plugin globally
     curl -s -X POST "$KONG_ADMIN_URL/plugins" \
         -H "Content-Type: application/json" \
@@ -356,7 +356,7 @@ configure_plugin() {
                 }
             }
         }' 2>&1 | tee -a "$LOG_FILE"
-    
+
     if [ $? -eq 0 ]; then
         print_status "$GREEN" "✅ Kong Guard AI plugin configured"
     else
@@ -369,9 +369,9 @@ configure_plugin() {
 show_status() {
     print_status "$BLUE" "\n📊 Service Status:"
     echo "-------------------"
-    
+
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "kong|redis|demo|mock|konga" || true
-    
+
     echo -e "\n🔗 Service URLs:"
     echo "  🌐 Konga UI: $KONGA_URL"
     echo "  📡 Kong Admin API: $KONG_ADMIN_URL"
@@ -379,7 +379,7 @@ show_status() {
     echo "  🧪 Demo API: $DEMO_API_URL"
     echo "  💾 Redis: redis://localhost:16379"
     echo "  🗄️  PostgreSQL: postgresql://kong:kongpass@localhost:15432/kong"
-    
+
     # Check if Kong Manager is available
     if curl -s -o /dev/null -w "%{http_code}" "$KONG_MANAGER_URL" | grep -q "200\|302"; then
         echo "  Kong Manager: $KONG_MANAGER_URL"
@@ -390,10 +390,10 @@ show_status() {
 open_ui() {
     if [ "$OPEN_UI" = true ]; then
         print_status "$BLUE" "🌐 Opening Konga UI in browser..."
-        
+
         # Wait a moment for Konga to be fully ready
         sleep 2
-        
+
         # Detect OS and open browser
         if [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS - Open Konga UI
@@ -405,7 +405,7 @@ open_ui() {
                 print_status "$BLUE" "   Opening Kong Admin API instead: $KONG_ADMIN_URL"
                 open "$KONG_ADMIN_URL"
             fi
-            
+
             # If Kong Manager is available
             if curl -s -o /dev/null -w "%{http_code}" "$KONG_MANAGER_URL" | grep -q "200\|302"; then
                 open "$KONG_MANAGER_URL"
@@ -437,9 +437,9 @@ open_ui() {
 # Function: Run health checks
 run_health_checks() {
     print_status "$BLUE" "\n🏥 Running health checks..."
-    
+
     local all_healthy=true
-    
+
     # Check each service
     if ! docker exec kong-database pg_isready -U kong &>/dev/null; then
         print_status "$RED" "  ❌ PostgreSQL is unhealthy"
@@ -448,7 +448,7 @@ run_health_checks() {
     else
         print_status "$GREEN" "  ✅ PostgreSQL is healthy"
     fi
-    
+
     if ! docker exec kong-redis redis-cli ping &>/dev/null; then
         print_status "$RED" "  ❌ Redis is unhealthy"
         echo "Redis unhealthy" >> "$ERROR_LOG"
@@ -456,7 +456,7 @@ run_health_checks() {
     else
         print_status "$GREEN" "  ✅ Redis is healthy"
     fi
-    
+
     if ! curl -s -o /dev/null "$KONG_ADMIN_URL"; then
         print_status "$RED" "  ❌ Kong Admin API is unreachable"
         echo "Kong Admin API unreachable" >> "$ERROR_LOG"
@@ -464,7 +464,7 @@ run_health_checks() {
     else
         print_status "$GREEN" "  ✅ Kong Admin API is healthy"
     fi
-    
+
     if ! curl -s -o /dev/null "$KONG_PROXY_URL"; then
         print_status "$RED" "  ❌ Kong Proxy is unreachable"
         echo "Kong Proxy unreachable" >> "$ERROR_LOG"
@@ -472,7 +472,7 @@ run_health_checks() {
     else
         print_status "$GREEN" "  ✅ Kong Proxy is healthy"
     fi
-    
+
     if ! curl -s -o /dev/null "$KONGA_URL"; then
         print_status "$RED" "  ❌ Konga UI is unreachable"
         echo "Konga UI unreachable" >> "$ERROR_LOG"
@@ -480,7 +480,7 @@ run_health_checks() {
     else
         print_status "$GREEN" "  ✅ Konga UI is healthy"
     fi
-    
+
     if [ "$all_healthy" = true ]; then
         print_status "$GREEN" "\n🎉 All services are healthy!"
         return 0
@@ -495,39 +495,39 @@ prepare_claude_assist() {
     if [ ! -s "$ERROR_LOG" ]; then
         return
     fi
-    
+
     print_status "$BLUE" "\n🤖 Analyzing errors and preparing diagnostics..."
     echo ""
-    
+
     # Show progress for diagnostic collection
     print_status "$YELLOW" "📊 Collecting diagnostic information:"
-    
+
     # Collect diagnostic information with progress indicators
     local diagnostics=""
     diagnostics+="Kong Guard AI Launch Errors:\n"
     diagnostics+="========================\n\n"
-    
+
     # Step 1: Error log
     printf "  ├─ Reading error log"
     diagnostics+="Errors encountered:\n"
     diagnostics+=$(cat "$ERROR_LOG")
     printf " ✓\n"
-    
+
     # Step 2: Container status
     printf "  ├─ Checking container status"
     diagnostics+="\n\nDocker container status:\n"
     diagnostics+=$(docker ps -a --format "table {{.Names}}\t{{.Status}}" | grep -E "kong|redis|demo|mock" || echo "No containers found")
     printf " ✓\n"
-    
+
     # Step 3: Container logs
     printf "  └─ Collecting container logs"
     diagnostics+="\n\nRecent Docker logs:\n"
-    
+
     # Get logs from failed containers with progress
     local containers=("kong-gateway" "kong-database" "kong-redis" "demo-api")
     local total=${#containers[@]}
     local current=0
-    
+
     echo ""
     for container in "${containers[@]}"; do
         current=$((current + 1))
@@ -540,16 +540,16 @@ prepare_claude_assist() {
             printf " (not found)\n"
         fi
     done
-    
+
     # Save diagnostics to file
     echo -e "$diagnostics" > "$SCRIPT_DIR/diagnostics.txt"
-    
+
     print_status "$GREEN" "\n✅ Diagnostics collected and saved to: $SCRIPT_DIR/diagnostics.txt"
-    
+
     # Offer to call Claude with visual feedback
     echo ""
     print_status "$BLUE" "🤔 Would you like AI assistance to fix these issues? (y/n)"
-    
+
     read -r response
     if [[ "$response" =~ ^[Yy]$ ]]; then
         # Call Claude with the errors
@@ -557,7 +557,7 @@ prepare_claude_assist() {
             echo ""
             print_status "$GREEN" "🚀 Initiating Claude AI assistance..."
             echo ""
-            
+
             # Show what Claude will analyze
             print_status "$BLUE" "📋 Claude will analyze:"
             echo "  • Error logs and diagnostics"
@@ -565,21 +565,21 @@ prepare_claude_assist() {
             echo "  • Service configuration issues"
             echo "  • Potential fixes and solutions"
             echo ""
-            
+
             # Visual indicator for LLM processing
             print_status "$YELLOW" "🧠 Processing with Claude AI..."
             echo "  ├─ Sending diagnostic data"
             echo "  ├─ Analyzing error patterns"
             echo "  └─ Generating solutions"
             echo ""
-            
+
             # Create a concise prompt for Claude
             local prompt="Kong Guard AI services are failing to start. Please analyze these errors and provide specific fixes:\n\n"
             prompt+="=== ERRORS ===\n$(cat "$ERROR_LOG")\n\n"
             prompt+="=== CONTAINER STATUS ===\n"
             prompt+=$(docker ps -a --format "{{.Names}}: {{.Status}}" | grep -E "kong|redis|demo|mock" || echo "No containers")
             prompt+="\n\n=== RECENT LOGS ===\n"
-            
+
             # Get only the most relevant error logs
             for container in kong-gateway kong-database; do
                 if docker ps -a --format "{{.Names}}" | grep -q "^$container$"; then
@@ -587,18 +587,18 @@ prepare_claude_assist() {
                     prompt+=$(docker logs --tail 20 "$container" 2>&1 | grep -E "ERROR|FATAL|Failed" || echo "No errors in log tail")
                 fi
             done
-            
+
             prompt+="\n\nPlease provide:\n1. Root cause of the failure\n2. Step-by-step fix\n3. Commands to verify the fix worked"
-            
+
             # Show launching indicator
             print_status "$GREEN" "🎯 Launching Claude with collected diagnostics..."
             echo ""
             echo "────────────────────────────────────────────────"
             echo ""
-            
+
             # Call Claude
             claude -p "$prompt"
-            
+
         else
             print_status "$YELLOW" "\n⚠️  Claude CLI is not installed"
             echo ""
@@ -653,20 +653,20 @@ done
 main() {
     print_status "$BLUE" "🚀 Kong Guard AI Launch Script"
     print_status "$BLUE" "================================\n"
-    
+
     # Pre-flight checks
     check_docker || exit 1
     check_docker_compose || exit 1
-    
+
     # Stop existing containers
     stop_existing
-    
+
     # Clean volumes if requested
     clean_volumes
-    
+
     # Start services
     start_services || exit 1
-    
+
     # Wait for services to be ready
     print_status "$BLUE" "\n⏳ Waiting for services to be ready..."
     check_postgres
@@ -675,25 +675,25 @@ main() {
     check_kong_proxy
     check_demo_api
     check_konga
-    
+
     # Configure plugin
     configure_plugin
-    
+
     # Show status
     show_status
-    
+
     # Run health checks
     run_health_checks
-    
+
     # Open UI
     open_ui
-    
+
     # Show logs if requested
     if [ "${SHOW_LOGS:-false}" = true ]; then
         print_status "$BLUE" "\n📜 Container logs:"
         docker compose logs --tail 50
     fi
-    
+
     print_status "$GREEN" "\n✅ Kong Guard AI stack is ready!"
     print_status "$BLUE" "\n🌐 Access Points:"
     echo "  Konga UI:         http://localhost:1337"
@@ -710,7 +710,7 @@ main() {
     echo "  2. Create an admin account"
     echo "  3. Add connection: Name='Local Kong', Kong Admin URL='http://kong:8001'"
     echo ""
-    
+
     # Mark script as successful to prevent false error triggers
     SCRIPT_SUCCESS=true
 }

@@ -150,51 +150,51 @@ parse_args() {
 # Validate dependencies
 validate_dependencies() {
     log_info "Validating dependencies..."
-    
+
     # Check Lua
     if ! command -v lua >/dev/null 2>&1; then
         log_error "Lua is not installed or not in PATH"
         exit 1
     fi
-    
+
     # Check LuaRocks
     if ! command -v luarocks >/dev/null 2>&1; then
         log_error "LuaRocks is not installed or not in PATH"
         exit 1
     fi
-    
+
     # Check Kong (depending on environment)
     if [[ "$TEST_ENVIRONMENT" == "local" ]]; then
         if ! command -v kong >/dev/null 2>&1; then
             log_error "Kong Gateway is not installed or not in PATH"
             exit 1
         fi
-        
+
         local kong_version
         kong_version=$(kong version 2>/dev/null | head -n1 | awk '{print $2}')
         log_info "Kong version detected: $kong_version"
     fi
-    
+
     # Check Docker (for Docker environment)
     if [[ "$TEST_ENVIRONMENT" == "docker" ]]; then
         if ! command -v docker >/dev/null 2>&1; then
             log_error "Docker is not installed or not in PATH"
             exit 1
         fi
-        
+
         if ! command -v docker-compose >/dev/null 2>&1; then
             log_error "Docker Compose is not installed or not in PATH"
             exit 1
         fi
     fi
-    
+
     log_success "Dependencies validation passed"
 }
 
 # Install Lua dependencies
 install_lua_dependencies() {
     log_info "Installing Lua dependencies..."
-    
+
     local dependencies=(
         "busted"
         "luacov"
@@ -203,7 +203,7 @@ install_lua_dependencies() {
         "lyaml"
         "penlight"
     )
-    
+
     for dep in "${dependencies[@]}"; do
         if [[ "$VERBOSE" == "true" ]]; then
             luarocks install "$dep" || log_warning "Failed to install $dep (might already be installed)"
@@ -211,17 +211,17 @@ install_lua_dependencies() {
             luarocks install "$dep" >/dev/null 2>&1 || log_warning "Failed to install $dep (might already be installed)"
         fi
     done
-    
+
     log_success "Lua dependencies installed"
 }
 
 # Prepare test environment
 prepare_environment() {
     log_info "Preparing test environment: $TEST_ENVIRONMENT"
-    
+
     # Create results directory
     mkdir -p "$RESULTS_DIR"
-    
+
     case "$TEST_ENVIRONMENT" in
         local)
             prepare_local_environment
@@ -242,10 +242,10 @@ prepare_environment() {
 # Prepare local test environment
 prepare_local_environment() {
     log_info "Setting up local test environment"
-    
+
     # Install Kong plugin locally
     cd "$PROJECT_ROOT"
-    
+
     if [[ -f "kong-plugin-kong-guard-ai-0.1.0-1.rockspec" ]]; then
         log_info "Installing Kong Guard AI plugin locally..."
         if [[ "$VERBOSE" == "true" ]]; then
@@ -260,9 +260,9 @@ prepare_local_environment() {
 # Prepare Docker test environment
 prepare_docker_environment() {
     log_info "Setting up Docker test environment"
-    
+
     cd "$TEST_DIR/docker"
-    
+
     # Build test images
     log_info "Building test images..."
     if [[ "$VERBOSE" == "true" ]]; then
@@ -270,46 +270,46 @@ prepare_docker_environment() {
     else
         docker-compose -f docker-compose.test.yml build >/dev/null 2>&1
     fi
-    
+
     # Start test environment
     log_info "Starting test environment..."
     KONG_VERSION="$KONG_VERSION" docker-compose -f docker-compose.test.yml up -d
-    
+
     # Wait for services to be ready
     log_info "Waiting for services to be ready..."
     local max_wait=120
     local wait_count=0
-    
+
     while [[ $wait_count -lt $max_wait ]]; do
         if curl -s http://localhost:8001/status >/dev/null 2>&1; then
             break
         fi
-        
+
         sleep 2
         wait_count=$((wait_count + 2))
-        
+
         if [[ $wait_count -ge $max_wait ]]; then
             log_error "Services failed to start within $max_wait seconds"
             docker-compose -f docker-compose.test.yml logs
             exit 1
         fi
     done
-    
+
     log_success "Docker test environment ready"
 }
 
 # Prepare CI test environment
 prepare_ci_environment() {
     log_info "Setting up CI test environment"
-    
+
     # CI-specific setup
     export CI=true
     export CLEANUP=true
-    
+
     # Use environment-specific URLs if provided
     export KONG_ADMIN_URL="${KONG_ADMIN_URL:-http://localhost:8001}"
     export KONG_PROXY_URL="${KONG_PROXY_URL:-http://localhost:8000}"
-    
+
     log_success "CI test environment prepared"
 }
 
@@ -317,7 +317,7 @@ prepare_ci_environment() {
 run_test_suite() {
     local suite_name="$1"
     log_info "Running test suite: $suite_name"
-    
+
     case "$suite_name" in
         integration)
             run_integration_tests
@@ -347,22 +347,22 @@ run_test_suite() {
 # Run integration tests
 run_integration_tests() {
     log_header "🧪 Running Integration Tests"
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Set environment variables
     export TEST_ENVIRONMENT="$TEST_ENVIRONMENT"
     export TEST_CATEGORY="$TEST_CATEGORY"
     export PARALLEL_WORKERS="$PARALLEL_WORKERS"
     export VERBOSE="$VERBOSE"
-    
+
     # Run Lua test runner
     if [[ "$VERBOSE" == "true" ]]; then
         timeout "$TIMEOUT" lua tests/run_all_tests.lua
     else
         timeout "$TIMEOUT" lua tests/run_all_tests.lua > "$RESULTS_DIR/integration_tests.log" 2>&1
     fi
-    
+
     local exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
         log_success "Integration tests passed"
@@ -378,7 +378,7 @@ run_integration_tests() {
 # Run load tests
 run_load_tests() {
     log_header "⚡ Running Load Tests"
-    
+
     local target_url
     case "$TEST_ENVIRONMENT" in
         docker)
@@ -388,7 +388,7 @@ run_load_tests() {
             target_url="http://localhost:8000"
             ;;
     esac
-    
+
     # Run wrk load test
     log_info "Running wrk load test..."
     if command -v wrk >/dev/null 2>&1; then
@@ -397,7 +397,7 @@ run_load_tests() {
     else
         log_warning "wrk not available, skipping load test"
     fi
-    
+
     # Run hey load test for comparison
     log_info "Running hey load test..."
     if command -v hey >/dev/null 2>&1; then
@@ -411,10 +411,10 @@ run_load_tests() {
 # Run security tests
 run_security_tests() {
     log_header "🛡️ Running Security Tests"
-    
+
     if [[ "$TEST_ENVIRONMENT" == "docker" ]]; then
         cd "$TEST_DIR/docker"
-        
+
         # Run security testing container
         log_info "Running comprehensive security tests..."
         docker run --rm \
@@ -423,30 +423,30 @@ run_security_tests() {
             -e TARGET_URL="http://kong-gateway:8000" \
             -e ADMIN_URL="http://kong-gateway:8001" \
             kong-guard-ai-security-test
-        
+
         log_success "Security tests completed"
     else
         log_warning "Security tests are optimized for Docker environment"
-        
+
         # Run basic security validation
         local target_url="http://localhost:8000"
-        
+
         # Test SQL injection blocking
         log_info "Testing SQL injection blocking..."
         local sql_response
         sql_response=$(curl -s -o /dev/null -w "%{http_code}" "$target_url/api/users?id=1' OR '1'='1")
-        
+
         if [[ "$sql_response" == "403" ]]; then
             log_success "SQL injection properly blocked"
         else
             log_warning "SQL injection not blocked (status: $sql_response)"
         fi
-        
+
         # Test XSS blocking
         log_info "Testing XSS blocking..."
         local xss_response
         xss_response=$(curl -s -o /dev/null -w "%{http_code}" "$target_url/search?q=<script>alert('xss')</script>")
-        
+
         if [[ "$xss_response" == "403" ]]; then
             log_success "XSS properly blocked"
         else
@@ -458,7 +458,7 @@ run_security_tests() {
 # Run monitoring tests
 run_monitoring_tests() {
     log_header "📊 Running Monitoring Tests"
-    
+
     local target_url
     case "$TEST_ENVIRONMENT" in
         docker)
@@ -468,7 +468,7 @@ run_monitoring_tests() {
             target_url="http://localhost:8000"
             ;;
     esac
-    
+
     # Test status endpoint
     log_info "Testing status endpoint..."
     if curl -s "$target_url/_guard_ai/status" > "$RESULTS_DIR/status_response.json"; then
@@ -476,7 +476,7 @@ run_monitoring_tests() {
     else
         log_warning "Status endpoint not accessible"
     fi
-    
+
     # Test metrics endpoint
     log_info "Testing metrics endpoint..."
     if curl -s "$target_url/_guard_ai/metrics" > "$RESULTS_DIR/metrics_response.txt"; then
@@ -484,7 +484,7 @@ run_monitoring_tests() {
     else
         log_warning "Metrics endpoint not accessible"
     fi
-    
+
     # Test analytics dashboard
     log_info "Testing analytics dashboard..."
     if curl -s "$target_url/_guard_ai/analytics" > "$RESULTS_DIR/analytics_response.json"; then
@@ -498,7 +498,7 @@ run_monitoring_tests() {
 cleanup_environment() {
     if [[ "$CLEANUP" == "true" ]]; then
         log_info "Cleaning up test environment..."
-        
+
         case "$TEST_ENVIRONMENT" in
             docker)
                 cd "$TEST_DIR/docker"
@@ -519,9 +519,9 @@ cleanup_environment() {
 # Generate final report
 generate_final_report() {
     log_header "📋 Generating Final Report"
-    
+
     local report_file="$RESULTS_DIR/final_test_report.txt"
-    
+
     cat > "$report_file" << EOF
 Kong Guard AI Integration Test Report
 =====================================
@@ -537,20 +537,20 @@ Test Configuration:
 
 Test Results:
 EOF
-    
+
     # Add results from various test outputs
     if [[ -f "$RESULTS_DIR/comprehensive-test-report.json" ]]; then
         echo "" >> "$report_file"
         echo "Detailed results available in: comprehensive-test-report.json" >> "$report_file"
     fi
-    
+
     if [[ -f "$RESULTS_DIR/load_test_wrk.txt" ]]; then
         echo "" >> "$report_file"
         echo "Load Test Results (wrk):" >> "$report_file"
         echo "------------------------" >> "$report_file"
         tail -n 20 "$RESULTS_DIR/load_test_wrk.txt" >> "$report_file"
     fi
-    
+
     log_success "Final report generated: $report_file"
 }
 
@@ -558,7 +558,7 @@ EOF
 main() {
     log_header "🚀 Kong Guard AI Integration Test Suite"
     log_header "═══════════════════════════════════════"
-    
+
     # Show configuration
     log_info "Test Configuration:"
     log_info "  Environment: $TEST_ENVIRONMENT"
@@ -569,25 +569,25 @@ main() {
     log_info "  Timeout: ${TIMEOUT}s"
     log_info "  Cleanup: $CLEANUP"
     log_info "  Verbose: $VERBOSE"
-    
+
     # Execute test pipeline
     validate_dependencies
     install_lua_dependencies
     prepare_environment
-    
+
     # Run tests
     local overall_success=true
-    
+
     if ! run_test_suite "$TEST_SUITE"; then
         overall_success=false
     fi
-    
+
     # Generate reports
     generate_final_report
-    
+
     # Cleanup
     cleanup_environment
-    
+
     # Final result
     if [[ "$overall_success" == "true" ]]; then
         log_success "🎉 All tests completed successfully!"

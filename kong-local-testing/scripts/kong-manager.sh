@@ -53,9 +53,9 @@ cmd_start() {
     print_header
     print_info "Starting Kong Testing Environment..."
     check_docker
-    
+
     local profile="${1:-default}"
-    
+
     case $profile in
         "full")
             print_info "Starting with all services (DB mode + monitoring + tools)..."
@@ -78,18 +78,18 @@ cmd_start() {
             docker-compose up -d
             ;;
     esac
-    
+
     print_info "Waiting for Kong to be ready..."
     sleep 10
-    
+
     if curl -s $KONG_ADMIN_URL > /dev/null 2>&1; then
         print_success "Kong DB mode is ready at $KONG_ADMIN_URL"
     fi
-    
+
     if [ "$profile" == "dbless" ] && curl -s $KONG_DBLESS_ADMIN_URL > /dev/null 2>&1; then
         print_success "Kong DB-less mode is ready at $KONG_DBLESS_ADMIN_URL"
     fi
-    
+
     print_info "Services available:"
     echo "  • Kong Admin API (DB):     http://localhost:8001"
     echo "  • Kong Proxy (DB):         http://localhost:8000"
@@ -123,24 +123,24 @@ cmd_status() {
     print_header
     print_info "Service Status:"
     docker-compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
-    
+
     echo ""
     print_info "Kong Status:"
     if curl -s $KONG_ADMIN_URL > /dev/null 2>&1; then
         local version=$(curl -s $KONG_ADMIN_URL | jq -r .version 2>/dev/null || echo "unknown")
         print_success "Kong DB mode is running (version: $version)"
-        
+
         local services=$(curl -s $KONG_ADMIN_URL/services | jq -r '.data | length' 2>/dev/null || echo "0")
         local routes=$(curl -s $KONG_ADMIN_URL/routes | jq -r '.data | length' 2>/dev/null || echo "0")
         local plugins=$(curl -s $KONG_ADMIN_URL/plugins | jq -r '.data | length' 2>/dev/null || echo "0")
-        
+
         echo "  • Services: $services"
         echo "  • Routes:   $routes"
         echo "  • Plugins:  $plugins"
     else
         print_error "Kong DB mode is not responding"
     fi
-    
+
     if curl -s $KONG_DBLESS_ADMIN_URL > /dev/null 2>&1; then
         local version=$(curl -s $KONG_DBLESS_ADMIN_URL | jq -r .version 2>/dev/null || echo "unknown")
         print_success "Kong DB-less mode is running (version: $version)"
@@ -157,7 +157,7 @@ cmd_logs() {
 cmd_test() {
     print_header
     print_info "Running Kong API Tests..."
-    
+
     # Test Kong Admin API
     print_info "Testing Kong Admin API..."
     if curl -s $KONG_ADMIN_URL > /dev/null 2>&1; then
@@ -166,7 +166,7 @@ cmd_test() {
         print_error "Admin API is not responding"
         return 1
     fi
-    
+
     # Test HTTPBin through Kong
     print_info "Testing HTTPBin service through Kong..."
     response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/httpbin/get)
@@ -175,7 +175,7 @@ cmd_test() {
     else
         print_error "HTTPBin service test failed (HTTP $response)"
     fi
-    
+
     # Test Echo Server through Kong
     print_info "Testing Echo service through Kong..."
     response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/echo)
@@ -184,7 +184,7 @@ cmd_test() {
     else
         print_error "Echo service test failed (HTTP $response)"
     fi
-    
+
     # Test Rate Limiting
     print_info "Testing rate limiting..."
     for i in {1..5}; do
@@ -201,7 +201,7 @@ cmd_test() {
 cmd_configure() {
     print_header
     print_info "Configuring Kong services and routes..."
-    
+
     # Add a test service
     print_info "Adding test service..."
     curl -s -X POST $KONG_ADMIN_URL/services \
@@ -210,9 +210,9 @@ cmd_configure() {
             "name": "test-service",
             "url": "http://httpbin:80"
         }' > /dev/null
-    
+
     print_success "Test service added"
-    
+
     # Add a route
     print_info "Adding test route..."
     curl -s -X POST $KONG_ADMIN_URL/services/test-service/routes \
@@ -221,9 +221,9 @@ cmd_configure() {
             "name": "test-route",
             "paths": ["/test"]
         }' > /dev/null
-    
+
     print_success "Test route added"
-    
+
     # Add rate limiting plugin
     print_info "Adding rate limiting plugin..."
     curl -s -X POST $KONG_ADMIN_URL/services/test-service/plugins \
@@ -235,9 +235,9 @@ cmd_configure() {
                 "policy": "local"
             }
         }' > /dev/null
-    
+
     print_success "Rate limiting plugin added"
-    
+
     print_info "Configuration complete!"
     echo "  Test your service at: http://localhost:8000/test"
 }

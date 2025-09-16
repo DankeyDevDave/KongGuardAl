@@ -10,7 +10,7 @@ local mock_kong = {
     request = {
         get_method = function() return "GET" end,
         get_path = function() return "/api/test" end,
-        get_header = function(name) 
+        get_header = function(name)
             local headers = {
                 ["user-agent"] = "Kong-Guard-AI-Test/1.0",
                 ["content-length"] = "1024",
@@ -18,7 +18,7 @@ local mock_kong = {
             }
             return headers[string.lower(name)]
         end,
-        get_headers = function() 
+        get_headers = function()
             return {
                 ["User-Agent"] = "Kong-Guard-AI-Test/1.0",
                 ["Content-Length"] = "1024",
@@ -49,7 +49,7 @@ local mock_kong = {
     },
     service = {
         request = {
-            set_header = function(name, value) 
+            set_header = function(name, value)
                 print("Setting header: " .. name .. " = " .. value)
             end
         }
@@ -61,7 +61,7 @@ local mock_kong = {
         alert = function(msg) print("[ALERT] " .. msg) end
     },
     json = {
-        encode = function(obj) 
+        encode = function(obj)
             -- Simple JSON encoder for testing
             if type(obj) == "table" then
                 local pairs_list = {}
@@ -275,7 +275,7 @@ print("✓ Handles missing Kong context: " .. (safe_result2 and "PASS" or "FAIL"
 print("\n=== Phase 3 Access and Log Phase Hooks Test Complete ===")
 print("\nSUMMARY:")
 print("✓ Request metadata capture: IMPLEMENTED")
-print("✓ Response metadata capture: IMPLEMENTED") 
+print("✓ Response metadata capture: IMPLEMENTED")
 print("✓ Client IP extraction with proxy support: IMPLEMENTED")
 print("✓ Structured logging format: IMPLEMENTED")
 print("✓ Performance optimization: IMPLEMENTED")

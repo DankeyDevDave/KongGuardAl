@@ -37,7 +37,7 @@ return {
                         description = "Maximum allowed processing time per request in milliseconds. RECOMMENDED: Start with 5ms to minimize latency"
                     }
                 },
-                
+
                 -- Threat Detection Configuration
                 {
                     enable_rate_limiting_detection = {
@@ -146,7 +146,7 @@ return {
                         description = "Regex patterns for detecting malicious payloads"
                     }
                 },
-                
+
                 -- AI Gateway Integration - DISABLED BY DEFAULT FOR SAFETY
                 {
                     ai_gateway_enabled = {
@@ -184,7 +184,7 @@ return {
                         description = "Timeout for AI Gateway requests in milliseconds. RECOMMENDED: Use 3000ms to prevent request delays"
                     }
                 },
-                
+
                 -- Response Configuration - CONSERVATIVE DEFAULTS
                 {
                     enable_auto_blocking = {
@@ -230,7 +230,7 @@ return {
                         description = "Sanitize error response headers to prevent information leakage"
                     }
                 },
-                
+
                 -- Response Analysis
                 {
                     analyze_response_body = {
@@ -247,7 +247,7 @@ return {
                         description = "Maximum response body size to analyze in bytes"
                     }
                 },
-                
+
                 -- Learning and Adaptation
                 {
                     enable_learning = {
@@ -270,7 +270,7 @@ return {
                         description = "HTTP endpoint for receiving operator feedback on threat decisions"
                     }
                 },
-                
+
                 -- Notification Configuration
                 {
                     enable_notifications = {
@@ -321,7 +321,7 @@ return {
                         description = "Threat level threshold for sending notifications. RECOMMENDED: Use 7.0+ to prevent notification spam"
                     }
                 },
-                
+
                 -- Logging Configuration
                 {
                     external_logging_enabled = {
@@ -344,7 +344,7 @@ return {
                         description = "Logging level for threat detection events"
                     }
                 },
-                
+
                 -- PHASE 3: Structured Logging Configuration
                 {
                     structured_logging_enabled = {
@@ -405,7 +405,7 @@ return {
                         description = "Timeout for external logging endpoint requests in milliseconds"
                     }
                 },
-                
+
                 -- Admin API Configuration - DISABLED BY DEFAULT FOR SECURITY
                 {
                     admin_api_enabled = {
@@ -428,7 +428,7 @@ return {
                         description = "Timeout for Admin API requests in milliseconds. RECOMMENDED: Use 3000ms to prevent blocking"
                     }
                 },
-                
+
                 -- Advanced Rate Limiting Configuration (PHASE 5)
                 {
                     enable_advanced_rate_limiting = {
@@ -546,7 +546,7 @@ return {
                         description = "Enable dynamic rate limit adjustment based on threat level"
                     }
                 },
-                
+
                 -- Real-Time Analytics Dashboard Configuration (PHASE 6)
                 {
                     analytics_dashboard_enabled = {
@@ -694,7 +694,7 @@ return {
                         description = "Interval in seconds for updating threat intelligence feeds"
                     }
                 },
-                
+
                 -- PHASE 4: Path Regex Filtering Configuration
                 {
                     enable_path_filtering = {
@@ -772,7 +772,7 @@ return {
                         description = "Enable path filtering analytics and false positive tracking"
                     }
                 },
-                
+
                 -- Status and Monitoring
                 {
                     status_endpoint_enabled = {
@@ -802,7 +802,7 @@ return {
                         description = "Path for the metrics endpoint"
                     }
                 },
-                
+
                 -- PHASE 4: HTTP Method Filtering Configuration
                 {
                     enable_method_filtering = {
@@ -813,7 +813,7 @@ return {
                 },
                 {
                     block_extended_methods = {
-                        type = "boolean", 
+                        type = "boolean",
                         default = false,
                         description = "Block extended dangerous methods including WebDAV methods (LOCK, UNLOCK, MKCOL, etc.)"
                     }
@@ -872,7 +872,7 @@ return {
                         description = "Enable detailed analytics tracking for HTTP method violations and patterns"
                     }
                 },
-                
+
                 -- PHASE 4: Incident Management Configuration
                 {
                     incident_analytics_enabled = {
@@ -904,7 +904,7 @@ return {
                         description = "Maximum size of request body snippet to store in incident records"
                     }
                 },
-                
+
                 -- Incident Alerting Configuration
                 {
                     alert_notification_channels = {
@@ -967,7 +967,7 @@ return {
                         description = "Number of days to retain alert records"
                     }
                 },
-                
+
                 -- Webhook Notification Configuration
                 {
                     webhook_notification_url = {
@@ -987,7 +987,7 @@ return {
                         description = "Authorization token for webhook authentication"
                     }
                 },
-                
+
                 -- Teams Integration
                 {
                     teams_webhook_url = {
@@ -995,7 +995,7 @@ return {
                         description = "Microsoft Teams webhook URL for incident notifications"
                     }
                 },
-                
+
                 -- SIEM Integration Configuration
                 {
                     enable_siem_export = {
@@ -1037,7 +1037,7 @@ return {
                         description = "Interval in seconds for batched SIEM exports"
                     }
                 },
-                
+
                 -- Threat Intelligence Enrichment
                 {
                     enable_threat_enrichment = {

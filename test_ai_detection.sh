@@ -26,11 +26,11 @@ test_request() {
     local url="$3"
     local data="$4"
     local expected_result="$5"
-    
+
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}Test:${NC} $test_name"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    
+
     if [ "$method" = "GET" ]; then
         echo "Request: GET $url"
         response=$(curl -s -w "\n%{http_code}" -m 5 "$KONG_URL$url" 2>/dev/null)
@@ -39,10 +39,10 @@ test_request() {
         echo "Body: $data"
         response=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d "$data" -m 5 "$KONG_URL$url" 2>/dev/null)
     fi
-    
+
     http_code=$(echo "$response" | tail -n 1)
     body=$(echo "$response" | head -n -1)
-    
+
     # Parse response
     if [ "$http_code" = "403" ]; then
         echo -e "${RED}✗ BLOCKED${NC} (HTTP $http_code)"
@@ -50,7 +50,7 @@ test_request() {
         incident_id=$(echo "$body" | grep -o '"incident_id":"[^"]*"' | cut -d'"' -f4 || echo "N/A")
         echo -e "Threat Type: ${RED}$threat_type${NC}"
         echo "Incident ID: $incident_id"
-        
+
         # Check if AI was used
         if echo "$body" | grep -q "ai_powered"; then
             echo -e "${BLUE}AI Analysis:${NC} Yes"
@@ -66,7 +66,7 @@ test_request() {
     else
         echo -e "${RED}✗ ERROR${NC} (HTTP $http_code)"
     fi
-    
+
     echo ""
 }
 
@@ -140,7 +140,7 @@ for i in {1..10}; do
     response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" \
         -d "{\"username\":\"user$i\",\"password\":\"pass$i\"}" \
         -m 1 "$KONG_URL/test/login" 2>/dev/null | tail -n 1)
-    
+
     if [ "$response" = "403" ]; then
         echo -e "Attempt $i: ${RED}BLOCKED${NC}"
     elif [ "$response" = "429" ]; then

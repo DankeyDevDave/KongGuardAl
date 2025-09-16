@@ -20,7 +20,7 @@ local LOG_LEVELS = {
 -- Log level names for output
 local LOG_LEVEL_NAMES = {
     [LOG_LEVELS.DEBUG] = "DEBUG",
-    [LOG_LEVELS.INFO] = "INFO", 
+    [LOG_LEVELS.INFO] = "INFO",
     [LOG_LEVELS.WARN] = "WARN",
     [LOG_LEVELS.ERROR] = "ERROR"
 }
@@ -30,7 +30,7 @@ local DEFAULT_LOG_HEADERS = {
     "user-agent",
     "authorization",
     "content-type",
-    "content-length", 
+    "content-length",
     "x-forwarded-for",
     "x-real-ip",
     "x-forwarded-proto",
@@ -55,11 +55,11 @@ end
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Log Format] Initializing structured logging")
-    
+
     -- Configure log level from schema
     _M.current_log_level = _M.parse_log_level(conf.log_level or "info")
-    
-    kong.log.info("[Kong Guard AI Log Format] Structured logging initialized at level: " .. 
+
+    kong.log.info("[Kong Guard AI Log Format] Structured logging initialized at level: " ..
                   LOG_LEVEL_NAMES[_M.current_log_level])
 end
 
@@ -75,7 +75,7 @@ function _M.parse_log_level(level_str)
         warn = LOG_LEVELS.WARN,
         error = LOG_LEVELS.ERROR
     }
-    
+
     return level_map[string.lower(level_str)] or LOG_LEVELS.INFO
 end
 
@@ -87,13 +87,13 @@ end
 function _M.get_real_client_ip()
     -- Priority order: X-Real-IP, X-Forwarded-For (first IP), remote_addr
     local headers = kong.request.get_headers()
-    
+
     -- Check X-Real-IP first (most reliable for single proxy)
     local real_ip = headers["x-real-ip"]
     if real_ip and real_ip ~= "" then
         return real_ip
     end
-    
+
     -- Parse X-Forwarded-For (comma-separated list, first is original client)
     local forwarded_for = headers["x-forwarded-for"]
     if forwarded_for and forwarded_for ~= "" then
@@ -107,7 +107,7 @@ function _M.get_real_client_ip()
             end
         end
     end
-    
+
     -- Fallback to Kong's direct client IP detection
     return kong.client.get_ip()
 end
@@ -120,7 +120,7 @@ end
 ---
 function _M.extract_selected_headers(headers_table)
     local selected_headers = {}
-    
+
     for header_name, header_value in pairs(headers_table) do
         local lower_name = string.lower(header_name)
         if header_lookup[lower_name] then
@@ -138,7 +138,7 @@ function _M.extract_selected_headers(headers_table)
             end
         end
     end
-    
+
     return selected_headers
 end
 
@@ -151,24 +151,24 @@ end
 function _M.create_access_log_entry(conf)
     local request_start_time = kong.ctx.plugin.guard_ai_request_start_time or ngx.now()
     local headers = kong.request.get_headers()
-    
+
     local log_entry = {
         -- Timestamp and correlation
         timestamp = ngx.time(),
         iso_timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ", ngx.time()),
         request_id = ngx.var.request_id or kong.log.serialize().request.id,
         kong_request_id = kong.log.serialize().request.id,
-        
+
         -- Request identification
         client_ip = _M.get_real_client_ip(),
         method = kong.request.get_method(),
         path = kong.request.get_path(),
         raw_query_string = kong.request.get_raw_query(),
         scheme = kong.request.get_scheme(),
-        
+
         -- Headers subset (security filtered)
         headers = _M.extract_selected_headers(headers),
-        
+
         -- Kong context
         service_id = kong.router.get_service() and kong.router.get_service().id,
         service_name = kong.router.get_service() and kong.router.get_service().name,
@@ -176,20 +176,20 @@ function _M.create_access_log_entry(conf)
         route_name = kong.router.get_route() and kong.router.get_route().name,
         consumer_id = kong.client.get_consumer() and kong.client.get_consumer().id,
         consumer_username = kong.client.get_consumer() and kong.client.get_consumer().username,
-        
+
         -- Request details
         request_size = tonumber(headers["content-length"]) or 0,
         request_start_time = request_start_time,
-        
+
         -- Kong Guard AI context
         guard_ai_version = "0.1.0",
         dry_run_mode = conf.dry_run_mode,
         log_type = "access",
-        
+
         -- Performance tracking
         processing_phase = "access"
     }
-    
+
     return log_entry
 end
 
@@ -204,24 +204,24 @@ function _M.create_response_log_entry(conf, processing_time_ms)
     local request_start_time = kong.ctx.plugin.guard_ai_request_start_time or ngx.now()
     local request_time = ngx.now() - request_start_time
     local response_headers = kong.response.get_headers()
-    
+
     local log_entry = {
         -- Timestamp and correlation
         timestamp = ngx.time(),
         iso_timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ", ngx.time()),
         request_id = ngx.var.request_id or kong.log.serialize().request.id,
         kong_request_id = kong.log.serialize().request.id,
-        
+
         -- Request identification (for correlation)
         client_ip = _M.get_real_client_ip(),
         method = kong.request.get_method(),
         path = kong.request.get_path(),
-        
+
         -- Response details
         status = kong.response.get_status(),
         response_size = tonumber(response_headers["content-length"]) or 0,
         response_headers = _M.extract_response_headers(response_headers),
-        
+
         -- Kong context
         service_id = kong.router.get_service() and kong.router.get_service().id,
         service_name = kong.router.get_service() and kong.router.get_service().name,
@@ -229,7 +229,7 @@ function _M.create_response_log_entry(conf, processing_time_ms)
         route_name = kong.router.get_route() and kong.router.get_route().name,
         consumer_id = kong.client.get_consumer() and kong.client.get_consumer().id,
         consumer_username = kong.client.get_consumer() and kong.client.get_consumer().username,
-        
+
         -- Latency and performance metrics
         latency = {
             request = math.floor(request_time * 1000), -- Total request time in ms
@@ -237,16 +237,16 @@ function _M.create_response_log_entry(conf, processing_time_ms)
             upstream = kong.ctx.balancer and kong.ctx.balancer.get_last_latency() or 0,
             guard_ai_processing = processing_time_ms or 0
         },
-        
+
         -- Kong Guard AI context
         guard_ai_version = "0.1.0",
         dry_run_mode = conf.dry_run_mode,
         log_type = "response",
-        
+
         -- Performance tracking
         processing_phase = "log"
     }
-    
+
     return log_entry
 end
 
@@ -257,7 +257,7 @@ end
 ---
 function _M.extract_response_headers(response_headers)
     local selected = {}
-    
+
     -- Response headers of interest for security analysis
     local response_header_whitelist = {
         "content-type",
@@ -271,7 +271,7 @@ function _M.extract_response_headers(response_headers)
         "etag",
         "last-modified"
     }
-    
+
     for _, header_name in ipairs(response_header_whitelist) do
         local header_value = response_headers[header_name]
         if header_value then
@@ -296,7 +296,7 @@ function _M.extract_response_headers(response_headers)
             end
         end
     end
-    
+
     return selected
 end
 
@@ -316,12 +316,12 @@ function _M.create_threat_incident_log(threat_result, request_context, response_
         iso_timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ", ngx.time()),
         request_id = ngx.var.request_id or kong.log.serialize().request.id,
         kong_request_id = kong.log.serialize().request.id,
-        
+
         -- Incident classification
         incident_id = "guard_ai_" .. ngx.time() .. "_" .. string.sub(ngx.var.request_id or "", 1, 8),
         incident_type = "threat_detected",
         severity = _M.map_threat_level_to_severity(threat_result.threat_level),
-        
+
         -- Threat details
         threat = {
             type = threat_result.threat_type,
@@ -331,7 +331,7 @@ function _M.create_threat_incident_log(threat_result, request_context, response_
             patterns_matched = threat_result.patterns_matched,
             risk_score = threat_result.risk_score
         },
-        
+
         -- Request context
         request = {
             client_ip = request_context.client_ip,
@@ -341,7 +341,7 @@ function _M.create_threat_incident_log(threat_result, request_context, response_
             query_params = request_context.query,
             user_agent = request_context.headers and request_context.headers["user-agent"]
         },
-        
+
         -- Response action
         response_action = {
             action_type = response_action.action_type,
@@ -351,7 +351,7 @@ function _M.create_threat_incident_log(threat_result, request_context, response_
             details = response_action.details,
             execution_time_ms = response_action.execution_time_ms
         },
-        
+
         -- Kong context
         kong_context = {
             service_id = request_context.service_id,
@@ -359,7 +359,7 @@ function _M.create_threat_incident_log(threat_result, request_context, response_
             consumer_id = request_context.consumer_id,
             node_id = kong.node.get_id()
         },
-        
+
         -- Kong Guard AI metadata
         guard_ai = {
             version = "0.1.0",
@@ -367,12 +367,12 @@ function _M.create_threat_incident_log(threat_result, request_context, response_
             processing_time_ms = kong.ctx.plugin.guard_ai_processing_time or 0,
             detection_engine = threat_result.detection_engine or "static_rules"
         },
-        
+
         -- Log metadata
         log_type = "threat_incident",
         log_level = "WARN"
     }
-    
+
     return log_entry
 end
 
@@ -383,22 +383,22 @@ end
 ---
 function _M.emit_structured_log(log_entry, level)
     level = level or LOG_LEVELS.INFO
-    
+
     -- Only emit if meets current log level threshold
     if level < _M.current_log_level then
         return
     end
-    
+
     -- Add log level to entry
     log_entry.log_level = LOG_LEVEL_NAMES[level]
-    
+
     -- Serialize to JSON with error handling
     local json_log, err = json.encode(log_entry)
     if not json_log then
         kong.log.error("[Kong Guard AI Log Format] Failed to encode log entry: " .. (err or "unknown error"))
         return
     end
-    
+
     -- Emit via appropriate Kong log level
     if level == LOG_LEVELS.ERROR then
         kong.log.err("[KONG_GUARD_AI_STRUCTURED] " .. json_log)
@@ -441,22 +441,22 @@ function _M.create_metrics_log_entry(metrics, conf)
         -- Timestamp
         timestamp = ngx.time(),
         iso_timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ", ngx.time()),
-        
+
         -- Metrics data
         metrics = metrics,
-        
+
         -- Kong context
         kong_node_id = kong.node.get_id(),
-        
+
         -- Kong Guard AI metadata
         guard_ai_version = "0.1.0",
         dry_run_mode = conf.dry_run_mode,
-        
+
         -- Log metadata
         log_type = "performance_metrics",
         log_level = "INFO"
     }
-    
+
     return log_entry
 end
 
@@ -467,14 +467,14 @@ end
 ---
 function _M.validate_log_entry(log_entry)
     local required_fields = {"timestamp", "log_type", "request_id"}
-    
+
     for _, field in ipairs(required_fields) do
         if not log_entry[field] then
             kong.log.warn("[Kong Guard AI Log Format] Missing required field: " .. field)
             return false
         end
     end
-    
+
     return true
 end
 

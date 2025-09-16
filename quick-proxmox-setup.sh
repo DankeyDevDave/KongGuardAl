@@ -32,17 +32,17 @@ fi
 pct exec 998 -- bash -c '
     # Update and install SSH
     apt-get update -qq && apt-get install -y openssh-server
-    
+
     # Configure SSH for key-based auth
     sed -i \"s/#PermitRootLogin.*/PermitRootLogin prohibit-password/\" /etc/ssh/sshd_config
     sed -i \"s/#PubkeyAuthentication.*/PubkeyAuthentication yes/\" /etc/ssh/sshd_config
-    
+
     # Setup SSH directory and key
     mkdir -p /root/.ssh
     echo \"$PUBLIC_KEY\" > /root/.ssh/authorized_keys
     chmod 700 /root/.ssh
     chmod 600 /root/.ssh/authorized_keys
-    
+
     # Start SSH service
     systemctl enable ssh
     systemctl restart ssh
@@ -72,7 +72,7 @@ if [ ! -z "$CONTAINER_IP" ]; then
     echo "Container 998 is now accessible via SSH:"
     echo "  ssh root@$CONTAINER_IP"
     echo ""
-    
+
     # Add to SSH config for easy access
     if ! grep -q "Host ct998" ~/.ssh/config 2>/dev/null; then
         echo "Adding to SSH config for easy access..."
@@ -85,7 +85,7 @@ if [ ! -z "$CONTAINER_IP" ]; then
         echo "You can also connect using:"
         echo "  ssh ct998"
     fi
-    
+
     # Test connection
     echo ""
     echo "Testing SSH connection..."

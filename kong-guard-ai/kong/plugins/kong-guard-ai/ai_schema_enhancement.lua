@@ -11,7 +11,7 @@ local ai_schema_enhancement = {
             description = "Enable enhanced AI Gateway integration for advanced threat analysis. CAUTION: Requires external service configuration and API costs"
         }
     },
-    
+
     -- Multi-Model AI Configuration
     {
         ai_gpt4_enabled = {
@@ -22,7 +22,7 @@ local ai_schema_enhancement = {
     },
     {
         ai_claude_enabled = {
-            type = "boolean", 
+            type = "boolean",
             default = false,
             description = "Enable Claude model for AI analysis"
         }
@@ -34,7 +34,7 @@ local ai_schema_enhancement = {
             description = "Enable Gemini model for AI analysis"
         }
     },
-    
+
     -- Model API Configuration
     {
         openai_api_key = {
@@ -54,7 +54,7 @@ local ai_schema_enhancement = {
             description = "Google Gemini API key"
         }
     },
-    
+
     -- Model Endpoints (optional, uses defaults if not specified)
     {
         openai_endpoint = {
@@ -65,7 +65,7 @@ local ai_schema_enhancement = {
     },
     {
         anthropic_endpoint = {
-            type = "string", 
+            type = "string",
             default = "https://api.anthropic.com/v1/messages",
             description = "Anthropic API endpoint"
         }
@@ -77,7 +77,7 @@ local ai_schema_enhancement = {
             description = "Google Gemini API endpoint"
         }
     },
-    
+
     -- AI Performance and Cost Configuration
     {
         ai_timeout_ms = {
@@ -109,7 +109,7 @@ local ai_schema_enhancement = {
             description = "Verify SSL certificates for AI API requests"
         }
     },
-    
+
     -- AI Analysis Configuration
     {
         ai_analysis_threshold = {
@@ -148,7 +148,7 @@ local ai_schema_enhancement = {
             description = "Enable contextual threat assessment with historical data"
         }
     },
-    
+
     -- AI Learning and Feedback
     {
         ai_learning_enabled = {
@@ -170,7 +170,7 @@ local ai_schema_enhancement = {
             description = "Endpoint for security analyst feedback submission"
         }
     },
-    
+
     -- AI Caching and Performance
     {
         ai_cache_enabled = {
@@ -195,7 +195,7 @@ local ai_schema_enhancement = {
             description = "Maximum number of AI responses to cache"
         }
     },
-    
+
     -- AI Risk Sampling Configuration
     {
         ai_low_risk_sampling_rate = {
@@ -221,7 +221,7 @@ local ai_schema_enhancement = {
             description = "Sampling rate for high-risk requests (0.5-1.0)"
         }
     },
-    
+
     -- AI Failover and Reliability
     {
         ai_model_failover_enabled = {
@@ -246,7 +246,7 @@ local ai_schema_enhancement = {
             description = "Maximum retry attempts for failed AI requests"
         }
     },
-    
+
     -- AI Security and Privacy
     {
         ai_data_sanitization_enabled = {
@@ -270,7 +270,7 @@ local ai_schema_enhancement = {
             description = "Enable PII redaction before sending data to AI models"
         }
     },
-    
+
     -- AI Monitoring and Metrics
     {
         ai_metrics_collection_enabled = {

@@ -1,7 +1,7 @@
 {
   "allowedTools": [
     "Edit",
-    "Read", 
+    "Read",
     "Write",
     "MultiEdit",
     "Bash",
@@ -27,7 +27,7 @@
       "allowedCommands": [
         "npx claude-flow@alpha *",
         "docker *",
-        "docker-compose *", 
+        "docker-compose *",
         "git *",
         "curl *",
         "task-master *",

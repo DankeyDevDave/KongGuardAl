@@ -59,11 +59,11 @@ pct exec $CONTAINER_ID -- bash -c "
     # Enable root login with SSH key
     sed -i 's/#PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
     sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
-    
+
     # Create .ssh directory
     mkdir -p /root/.ssh
     chmod 700 /root/.ssh
-    
+
     # Restart SSH service
     systemctl restart sshd
     systemctl enable sshd
@@ -143,23 +143,23 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Connecting to Proxmox..."
     echo "You'll be prompted for the root password for Proxmox."
     echo ""
-    
+
     # Copy and run setup script
     scp /tmp/setup-container-ssh.sh $PROXMOX_USER@$PROXMOX_HOST:/tmp/
     ssh $PROXMOX_USER@$PROXMOX_HOST "bash /tmp/setup-container-ssh.sh"
-    
+
     # Now add the SSH key
     echo ""
     echo "Adding your SSH public key to container..."
     PUBLIC_KEY=$(cat ~/.ssh/id_rsa.pub)
     ssh $PROXMOX_USER@$PROXMOX_HOST "pct exec $CONTAINER_ID -- bash -c \"echo '$PUBLIC_KEY' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys\""
-    
+
     # Get container IP
     echo ""
     echo "Getting container IP address..."
     CONTAINER_IP=$(ssh $PROXMOX_USER@$PROXMOX_HOST "pct exec $CONTAINER_ID -- ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'")
     echo "Container IP: $CONTAINER_IP"
-    
+
     # Save connection info
     echo ""
     echo "Saving connection information..."
@@ -169,13 +169,13 @@ Host kong-guard-ct998
     User root
     IdentityFile ~/.ssh/id_rsa
     StrictHostKeyChecking no
-    
+
 Host proxmox-kong
     HostName $PROXMOX_HOST
     User root
     StrictHostKeyChecking no
 EOF
-    
+
     echo ""
     echo "✅ Setup complete!"
     echo ""

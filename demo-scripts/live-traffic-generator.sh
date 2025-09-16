@@ -47,7 +47,7 @@ send_to_ai() {
     local threat_type=$4
     local ip="203.0.113.$((RANDOM % 255))"
     local rpm=$5
-    
+
     curl -X POST http://localhost:8000/analyze \
         -H "Content-Type: application/json" \
         -d "{
@@ -76,32 +76,32 @@ send_to_ai() {
 while true; do
     # Random selection of traffic type
     TRAFFIC_TYPE=$((RANDOM % 10))
-    
+
     if [ $TRAFFIC_TYPE -lt 3 ]; then
         # 30% SQL Injection
         attack="${SQL_ATTACKS[$((RANDOM % ${#SQL_ATTACKS[@]}))]}"
         echo "🔴 [$(date +%H:%M:%S)] SQL Injection: $attack"
         send_to_ai "GET" "/api/users" "$attack" "sql" 50
-        
+
     elif [ $TRAFFIC_TYPE -lt 5 ]; then
         # 20% XSS
         attack="${XSS_ATTACKS[$((RANDOM % ${#XSS_ATTACKS[@]}))]}"
         echo "🟠 [$(date +%H:%M:%S)] XSS Attack: ${attack:0:30}..."
         send_to_ai "POST" "/comment" "$attack" "xss" 80
-        
+
     elif [ $TRAFFIC_TYPE -lt 6 ]; then
         # 10% Path Traversal
         attack="${PATH_TRAVERSALS[$((RANDOM % ${#PATH_TRAVERSALS[@]}))]}"
         echo "🟡 [$(date +%H:%M:%S)] Path Traversal: $attack"
         send_to_ai "GET" "/files" "$attack" "path" 60
-        
+
     else
         # 40% Normal Traffic
         query="${NORMAL_QUERIES[$((RANDOM % ${#NORMAL_QUERIES[@]}))]}"
         echo "🟢 [$(date +%H:%M:%S)] Normal Traffic: $query"
         send_to_ai "GET" "/api/products" "$query" "normal" 10
     fi
-    
+
     # Random delay between requests (0.5 to 3 seconds)
     sleep $(echo "scale=1; $((RANDOM % 25 + 5)) / 10" | bc)
 done

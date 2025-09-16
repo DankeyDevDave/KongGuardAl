@@ -16,7 +16,7 @@ _M.advanced_remediation_fields = {
     },
     {
         config_correlation_window = {
-            type = "number", 
+            type = "number",
             default = 86400,
             between = { 3600, 604800 },
             description = "Time window in seconds for correlating 5xx errors with configuration changes (1 hour to 7 days)"

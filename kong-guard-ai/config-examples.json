@@ -38,7 +38,7 @@
     }
   },
   "staging": {
-    "name": "Staging Environment Configuration", 
+    "name": "Staging Environment Configuration",
     "description": "Limited enforcement for staging validation",
     "config": {
       "dry_run_mode": false,
@@ -141,7 +141,7 @@
       "enable_notifications": true,
       "slack_webhook_url": "https://hooks.slack.com/services/YOUR/PRODUCTION/WEBHOOK",
       "email_smtp_server": "smtp.company.com",
-      "email_from": "security-alerts@company.com", 
+      "email_from": "security-alerts@company.com",
       "email_to": [
         "security-team@company.com",
         "ops-team@company.com"

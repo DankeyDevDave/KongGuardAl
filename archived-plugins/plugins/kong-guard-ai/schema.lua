@@ -26,7 +26,7 @@ return {
               description = "Plugin logging level"
             }
           },
-          
+
           -- Rate limiting configuration
           {
             rate_limit_enabled = {
@@ -42,7 +42,7 @@ return {
               description = "Requests per minute threshold"
             }
           },
-          
+
           -- IP blocking configuration
           {
             ip_blocking_enabled = {
@@ -59,7 +59,7 @@ return {
               description = "List of blocked IP addresses"
             }
           },
-          
+
           -- AI detection configuration
           {
             ai_detection_enabled = {
@@ -80,7 +80,7 @@ return {
               description = "API key for AI service"
             }
           },
-          
+
           -- Notification configuration
           {
             notifications_enabled = {
@@ -108,7 +108,7 @@ return {
               description = "Email address for notifications"
             }
           },
-          
+
           -- Redis configuration for state management
           {
             redis_host = {
@@ -131,7 +131,7 @@ return {
               description = "Redis timeout in milliseconds"
             }
           },
-          
+
           -- Advanced threat detection settings
           {
             payload_analysis_enabled = {
@@ -167,7 +167,7 @@ return {
               description = "Regex patterns for suspicious content detection"
             }
           },
-          
+
           -- Response configuration
           {
             auto_block_duration = {

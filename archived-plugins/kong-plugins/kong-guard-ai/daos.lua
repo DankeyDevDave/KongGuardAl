@@ -10,7 +10,7 @@ local incidents = {
   fields = {
     {
       id = {
-        type = "uuid", 
+        type = "uuid",
         default = function() return utils.uuid() end
       }
     },
@@ -52,7 +52,7 @@ local incidents = {
     },
     {
       route_id = {
-        type = "foreign", 
+        type = "foreign",
         reference = "routes",
         description = "Associated Kong route ID"
       }
@@ -60,7 +60,7 @@ local incidents = {
     {
       consumer_id = {
         type = "foreign",
-        reference = "consumers", 
+        reference = "consumers",
         description = "Associated Kong consumer ID"
       }
     },
@@ -184,7 +184,7 @@ local analytics = {
     {
       route_id = {
         type = "foreign",
-        reference = "routes", 
+        reference = "routes",
         description = "Associated Kong route ID"
       }
     },
@@ -320,6 +320,6 @@ local remediations = {
 -- Return the DAOs for registration
 return {
   incidents,
-  analytics, 
+  analytics,
   remediations
 }

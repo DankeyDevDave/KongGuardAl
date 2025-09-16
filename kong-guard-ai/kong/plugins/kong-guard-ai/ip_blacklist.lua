@@ -57,7 +57,7 @@ local CIDR_PATTERN = "^(.+)/(%d+)$"
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI IP Blacklist] Initializing IP enforcement system")
-    
+
     -- Load initial blacklists from configuration
     if conf.ip_blacklist and #conf.ip_blacklist > 0 then
         for _, ip_entry in ipairs(conf.ip_blacklist) do
@@ -65,7 +65,7 @@ function _M.init_worker(conf)
         end
         kong.log.info("[Kong Guard AI IP Blacklist] Loaded " .. #conf.ip_blacklist .. " IPs from configuration")
     end
-    
+
     -- Load whitelists from configuration
     if conf.ip_whitelist and #conf.ip_whitelist > 0 then
         for _, ip_entry in ipairs(conf.ip_whitelist) do
@@ -73,7 +73,7 @@ function _M.init_worker(conf)
         end
         kong.log.info("[Kong Guard AI IP Blacklist] Loaded " .. #conf.ip_whitelist .. " whitelisted IPs")
     end
-    
+
     kong.log.info("[Kong Guard AI IP Blacklist] IP enforcement system initialized")
 end
 
@@ -85,7 +85,7 @@ end
 function _M.get_real_client_ip(conf)
     local client_ip = kong.client.get_ip()
     local headers = kong.request.get_headers()
-    
+
     -- Priority order for proxy headers
     local proxy_headers = {
         "cf-connecting-ip",     -- Cloudflare (highest priority)
@@ -96,7 +96,7 @@ function _M.get_real_client_ip(conf)
         "forwarded-for",       -- Legacy
         "forwarded"            -- RFC 7239
     }
-    
+
     for _, header_name in ipairs(proxy_headers) do
         local header_value = headers[header_name]
         if header_value then
@@ -114,7 +114,7 @@ function _M.get_real_client_ip(conf)
             end
         end
     end
-    
+
     return client_ip or "unknown"
 end
 
@@ -126,11 +126,11 @@ end
 function _M.ipv4_to_int(ip)
     local a, b, c, d = ip:match(IPV4_PATTERN)
     if not a then return nil end
-    
+
     a, b, c, d = tonumber(a), tonumber(b), tonumber(c), tonumber(d)
     if not a or not b or not c or not d then return nil end
     if a > 255 or b > 255 or c > 255 or d > 255 then return nil end
-    
+
     return a * 16777216 + b * 65536 + c * 256 + d  -- 2^24 + 2^16 + 2^8 + 1
 end
 
@@ -144,7 +144,7 @@ end
 function _M.ipv4_in_cidr(ip_int, cidr_int, prefix_len)
     if prefix_len == 0 then return true end  -- 0.0.0.0/0 matches everything
     if prefix_len > 32 then return false end
-    
+
     local mask = bit.lshift(0xFFFFFFFF, (32 - prefix_len))
     return bit.band(ip_int, mask) == bit.band(cidr_int, mask)
 end
@@ -159,7 +159,7 @@ function _M.parse_cidr(cidr)
     if cidr_cache[cidr] then
         return cidr_cache[cidr]
     end
-    
+
     local network, prefix_str = cidr:match(CIDR_PATTERN)
     if not network or not prefix_str then
         -- Not CIDR notation, treat as single IP
@@ -172,10 +172,10 @@ function _M.parse_cidr(cidr)
         -- TODO: Add IPv6 support here
         return nil
     end
-    
+
     local prefix_len = tonumber(prefix_str)
     if not prefix_len then return nil end
-    
+
     -- IPv4 CIDR
     local network_int = _M.ipv4_to_int(network)
     if network_int and prefix_len >= 0 and prefix_len <= 32 then
@@ -183,7 +183,7 @@ function _M.parse_cidr(cidr)
         cidr_cache[cidr] = result
         return result
     end
-    
+
     -- TODO: Add IPv6 CIDR support
     kong.log.debug("[Kong Guard AI IP Blacklist] IPv6 CIDR not yet supported: " .. cidr)
     return nil
@@ -200,17 +200,17 @@ function _M.add_ip_to_blacklist(ip_or_cidr, reason, ttl_seconds)
     if not ip_or_cidr or ip_or_cidr == "" then
         return false
     end
-    
+
     ttl_seconds = ttl_seconds or CACHE_TTL_SECONDS
     local expiry_time = ngx.time() + ttl_seconds
-    
+
     -- Parse as CIDR first
     local cidr_info = _M.parse_cidr(ip_or_cidr)
     if not cidr_info then
         kong.log.warn("[Kong Guard AI IP Blacklist] Invalid IP/CIDR format: " .. ip_or_cidr)
         return false
     end
-    
+
     -- Check if it's a single IP (prefix_len = 32 for IPv4)
     if cidr_info.prefix_len == 32 and not cidr_info.is_ipv6 then
         -- Add to exact IP hash table for O(1) lookup
@@ -234,8 +234,8 @@ function _M.add_ip_to_blacklist(ip_or_cidr, reason, ttl_seconds)
         })
         ip_blacklist.stats.total_cidrs = ip_blacklist.stats.total_cidrs + 1
     end
-    
-    kong.log.info("[Kong Guard AI IP Blacklist] Added to blacklist: " .. ip_or_cidr .. 
+
+    kong.log.info("[Kong Guard AI IP Blacklist] Added to blacklist: " .. ip_or_cidr ..
                   " (reason: " .. (reason or "manual_block") .. ", TTL: " .. ttl_seconds .. "s)")
     return true
 end
@@ -249,13 +249,13 @@ function _M.add_ip_to_whitelist(ip_or_cidr)
     if not ip_or_cidr or ip_or_cidr == "" then
         return false
     end
-    
+
     local cidr_info = _M.parse_cidr(ip_or_cidr)
     if not cidr_info then
         kong.log.warn("[Kong Guard AI IP Blacklist] Invalid whitelist IP/CIDR format: " .. ip_or_cidr)
         return false
     end
-    
+
     if cidr_info.prefix_len == 32 and not cidr_info.is_ipv6 then
         -- Single IP whitelist
         ip_blacklist.whitelist[ip_or_cidr] = true
@@ -268,7 +268,7 @@ function _M.add_ip_to_whitelist(ip_or_cidr)
             is_ipv6 = cidr_info.is_ipv6
         })
     end
-    
+
     kong.log.info("[Kong Guard AI IP Blacklist] Added to whitelist: " .. ip_or_cidr)
     return true
 end
@@ -283,7 +283,7 @@ function _M.is_ip_whitelisted(client_ip)
     if ip_blacklist.whitelist[client_ip] then
         return true
     end
-    
+
     -- CIDR whitelist check
     local ip_int = _M.ipv4_to_int(client_ip)
     if ip_int then
@@ -296,7 +296,7 @@ function _M.is_ip_whitelisted(client_ip)
             -- TODO: Add IPv6 whitelist support
         end
     end
-    
+
     return false
 end
 
@@ -307,12 +307,12 @@ end
 ---
 function _M.check_ip_blacklist(client_ip)
     local check_start = ngx.now()
-    
+
     -- Whitelist check first (highest priority)
     if _M.is_ip_whitelisted(client_ip) then
         return nil  -- Whitelisted IPs bypass all blacklist checks
     end
-    
+
     -- O(1) exact IP match check
     local exact_match = ip_blacklist.exact_ips[client_ip]
     if exact_match then
@@ -333,13 +333,13 @@ function _M.check_ip_blacklist(client_ip)
             }
         end
     end
-    
+
     -- CIDR range check for IPv4
     local ip_int = _M.ipv4_to_int(client_ip)
     if ip_int then
         local current_time = ngx.time()
         local active_cidrs = {}
-        
+
         for _, cidr_entry in ipairs(ip_blacklist.cidr_blocks) do
             -- Check expiry and remove if needed
             if cidr_entry.expiry and current_time > cidr_entry.expiry then
@@ -348,7 +348,7 @@ function _M.check_ip_blacklist(client_ip)
             elseif not cidr_entry.expired and not cidr_entry.is_ipv6 then
                 if _M.ipv4_in_cidr(ip_int, cidr_entry.network_int, cidr_entry.prefix_len) then
                     ip_blacklist.stats.cache_hits = ip_blacklist.stats.cache_hits + 1
-                    kong.log.debug("[Kong Guard AI IP Blacklist] CIDR match block: " .. client_ip .. 
+                    kong.log.debug("[Kong Guard AI IP Blacklist] CIDR match block: " .. client_ip ..
                                    " in " .. cidr_entry.cidr)
                     return {
                         blocked = true,
@@ -362,16 +362,16 @@ function _M.check_ip_blacklist(client_ip)
                 table.insert(active_cidrs, cidr_entry)
             end
         end
-        
+
         -- Update CIDR blocks to remove expired entries
         if #active_cidrs ~= #ip_blacklist.cidr_blocks then
             ip_blacklist.cidr_blocks = active_cidrs
             ip_blacklist.stats.total_cidrs = #active_cidrs
         end
     end
-    
+
     -- TODO: Add IPv6 CIDR checking
-    
+
     ip_blacklist.stats.cache_misses = ip_blacklist.stats.cache_misses + 1
     return nil  -- IP not blacklisted
 end
@@ -385,17 +385,17 @@ end
 function _M.enforce_ip_blacklist(conf)
     local enforcement_gate = require "kong.plugins.kong-guard-ai.enforcement_gate"
     local instrumentation = require "kong.plugins.kong-guard-ai.instrumentation"
-    
+
     -- Get real client IP with proxy header support
     local client_ip = _M.get_real_client_ip(conf)
-    
+
     -- Perform blacklist check
     local block_result = _M.check_ip_blacklist(client_ip)
-    
+
     if block_result and block_result.blocked then
-        kong.log.warn("[Kong Guard AI IP Blacklist] IP blocked: " .. client_ip .. 
+        kong.log.warn("[Kong Guard AI IP Blacklist] IP blocked: " .. client_ip ..
                       " (reason: " .. block_result.reason .. ", type: " .. block_result.match_type .. ")")
-        
+
         -- Prepare enforcement data
         local enforcement_data = {
             client_ip = client_ip,
@@ -407,7 +407,7 @@ function _M.enforce_ip_blacklist(conf)
             timestamp = ngx.time(),
             correlation_id = instrumentation.get_correlation_id()
         }
-        
+
         -- Execute through enforcement gate (handles dry-run mode)
         local action_types = enforcement_gate.get_action_types()
         local enforcement_result = enforcement_gate.enforce_action(
@@ -418,25 +418,25 @@ function _M.enforce_ip_blacklist(conf)
                 return _M.execute_ip_block_response(action_data, config)
             end
         )
-        
+
         -- Update statistics
         ip_blacklist.stats.blocked_requests = ip_blacklist.stats.blocked_requests + 1
-        
+
         -- Store incident data for logging
         kong.ctx.plugin.ip_blacklist_incident = {
             enforcement_result = enforcement_result,
             block_result = block_result,
             client_ip = client_ip
         }
-        
+
         return enforcement_result
     end
-    
+
     -- Periodic cleanup with low probability to avoid performance impact
     if math.random() < CLEANUP_PROBABILITY then
         _M.cleanup_expired_entries()
     end
-    
+
     return nil  -- IP not blocked
 end
 
@@ -453,7 +453,7 @@ function _M.execute_ip_block_response(action_data, conf)
         ["X-Block-Reason"] = action_data.reason or "security_policy",
         ["X-Block-Type"] = action_data.match_type or "ip_blacklist"
     }
-    
+
     local response_body = {
         error = "Access Denied",
         message = "Your IP address has been blocked due to security policy",
@@ -461,21 +461,21 @@ function _M.execute_ip_block_response(action_data, conf)
         block_id = action_data.correlation_id,
         timestamp = ngx.time()
     }
-    
+
     -- Add expiry information if available
     if action_data.expiry then
         response_body.expires_at = action_data.expiry
         response_body.expires_in = action_data.expiry - ngx.time()
     end
-    
+
     -- Set response headers
     for header, value in pairs(response_headers) do
         kong.response.set_header(header, value)
     end
-    
+
     -- Return 403 Forbidden with JSON body
     kong.response.exit(403, response_body)
-    
+
     return {
         success = true,
         status_code = 403,
@@ -498,7 +498,7 @@ function _M.create_incident_log(enforcement_result, block_result, client_ip, con
         incident_type = "ip_blacklist_block",
         timestamp = ngx.time(),
         correlation_id = enforcement_result.request_id,
-        
+
         -- IP information
         client_ip = client_ip,
         block_details = {
@@ -508,7 +508,7 @@ function _M.create_incident_log(enforcement_result, block_result, client_ip, con
             expiry_time = block_result.expiry,
             response_time_microseconds = block_result.response_time_us
         },
-        
+
         -- Enforcement details
         enforcement = {
             executed = enforcement_result.executed,
@@ -516,7 +516,7 @@ function _M.create_incident_log(enforcement_result, block_result, client_ip, con
             dry_run_mode = conf.dry_run_mode,
             action_type = enforcement_result.action_type
         },
-        
+
         -- Request context
         request = {
             method = kong.request.get_method(),
@@ -524,7 +524,7 @@ function _M.create_incident_log(enforcement_result, block_result, client_ip, con
             user_agent = kong.request.get_header("user-agent"),
             referer = kong.request.get_header("referer")
         },
-        
+
         -- Security context
         security = {
             threat_level = 9.0,  -- High threat level for blacklisted IPs
@@ -534,14 +534,14 @@ function _M.create_incident_log(enforcement_result, block_result, client_ip, con
                 whitelist_bypassed = false
             }
         },
-        
+
         -- Performance metrics
         performance = {
             lookup_time_microseconds = block_result.response_time_us,
             enforcement_time_ms = enforcement_result.execution_time_ms or 0
         }
     }
-    
+
     -- Add geolocation data if available (placeholder for future enhancement)
     -- This would integrate with a GeoIP service
     incident_log.geolocation = {
@@ -551,7 +551,7 @@ function _M.create_incident_log(enforcement_result, block_result, client_ip, con
         city = nil,
         isp = nil
     }
-    
+
     return incident_log
 end
 
@@ -563,7 +563,7 @@ function _M.get_blacklist_stats()
     local current_time = ngx.time()
     local active_ips = 0
     local expired_ips = 0
-    
+
     -- Count active vs expired IPs
     for ip, entry in pairs(ip_blacklist.exact_ips) do
         if entry.expiry and current_time > entry.expiry then
@@ -572,10 +572,10 @@ function _M.get_blacklist_stats()
             active_ips = active_ips + 1
         end
     end
-    
+
     local active_cidrs = 0
     local expired_cidrs = 0
-    
+
     -- Count active vs expired CIDR blocks
     for _, cidr_entry in ipairs(ip_blacklist.cidr_blocks) do
         if cidr_entry.expiry and current_time > cidr_entry.expiry then
@@ -584,13 +584,13 @@ function _M.get_blacklist_stats()
             active_cidrs = active_cidrs + 1
         end
     end
-    
+
     return {
         total_blocked_requests = ip_blacklist.stats.blocked_requests,
         cache_hits = ip_blacklist.stats.cache_hits,
         cache_misses = ip_blacklist.stats.cache_misses,
         hit_rate = ip_blacklist.stats.cache_hits / math.max(1, ip_blacklist.stats.cache_hits + ip_blacklist.stats.cache_misses),
-        
+
         blacklist_size = {
             active_ips = active_ips,
             expired_ips = expired_ips,
@@ -598,12 +598,12 @@ function _M.get_blacklist_stats()
             expired_cidrs = expired_cidrs,
             total_active = active_ips + active_cidrs
         },
-        
+
         whitelist_size = {
             exact_ips = _M.count_table_keys(ip_blacklist.whitelist),
             cidr_blocks = #ip_blacklist.whitelist_cidrs
         },
-        
+
         cache_info = {
             cidr_cache_entries = _M.count_table_keys(cidr_cache),
             memory_estimate_kb = math.ceil((active_ips + active_cidrs) * 0.5)  -- Rough estimate
@@ -617,7 +617,7 @@ end
 function _M.cleanup_expired_entries()
     local current_time = ngx.time()
     local cleanup_count = 0
-    
+
     -- Clean up expired exact IPs
     local active_ips = {}
     for ip, entry in pairs(ip_blacklist.exact_ips) do
@@ -628,7 +628,7 @@ function _M.cleanup_expired_entries()
         end
     end
     ip_blacklist.exact_ips = active_ips
-    
+
     -- Clean up expired CIDR blocks
     local active_cidrs = {}
     for _, cidr_entry in ipairs(ip_blacklist.cidr_blocks) do
@@ -639,11 +639,11 @@ function _M.cleanup_expired_entries()
         end
     end
     ip_blacklist.cidr_blocks = active_cidrs
-    
+
     -- Update statistics
     ip_blacklist.stats.total_ips = _M.count_table_keys(ip_blacklist.exact_ips)
     ip_blacklist.stats.total_cidrs = #ip_blacklist.cidr_blocks
-    
+
     if cleanup_count > 0 then
         kong.log.debug("[Kong Guard AI IP Blacklist] Cleaned up " .. cleanup_count .. " expired entries")
     end
@@ -656,14 +656,14 @@ end
 ---
 function _M.remove_from_blacklist(ip_or_cidr)
     local removed = false
-    
+
     -- Remove from exact IPs
     if ip_blacklist.exact_ips[ip_or_cidr] then
         ip_blacklist.exact_ips[ip_or_cidr] = nil
         ip_blacklist.stats.total_ips = ip_blacklist.stats.total_ips - 1
         removed = true
     end
-    
+
     -- Remove from CIDR blocks
     local updated_cidrs = {}
     for _, cidr_entry in ipairs(ip_blacklist.cidr_blocks) do
@@ -673,16 +673,16 @@ function _M.remove_from_blacklist(ip_or_cidr)
             removed = true
         end
     end
-    
+
     if #updated_cidrs ~= #ip_blacklist.cidr_blocks then
         ip_blacklist.cidr_blocks = updated_cidrs
         ip_blacklist.stats.total_cidrs = #updated_cidrs
     end
-    
+
     if removed then
         kong.log.info("[Kong Guard AI IP Blacklist] Removed from blacklist: " .. ip_or_cidr)
     end
-    
+
     return removed
 end
 
@@ -721,12 +721,12 @@ end
 function _M.handle_admin_api_request(conf)
     local method = kong.request.get_method()
     local path = kong.request.get_path()
-    
+
     -- Check if this is a blacklist management request
     if not path:match("^/_guard_ai/blacklist") then
         return false
     end
-    
+
     if not conf.admin_api_enabled then
         kong.response.exit(403, {
             error = "Admin API disabled",
@@ -734,14 +734,14 @@ function _M.handle_admin_api_request(conf)
         })
         return true
     end
-    
+
     -- Handle different endpoints
     local response_data = {}
     local status_code = 200
-    
+
     if path == "/_guard_ai/blacklist/stats" and method == "GET" then
         response_data = _M.get_blacklist_stats()
-        
+
     elseif path == "/_guard_ai/blacklist/add" and method == "POST" then
         local body = kong.request.get_body()
         if body and body.ip then
@@ -752,7 +752,7 @@ function _M.handle_admin_api_request(conf)
             response_data = {error = "Missing ip parameter"}
             status_code = 400
         end
-        
+
     elseif path == "/_guard_ai/blacklist/remove" and method == "DELETE" then
         local body = kong.request.get_body()
         if body and body.ip then
@@ -763,7 +763,7 @@ function _M.handle_admin_api_request(conf)
             response_data = {error = "Missing ip parameter"}
             status_code = 400
         end
-        
+
     elseif path == "/_guard_ai/blacklist/check" and method == "POST" then
         local body = kong.request.get_body()
         if body and body.ip then
@@ -777,12 +777,12 @@ function _M.handle_admin_api_request(conf)
             response_data = {error = "Missing ip parameter"}
             status_code = 400
         end
-        
+
     else
         response_data = {error = "Endpoint not found"}
         status_code = 404
     end
-    
+
     kong.response.exit(status_code, response_data)
     return true
 end

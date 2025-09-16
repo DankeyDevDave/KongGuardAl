@@ -14,32 +14,32 @@
             0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
             50% { box-shadow: 0 0 40px rgba(139, 92, 246, 1); }
         }
-        
+
         @keyframes thinking {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         @keyframes scan {
             0% { transform: translateY(0); opacity: 1; }
             100% { transform: translateY(100%); opacity: 0; }
         }
-        
+
         .ai-active { animation: aiPulse 1s infinite; }
         .thinking-spinner { animation: thinking 1s linear infinite; }
         .scan-line { animation: scan 2s linear infinite; }
-        
+
         .threat-critical { background: linear-gradient(135deg, #ff0000, #990000); }
         .threat-high { background: linear-gradient(135deg, #ff4444, #cc0000); }
         .threat-medium { background: linear-gradient(135deg, #ffaa00, #ff6600); }
         .threat-low { background: linear-gradient(135deg, #ffff00, #cccc00); }
         .threat-safe { background: linear-gradient(135deg, #00ff00, #00cc00); }
-        
+
         .ai-brain {
             background: linear-gradient(135deg, #667eea, #764ba2);
             box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
         }
-        
+
         .code-highlight {
             background: rgba(139, 92, 246, 0.1);
             border-left: 3px solid #8b5cf6;
@@ -77,21 +77,21 @@
             useEffect(() => {
                 // Connect to WebSocket
                 const ws = new WebSocket('ws://localhost:8000/ws');
-                
+
                 ws.onopen = () => {
                     setConnected(true);
                     console.log('Connected to AI Analysis Service');
                 };
-                
+
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-                    
+
                     if (data.type === 'threat_analysis') {
                         setAiThinking(true);
-                        
+
                         // Update current analysis
                         setCurrentAnalysis(data);
-                        
+
                         // Update AI insights
                         setAiInsights({
                             reasoning: data.reasoning || 'Analyzing patterns...',
@@ -103,10 +103,10 @@
                             threat_score: data.threat_score || 0,
                             threat_type: data.threat_type || 'unknown'
                         });
-                        
+
                         // Add to history
                         setThreatHistory(prev => [data, ...prev].slice(0, 10));
-                        
+
                         // Update metrics
                         setMetrics(prev => ({
                             ...prev,
@@ -115,17 +115,17 @@
                             avg_confidence: ((prev.avg_confidence * prev.total_analyzed + data.confidence) / (prev.total_analyzed + 1)),
                             avg_processing_ms: ((prev.avg_processing_ms * prev.total_analyzed + (data.processing_time_ms || 0)) / (prev.total_analyzed + 1))
                         }));
-                        
+
                         // Stop thinking animation after a delay
                         setTimeout(() => setAiThinking(false), 1500);
                     }
                 };
-                
+
                 ws.onerror = (error) => {
                     console.error('WebSocket error:', error);
                     setConnected(false);
                 };
-                
+
                 ws.onclose = () => {
                     setConnected(false);
                     // Reconnect after 3 seconds
@@ -133,7 +133,7 @@
                         window.location.reload();
                     }, 3000);
                 };
-                
+
                 return () => {
                     if (ws) ws.close();
                 };
@@ -197,7 +197,7 @@
                             }
                         })
                     });
-                    
+
                     const result = await response.json();
                     console.log('Attack result:', result);
                 } catch (error) {
@@ -280,7 +280,7 @@
                                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                                     <span>🔍</span> Current AI Analysis
                                 </h2>
-                                
+
                                 {aiInsights.threat_score !== undefined && (
                                     <div className="space-y-4">
                                         {/* Threat Score Bar */}
@@ -290,7 +290,7 @@
                                                 <span className="font-bold">{(aiInsights.threat_score * 100).toFixed(1)}%</span>
                                             </div>
                                             <div className="w-full bg-gray-700 rounded-full h-6">
-                                                <div 
+                                                <div
                                                     className={`h-6 rounded-full flex items-center justify-center text-xs font-bold ${getThreatColor(aiInsights.threat_score)}`}
                                                     style={{width: `${aiInsights.threat_score * 100}%`}}
                                                 >
@@ -327,7 +327,7 @@
                                                 <div>
                                                     <p className="font-bold capitalize">{aiInsights.recommendation}</p>
                                                     <p className="text-sm text-gray-400">
-                                                        Confidence: {(aiInsights.confidence * 100).toFixed(1)}% | 
+                                                        Confidence: {(aiInsights.confidence * 100).toFixed(1)}% |
                                                         Processing: {aiInsights.processing_time}ms
                                                     </p>
                                                 </div>
@@ -350,7 +350,7 @@
                                     <h2 className="text-xl font-bold mb-4">📊 Request Details</h2>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <span className="text-gray-400">Method:</span> 
+                                            <span className="text-gray-400">Method:</span>
                                             <span className="ml-2 font-mono">{currentAnalysis.method}</span>
                                         </div>
                                         <div>
@@ -366,7 +366,7 @@
                                             <span className="ml-2">{new Date(currentAnalysis.timestamp).toLocaleTimeString()}</span>
                                         </div>
                                     </div>
-                                    
+
                                     {currentAnalysis.query && (
                                         <div className="mt-4">
                                             <span className="text-gray-400">Query/Body:</span>
@@ -385,31 +385,31 @@
                             <div className="bg-gray-800 rounded-lg p-6">
                                 <h2 className="text-xl font-bold mb-4">🎯 Test Attacks</h2>
                                 <div className="space-y-2">
-                                    <button 
+                                    <button
                                         onClick={() => sendTestAttack('sql')}
                                         className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition"
                                     >
                                         🔴 SQL Injection Attack
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => sendTestAttack('xss')}
                                         className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded transition"
                                     >
                                         🟠 XSS Attack
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => sendTestAttack('path_traversal')}
                                         className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded transition"
                                     >
                                         🟡 Path Traversal
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => sendTestAttack('zero_day')}
                                         className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition"
                                     >
                                         🟣 Zero-Day Pattern
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => sendTestAttack('normal')}
                                         className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded transition"
                                     >
@@ -440,7 +440,7 @@
                                             </div>
                                         </div>
                                     ))}
-                                    
+
                                     {threatHistory.length === 0 && (
                                         <p className="text-center text-gray-500 py-4">No threats analyzed yet</p>
                                     )}

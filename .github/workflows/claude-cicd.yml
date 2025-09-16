@@ -18,7 +18,7 @@ jobs:
       skip_tests: ${{ steps.claude-analyze.outputs.skip_tests }}
       test_focus: ${{ steps.claude-analyze.outputs.test_focus }}
       build_strategy: ${{ steps.claude-analyze.outputs.build_strategy }}
-    
+
     steps:
       - name: Send Start Notification
         run: |
@@ -26,7 +26,7 @@ jobs:
                -H "Priority: 3" \
                -d "Analyzing changes on ${{ github.ref_name }} branch" \
                https://notify.jacqueswainwright.com/github-runner || true
-      
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -39,7 +39,7 @@ jobs:
         run: |
           # Get changed files
           CHANGED_FILES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} 2>/dev/null || git diff --name-only HEAD~1..HEAD)
-          
+
           # Ask Claude to analyze what needs testing
           ANALYSIS=$(curl -X POST https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
@@ -56,7 +56,7 @@ jobs:
           }
           EOF
           )
-          
+
           echo "$ANALYSIS" > analysis.json
           echo "skip_tests=$(echo "$ANALYSIS" | jq -r '.skip_tests')" >> $GITHUB_OUTPUT
           echo "test_focus=$(echo "$ANALYSIS" | jq -c '.test_focus')" >> $GITHUB_OUTPUT
@@ -67,7 +67,7 @@ jobs:
     needs: smart-analysis
     runs-on: ubuntu-latest
     if: needs.smart-analysis.outputs.build_strategy != 'skip'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -88,7 +88,7 @@ jobs:
           fi
           # Verify python is available
           python --version || python3 --version
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -101,13 +101,13 @@ jobs:
           echo "📦 Installing frontend dependencies..."
           cd frontend
           npm ci
-          
+
           echo "🏗️ Building frontend for production..."
           CI=false REACT_APP_API_URL="" npm run build
-          
+
           echo "✅ Frontend build complete"
           ls -la build/ || echo "Build directory not created"
-      
+
       - name: Smart Backend Build
         if: contains(fromJson(needs.smart-analysis.outputs.test_focus), 'backend')
         run: |
@@ -121,23 +121,23 @@ jobs:
             echo "Python not found"
             exit 1
           fi
-          
+
           $PIP_CMD install -r requirements.txt
-          
+
           echo "🔍 Running backend linting..."
           $PIP_CMD install ruff
           ruff check api/ --fix
-      
+
       - name: Smart Frontend Build
         if: contains(fromJson(needs.smart-analysis.outputs.test_focus), 'frontend')
         run: |
           echo "📦 Installing frontend dependencies..."
           cd frontend
           npm ci
-          
+
           echo "🏗️ Building frontend..."
           CI=false npm run build
-          
+
           echo "📁 Verifying build output..."
           ls -la build/
           ls -la build/static/ || echo "Static directory not found"
@@ -147,7 +147,7 @@ jobs:
     needs: [smart-analysis, intelligent-build]
     runs-on: ubuntu-latest
     if: needs.smart-analysis.outputs.skip_tests == 'false'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -163,20 +163,20 @@ jobs:
             echo "Python not found"
             exit 1
           fi
-          
+
           # Setup Python
           $PIP_CMD install -r requirements.txt
           $PIP_CMD install pytest pytest-cov pytest-asyncio
-          
+
           # Setup Node
           cd frontend && npm ci && cd ..
-      
+
       - name: Run Focused Tests
         id: run-tests
         continue-on-error: true
         run: |
           TEST_FOCUS='${{ needs.smart-analysis.outputs.test_focus }}'
-          
+
           # Run backend tests if needed
           if echo "$TEST_FOCUS" | grep -q "unit\|integration"; then
             echo "🧪 Running backend tests..."
@@ -191,7 +191,7 @@ jobs:
             fi
             $PYTHON_CMD -m pytest tests/ -v --cov=api --cov-report=xml > backend_test_output.txt 2>&1 || true
           fi
-          
+
           # Run frontend tests if needed
           if echo "$TEST_FOCUS" | grep -q "unit\|e2e"; then
             echo "🧪 Running frontend tests..."
@@ -199,7 +199,7 @@ jobs:
             npm test -- --watchAll=false > ../frontend_test_output.txt 2>&1 || true
             cd ..
           fi
-          
+
           # Check if tests passed
           if grep -q "FAILED" backend_test_output.txt frontend_test_output.txt 2>/dev/null; then
             echo "test_status=failed" >> $GITHUB_OUTPUT
@@ -207,7 +207,7 @@ jobs:
           else
             echo "test_status=passed" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Claude Debug Failed Tests
         if: failure()
         env:
@@ -218,12 +218,12 @@ jobs:
                -H "Priority: 4" \
                -d "Claude is analyzing test failures on ${{ github.ref_name }}" \
                https://notify.jacqueswainwright.com/github-runner || true
-          
+
           # Combine test outputs
           TEST_OUTPUT=""
           [ -f backend_test_output.txt ] && TEST_OUTPUT="$TEST_OUTPUT\n\nBackend Tests:\n$(tail -100 backend_test_output.txt)"
           [ -f frontend_test_output.txt ] && TEST_OUTPUT="$TEST_OUTPUT\n\nFrontend Tests:\n$(tail -100 frontend_test_output.txt)"
-          
+
           # Ask Claude to debug
           DEBUG_HELP=$(curl -X POST https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
@@ -240,12 +240,12 @@ jobs:
           }
           EOF
           )
-          
+
           # Create issue comment with debug help
           echo "## 🤖 Claude Test Debugging Assistant" > debug_comment.md
           echo "" >> debug_comment.md
           echo "$DEBUG_HELP" >> debug_comment.md
-          
+
           # Post to PR if this is a PR
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             gh pr comment ${{ github.event.pull_request.number }} --body-file debug_comment.md
@@ -255,7 +255,7 @@ jobs:
     name: Claude Performance Analysis
     needs: [intelligent-build]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -277,7 +277,7 @@ jobs:
               exit 1
             fi
           fi
-          
+
           # Determine which Python command to use
           if command -v python3 &> /dev/null; then
             PYTHON_CMD="python3"
@@ -289,10 +289,10 @@ jobs:
             echo "Python is not available after installation attempt"
             exit 1
           fi
-          
+
           echo "Using Python: $PYTHON_CMD"
           $PYTHON_CMD --version
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -308,7 +308,7 @@ jobs:
           CI=false REACT_APP_API_URL="" npm run build
           cd ..
           echo "✅ Frontend ready for backend performance tests"
-      
+
       - name: Install Dependencies
         run: |
           # Use the same Python detection
@@ -322,16 +322,16 @@ jobs:
             echo "Python not found"
             exit 1
           fi
-          
+
           $PIP_CMD install -r requirements.txt
           $PIP_CMD install uvicorn
-      
+
       - name: Run Performance Tests
         id: perf-test
         run: |
           # Simple performance test using curl
           echo "🚀 Testing API performance..."
-          
+
           # Determine which Python command to use
           if command -v python3 &> /dev/null; then
             PYTHON_CMD="python3"
@@ -341,30 +341,30 @@ jobs:
             echo "Python not found"
             exit 1
           fi
-          
+
           # Start the backend in background (simplified for demo)
           $PYTHON_CMD -m uvicorn api.main:app --host 0.0.0.0 --port 8000 &
           SERVER_PID=$!
           sleep 10
-          
+
           # Run performance tests
           for i in {1..10}; do
             response_time=$(curl -o /dev/null -s -w '%{time_total}\n' http://localhost:8000/api/test)
             echo "$response_time" >> response_times.txt
           done
-          
+
           kill $SERVER_PID
-          
+
           # Calculate average
           AVG_TIME=$(awk '{sum+=$1} END {print sum/NR}' response_times.txt)
           echo "average_response_time=$AVG_TIME" >> $GITHUB_OUTPUT
-      
+
       - name: Claude Performance Review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           AVG_TIME="${{ steps.perf-test.outputs.average_response_time }}"
-          
+
           PERF_REVIEW=$(curl -X POST https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
@@ -380,7 +380,7 @@ jobs:
           }
           EOF
           )
-          
+
           echo "### ⚡ Performance Analysis" >> $GITHUB_STEP_SUMMARY
           echo "$PERF_REVIEW" >> $GITHUB_STEP_SUMMARY
 
@@ -391,7 +391,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     outputs:
       should_deploy: ${{ steps.claude-decision.outputs.should_deploy }}
-    
+
     steps:
       - name: Claude Deploy Decision
         id: claude-decision
@@ -401,7 +401,7 @@ jobs:
           # Get test results and performance data
           TEST_STATUS="${{ needs.claude-assisted-tests.result }}"
           PERF_TIME="${{ needs.performance-analysis.outputs.average_response_time }}"
-          
+
           DECISION=$(curl -X POST https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
@@ -417,10 +417,10 @@ jobs:
           }
           EOF
           )
-          
+
           echo "## 🚀 Deployment Decision" >> $GITHUB_STEP_SUMMARY
           echo "$DECISION" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check if Claude recommends deployment
           if echo "$DECISION" | grep -q "DEPLOY"; then
             echo "✅ Claude recommends deployment - proceeding..."
@@ -435,7 +435,7 @@ jobs:
     needs: [smart-deployment-decision]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && needs.smart-deployment-decision.outputs.should_deploy == 'true'
-    
+
     steps:
       - name: Send Deployment Start Notification
         run: |
@@ -443,7 +443,7 @@ jobs:
                -H "Priority: 3" \
                -d "Deploying ${{ github.ref_name }} to production server" \
                https://notify.jacqueswainwright.com/github-runner || true
-      
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -458,18 +458,18 @@ jobs:
           echo "  IdentityFile ~/.ssh/deploy_key" >> ~/.ssh/config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config
           chmod 600 ~/.ssh/config
-      
+
       - name: Check Server Disk Space
         id: disk-check
         run: |
           echo "🔍 Checking production server disk space..."
           DISK_USAGE=$(ssh production df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
           echo "Current disk usage: ${DISK_USAGE}%"
-          
+
           if [ "$DISK_USAGE" -gt 90 ]; then
             echo "❌ Insufficient disk space on production server (${DISK_USAGE}% used)"
             echo "⚠️ Attempting cleanup..."
-            
+
             # Try to clean up Docker resources
             ssh production << 'EOF'
               echo "🧹 Cleaning up Docker resources..."
@@ -477,18 +477,18 @@ jobs:
               docker image prune -af
               docker volume prune -f
               docker builder prune -af
-              
+
               # Remove old logs
               find /var/log -type f -name "*.log" -mtime +7 -delete 2>/dev/null || true
-              
+
               # Check space again
               df -h /
           EOF
-            
+
             # Check disk usage again after cleanup
             DISK_USAGE_AFTER=$(ssh production df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
             echo "Disk usage after cleanup: ${DISK_USAGE_AFTER}%"
-            
+
             if [ "$DISK_USAGE_AFTER" -gt 90 ]; then
               echo "disk_space_ok=false" >> $GITHUB_OUTPUT
               echo "❌ Still insufficient disk space after cleanup"
@@ -501,16 +501,16 @@ jobs:
             echo "disk_space_ok=true" >> $GITHUB_OUTPUT
             echo "✅ Sufficient disk space available"
           fi
-      
+
       - name: Deploy to Production
         if: steps.disk-check.outputs.disk_space_ok == 'true'
         run: |
           echo "🚀 Deploying to production server..."
-          
+
           # Check what changed to determine build strategy
           CHANGED_FILES=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || echo "")
           BUILD_ARGS=""
-          
+
           # Check if we need a full rebuild
           if echo "$CHANGED_FILES" | grep -qE "(Dockerfile|requirements\.txt|package\.json)"; then
             echo "📦 Dependencies or Dockerfile changed - full rebuild required"
@@ -522,79 +522,79 @@ jobs:
             echo "⚡ Only backend changes - using cached layers"
             BUILD_ARGS=""
           fi
-          
+
           # Execute deployment on production server
           ssh production << EOF
             set -e
             cd /root/elec-token-vending-original
-            
+
             # Pull latest changes
             echo "📥 Pulling latest changes..."
             git fetch origin
             git reset --hard origin/main
-            
+
             # Build with appropriate strategy
             echo "🛑 Stopping containers..."
             docker compose down
-            
+
             echo "🔨 Building backend with: docker compose build ${BUILD_ARGS} backend"
             docker compose build ${BUILD_ARGS} backend
-            
+
             echo "🚀 Starting containers..."
             docker compose up -d
-            
+
             echo "✅ Deployment completed successfully"
           EOF
-      
+
       - name: Verify deployment
         id: verify-deployment
         run: |
           # Wait for services to fully start
           sleep 30
-          
+
           # Test if the application is accessible
           max_attempts=6
           attempt=1
-          
+
           while [ $attempt -le $max_attempts ]; do
             echo "Attempt $attempt of $max_attempts..."
-            
+
             if curl -f -s -o /dev/null -w "%{http_code}" https://zapvend.com | grep -q "200\|301\|302"; then
               echo "✅ Application is accessible!"
               echo "🎉 Deployment successful!"
               echo "Application URL: https://zapvend.com"
-              
+
               # Send success notification
               curl -H "Title: ✅ Production Deployment Successful" \
                    -H "Priority: 2" \
                    -d "Successfully deployed to https://zapvend.com" \
                    https://notify.jacqueswainwright.com/github-runner || true
-              
+
               echo "deployment_verified=true" >> $GITHUB_OUTPUT
               exit 0
             fi
-            
+
             echo "Application not yet accessible, waiting..."
             sleep 10
             attempt=$((attempt + 1))
           done
-          
+
           echo "❌ Application verification failed after $max_attempts attempts"
           echo "deployment_verified=false" >> $GITHUB_OUTPUT
           exit 1
-      
+
       - name: Handle Deployment Failure
         if: failure()
         run: |
           echo "❌ Deployment failed!"
           echo "Check the logs above for error details."
-          
+
           # Send failure notification
           curl -H "Title: ❌ Production Deployment Failed" \
                -H "Priority: 5" \
                -d "Deployment to production failed. Check GitHub Actions logs for details." \
                https://notify.jacqueswainwright.com/github-runner || true
-          
+
           # Try to get more diagnostic information
           echo "📊 Getting diagnostic information..."
           ssh production << 'EOF' || true
@@ -616,7 +616,7 @@ jobs:
     needs: [smart-analysis, intelligent-build, claude-assisted-tests, performance-analysis, smart-deployment-decision, production-deployment]
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: Send Success Notification
         if: success()
@@ -625,7 +625,7 @@ jobs:
                -H "Priority: 2" \
                -d "All CI/CD checks and deployment passed on ${{ github.ref_name }}" \
                https://notify.jacqueswainwright.com/github-runner || true
-      
+
       - name: Send Failure Notification
         if: failure()
         run: |
@@ -644,7 +644,7 @@ jobs:
           else
             FAILED_JOB="Unknown"
           fi
-          
+
           curl -H "Title: ❌ Claude CI/CD Failed - $FAILED_JOB" \
                -H "Priority: 5" \
                -d "Pipeline failed at $FAILED_JOB stage on ${{ github.ref_name }}. Check logs for details." \

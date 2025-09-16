@@ -22,7 +22,7 @@ Host kong
     User root
     IdentityFile ~/.ssh/id_ed25519
     StrictHostKeyChecking no
-    
+
 EOF
     echo "✅ Added 'kong' SSH shortcut"
 fi
@@ -39,7 +39,7 @@ Host kong-prod
     User root
     IdentityFile ~/.ssh/id_ed25519
     StrictHostKeyChecking no
-    
+
 EOF
     echo "✅ Added 'kong-prod' (same as kong)"
 fi
@@ -51,7 +51,7 @@ Host proxmox
     HostName 192.168.0.202
     User root
     StrictHostKeyChecking no
-    
+
 EOF
     echo "✅ Added 'proxmox' shortcut"
 fi

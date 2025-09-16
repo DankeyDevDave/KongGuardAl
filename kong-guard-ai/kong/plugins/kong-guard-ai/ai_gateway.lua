@@ -314,31 +314,31 @@ local feedback_data = {
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Gateway] Initializing Enhanced AI Gateway integration")
-    
+
     -- Validate AI Gateway configuration
     if not conf.ai_gateway_enabled then
         kong.log.info("[Kong Guard AI Gateway] AI Gateway disabled in configuration")
         return
     end
-    
+
     if not conf.ai_gateway_endpoint then
         kong.log.warn("[Kong Guard AI Gateway] No AI Gateway endpoint configured")
         return
     end
-    
+
     -- Initialize enhanced cache systems
     _M.init_cache_systems()
-    
+
     -- Initialize model performance tracking
     _M.init_model_tracking(conf)
-    
+
     -- Test AI Gateway connectivity for all configured models
     _M.test_multi_model_connectivity(conf)
-    
+
     -- Initialize feedback collection system
     _M.init_feedback_system()
-    
-    kong.log.info("[Kong Guard AI Gateway] Enhanced AI Gateway integration initialized with %d models", 
+
+    kong.log.info("[Kong Guard AI Gateway] Enhanced AI Gateway integration initialized with %d models",
                   _M.count_available_models(conf))
 end
 
@@ -350,7 +350,7 @@ function _M.init_cache_systems()
     ai_response_cache:flush_all()
     user_behavior_cache:flush_all()
     model_performance_cache:flush_all()
-    
+
     kong.log.debug("[Kong Guard AI Gateway] Cache systems initialized")
 end
 
@@ -372,7 +372,7 @@ function _M.init_model_tracking(conf)
             }, 3600) -- 1 hour TTL
         end
     end
-    
+
     model_stats.last_update = ngx.time()
     kong.log.debug("[Kong Guard AI Gateway] Model performance tracking initialized")
 end
@@ -383,7 +383,7 @@ end
 ---
 function _M.test_multi_model_connectivity(conf)
     local available_models = 0
-    
+
     for model_name, model_config in pairs(AI_MODELS) do
         if conf["ai_" .. string.lower(model_name) .. "_enabled"] then
             local success = _M.test_model_connectivity(model_name, model_config, conf)
@@ -395,11 +395,11 @@ function _M.test_multi_model_connectivity(conf)
             end
         end
     end
-    
+
     if available_models == 0 then
         kong.log.error("[Kong Guard AI Gateway] No AI models available - AI Gateway will be disabled")
     end
-    
+
     return available_models > 0
 end
 
@@ -410,7 +410,7 @@ function _M.init_feedback_system()
     feedback_data.false_positives = {}
     feedback_data.false_negatives = {}
     feedback_data.analyst_corrections = {}
-    
+
     kong.log.debug("[Kong Guard AI Gateway] Feedback system initialized for continuous learning")
 end
 
@@ -440,53 +440,53 @@ function _M.analyze_threat(request_context, threat_result, conf)
     if not conf.ai_gateway_enabled then
         return nil
     end
-    
+
     -- Determine analysis complexity and model selection
     local analysis_type = _M.determine_analysis_type(request_context, threat_result)
     local risk_level = _M.calculate_risk_level(threat_result)
-    
+
     -- Apply cost optimization sampling
     if not _M.should_analyze_request(risk_level, conf) then
         kong.log.debug("[Kong Guard AI Gateway] Request skipped due to cost optimization")
         return nil
     end
-    
+
     -- Check enhanced cache first
     local cache_key = _M.generate_enhanced_cache_key(request_context, threat_result, analysis_type)
     local cached_result = _M.get_cached_analysis(cache_key, analysis_type)
-    
+
     if cached_result then
         kong.log.debug("[Kong Guard AI Gateway] Using cached AI analysis")
         return cached_result
     end
-    
-    kong.log.debug("[Kong Guard AI Gateway] Performing enhanced AI threat analysis - Type: %s, Risk: %s", 
+
+    kong.log.debug("[Kong Guard AI Gateway] Performing enhanced AI threat analysis - Type: %s, Risk: %s",
                    analysis_type, risk_level)
-    
+
     -- Select optimal model based on analysis requirements
     local selected_model = _M.select_optimal_model(analysis_type, risk_level, conf)
     if not selected_model then
         kong.log.warn("[Kong Guard AI Gateway] No AI models available for analysis")
         return nil
     end
-    
+
     -- Perform comprehensive analysis
     local ai_result = _M.perform_comprehensive_analysis(request_context, threat_result, selected_model, conf)
-    
+
     if ai_result then
         -- Cache the result with appropriate TTL
         _M.cache_analysis_result(cache_key, ai_result, analysis_type)
-        
+
         -- Update model performance metrics
         _M.update_model_performance(selected_model.name, true, ai_result.confidence or 0)
-        
-        kong.log.info("[Kong Guard AI Gateway] Enhanced AI analysis completed - Model: %s, Threat Level: %d, Confidence: %.2f", 
+
+        kong.log.info("[Kong Guard AI Gateway] Enhanced AI analysis completed - Model: %s, Threat Level: %d, Confidence: %.2f",
                      selected_model.name, ai_result.threat_level or 0, ai_result.confidence or 0)
     else
         -- Update model performance for failed request
         _M.update_model_performance(selected_model.name, false, 0)
     end
-    
+
     return ai_result
 end
 
@@ -500,7 +500,7 @@ function _M.determine_analysis_type(request_context, threat_result)
     local threat_level = threat_result.threat_level or 0
     local has_payload = request_context.body and string.len(request_context.body) > 0
     local is_behavioral = threat_result.threat_type and string.find(threat_result.threat_type, "behavioral")
-    
+
     if threat_level >= 8 then
         return "comprehensive" -- Full multi-model analysis
     elseif has_payload and threat_level >= 5 then
@@ -520,7 +520,7 @@ end
 function _M.calculate_risk_level(threat_result)
     local threat_level = threat_result.threat_level or 0
     local confidence = threat_result.confidence or 0
-    
+
     if threat_level >= 8 or confidence >= 0.9 then
         return "high"
     elseif threat_level >= 5 or confidence >= 0.7 then
@@ -541,10 +541,10 @@ function _M.should_analyze_request(risk_level, conf)
     if not conf.ai_cost_optimization_enabled then
         return true
     end
-    
+
     local sampling_rate = COST_OPTIMIZATION.sampling_rate[risk_level] or 1.0
     local random_value = math.random()
-    
+
     return random_value <= sampling_rate
 end
 
@@ -557,7 +557,7 @@ end
 ---
 function _M.select_optimal_model(analysis_type, risk_level, conf)
     local available_models = {}
-    
+
     -- Get available models with current performance metrics
     for model_name, model_config in pairs(AI_MODELS) do
         if conf["ai_" .. string.lower(model_name) .. "_enabled"] then
@@ -571,11 +571,11 @@ function _M.select_optimal_model(analysis_type, risk_level, conf)
             end
         end
     end
-    
+
     if #available_models == 0 then
         return nil
     end
-    
+
     -- Select model based on analysis type and performance
     return _M.select_best_model(available_models, analysis_type, risk_level)
 end
@@ -595,7 +595,7 @@ function _M.select_best_model(available_models, analysis_type, risk_level)
         end)
         return available_models[1]
     end
-    
+
     -- For comprehensive analysis, prefer most capable model
     if analysis_type == "comprehensive" then
         -- Prefer Claude for comprehensive analysis (best reasoning)
@@ -605,14 +605,14 @@ function _M.select_best_model(available_models, analysis_type, risk_level)
             end
         end
     end
-    
+
     -- For cost-sensitive requests, prefer most cost-effective model
     table.sort(available_models, function(a, b)
         local cost_a = a.config.cost_per_token * (a.performance.avg_latency / 1000)
         local cost_b = b.config.cost_per_token * (b.performance.avg_latency / 1000)
         return cost_a < cost_b
     end)
-    
+
     return available_models[1]
 end
 
@@ -627,7 +627,7 @@ function _M.build_threat_analysis_prompt(request_context, threat_result)
     local headers_str = json.encode(request_context.headers or {})
     local query_str = json.encode(request_context.query or {})
     local user_agent = request_context.headers and request_context.headers["user-agent"] or "unknown"
-    
+
     local prompt = string.format(
         AI_ANALYSIS_PROMPTS.THREAT_DETECTION,
         request_context.method or "unknown",
@@ -640,7 +640,7 @@ function _M.build_threat_analysis_prompt(request_context, threat_result)
         threat_result.threat_level or 0,
         threat_result.confidence or 0
     )
-    
+
     return prompt
 end
 
@@ -655,41 +655,41 @@ function _M.call_ai_model(prompt, selected_model, conf)
     local start_time = ngx.now() * 1000
     local httpc = http.new()
     httpc:set_timeout(conf.ai_timeout_ms or 10000)
-    
+
     -- Build model-specific request
     local ai_request = _M.build_model_request(prompt, selected_model, conf)
     local endpoint = _M.get_model_endpoint(selected_model.name, conf)
     local headers = _M.get_model_headers(selected_model.name, conf)
-    
+
     local res, err = httpc:request_uri(endpoint, {
         method = "POST",
         headers = headers,
         body = json.encode(ai_request),
         ssl_verify = conf.ai_ssl_verify or false
     })
-    
+
     local latency = ngx.now() * 1000 - start_time
-    
+
     if not res then
         kong.log.error("[Kong Guard AI Gateway] %s model request failed: %s", selected_model.name, err or "unknown error")
         _M.record_model_error(selected_model.name, latency)
-        
+
         -- Try failover to next best model
         return _M.try_failover_model(prompt, selected_model, conf)
     end
-    
+
     if res.status ~= 200 then
         kong.log.error("[Kong Guard AI Gateway] %s model returned status: %d", selected_model.name, res.status)
         kong.log.debug("[Kong Guard AI Gateway] Response body: %s", res.body or "empty")
         _M.record_model_error(selected_model.name, latency)
-        
+
         -- Try failover to next best model
         return _M.try_failover_model(prompt, selected_model, conf)
     end
-    
+
     -- Record successful request
     _M.record_model_success(selected_model.name, latency)
-    
+
     return res.body
 end
 
@@ -715,7 +715,7 @@ function _M.build_model_request(prompt, selected_model, conf)
         max_tokens = selected_model.config.max_tokens,
         temperature = selected_model.config.temperature
     }
-    
+
     -- Add model-specific configuration
     if selected_model.name == "GPT4" then
         base_request.model = "gpt-4-turbo"
@@ -730,7 +730,7 @@ function _M.build_model_request(prompt, selected_model, conf)
             maxOutputTokens = selected_model.config.max_tokens
         }
     end
-    
+
     return base_request
 end
 
@@ -763,7 +763,7 @@ function _M.get_model_headers(model_name, conf)
         ["Content-Type"] = "application/json",
         ["User-Agent"] = "Kong-Guard-AI/0.1.0"
     }
-    
+
     if model_name == "GPT4" and conf.openai_api_key then
         headers["Authorization"] = "Bearer " .. conf.openai_api_key
     elseif model_name == "CLAUDE" and conf.anthropic_api_key then
@@ -774,7 +774,7 @@ function _M.get_model_headers(model_name, conf)
     elseif conf.ai_gateway_api_key then
         headers["Authorization"] = "Bearer " .. conf.ai_gateway_api_key
     end
-    
+
     return headers
 end
 
@@ -787,7 +787,7 @@ end
 ---
 function _M.try_failover_model(prompt, failed_model, conf)
     kong.log.warn("[Kong Guard AI Gateway] Attempting failover from %s model", failed_model.name)
-    
+
     -- Find next best model (excluding the failed one)
     local available_models = {}
     for model_name, model_config in pairs(AI_MODELS) do
@@ -802,26 +802,26 @@ function _M.try_failover_model(prompt, failed_model, conf)
             end
         end
     end
-    
+
     if #available_models == 0 then
         kong.log.error("[Kong Guard AI Gateway] No failover models available")
         return nil
     end
-    
+
     -- Select most reliable model for failover
     table.sort(available_models, function(a, b)
         return a.config.reliability > b.config.reliability
     end)
-    
+
     local failover_model = available_models[1]
     kong.log.info("[Kong Guard AI Gateway] Using failover model: %s", failover_model.name)
-    
+
     -- Recursive call with failover model (prevent infinite recursion)
     if not failover_model._failover_attempt then
         failover_model._failover_attempt = true
         return _M.call_ai_model(prompt, failover_model, conf)
     end
-    
+
     return nil
 end
 
@@ -837,7 +837,7 @@ function _M.call_ai_gateway(prompt, conf)
         name = "GPT4",
         config = AI_MODELS.GPT4
     }
-    
+
     return _M.call_ai_model(prompt, default_model, conf)
 end
 
@@ -852,7 +852,7 @@ function _M.parse_ai_response(response_body)
         kong.log.error("[Kong Guard AI Gateway] Failed to parse AI response: " .. (err or "unknown"))
         return nil
     end
-    
+
     -- Extract content from AI Gateway response format
     local ai_content
     if response_data.choices and response_data.choices[1] and response_data.choices[1].message then
@@ -863,7 +863,7 @@ function _M.parse_ai_response(response_body)
         kong.log.error("[Kong Guard AI Gateway] Unexpected AI response format")
         return nil
     end
-    
+
     -- Parse AI analysis JSON
     local ai_analysis, parse_err = json.decode(ai_content)
     if not ai_analysis then
@@ -871,7 +871,7 @@ function _M.parse_ai_response(response_body)
         -- Try to extract structured data from plain text response
         return _M.extract_analysis_from_text(ai_content)
     end
-    
+
     -- Validate required fields
     local result = {
         threat_validated = ai_analysis.threat_validated or false,
@@ -883,7 +883,7 @@ function _M.parse_ai_response(response_body)
         explanation = ai_analysis.explanation,
         ai_source = "ai_gateway"
     }
-    
+
     return result
 end
 
@@ -894,7 +894,7 @@ end
 ---
 function _M.extract_analysis_from_text(text_content)
     kong.log.debug("[Kong Guard AI Gateway] Attempting to extract analysis from text response")
-    
+
     local result = {
         threat_validated = false,
         threat_level = 0,
@@ -902,29 +902,29 @@ function _M.extract_analysis_from_text(text_content)
         explanation = text_content,
         ai_source = "ai_gateway_text"
     }
-    
+
     -- Simple pattern matching for key information
     local threat_level = text_content:match("threat.?level:?%s*(%d+)")
     if threat_level then
         result.threat_level = tonumber(threat_level)
     end
-    
+
     local confidence = text_content:match("confidence:?%s*([%d%.]+)")
     if confidence then
         result.confidence = tonumber(confidence)
     end
-    
+
     -- Look for threat validation
     if text_content:lower():find("threat.?validated") or text_content:lower():find("confirmed") then
         result.threat_validated = true
     end
-    
+
     -- Extract recommended action
     local action = text_content:match("recommend.?action:?%s*(%w+)")
     if action then
         result.recommended_action = action:lower()
     end
-    
+
     return result
 end
 
@@ -939,9 +939,9 @@ function _M.analyze_behavior(request_context, request_history, conf)
     if not conf.ai_gateway_enabled then
         return nil
     end
-    
+
     kong.log.debug("[Kong Guard AI Gateway] Performing AI behavioral analysis")
-    
+
     -- Build behavioral analysis prompt
     local history_str = json.encode(request_history or {})
     local prompt = string.format(
@@ -953,12 +953,12 @@ function _M.analyze_behavior(request_context, request_history, conf)
         _M.count_headers(request_context.headers),
         os.date("%Y-%m-%d %H:%M:%S", ngx.time())
     )
-    
+
     local ai_response = _M.call_ai_gateway(prompt, conf)
     if not ai_response then
         return nil
     end
-    
+
     return _M.parse_ai_response(ai_response)
 end
 
@@ -973,26 +973,26 @@ function _M.analyze_payload(payload, content_type, conf)
     if not conf.ai_gateway_enabled or not payload then
         return nil
     end
-    
+
     -- Limit payload size for AI analysis
     if #payload > 10240 then -- 10KB limit
         payload = payload:sub(1, 10240) .. "... [truncated]"
     end
-    
+
     kong.log.debug("[Kong Guard AI Gateway] Performing AI payload analysis")
-    
+
     local prompt = string.format(
         AI_ANALYSIS_PROMPTS.PAYLOAD_ANALYSIS,
         payload,
         content_type or "unknown",
         #payload
     )
-    
+
     local ai_response = _M.call_ai_gateway(prompt, conf)
     if not ai_response then
         return nil
     end
-    
+
     return _M.parse_ai_response(ai_response)
 end
 
@@ -1002,10 +1002,10 @@ end
 ---
 function _M.test_ai_gateway_connection(conf)
     kong.log.debug("[Kong Guard AI Gateway] Testing AI Gateway connectivity")
-    
+
     local test_prompt = "Test connection. Respond with 'OK' if you receive this message."
     local response = _M.call_ai_gateway(test_prompt, conf)
-    
+
     if response then
         kong.log.info("[Kong Guard AI Gateway] AI Gateway connectivity test successful")
     else
@@ -1027,7 +1027,7 @@ function _M.generate_cache_key(request_context, threat_result)
         threat_result.threat_type or "",
         tostring(threat_result.threat_level or 0)
     }
-    
+
     return table.concat(key_components, "|")
 end
 
@@ -1040,12 +1040,12 @@ function _M.count_headers(headers)
     if not headers then
         return 0
     end
-    
+
     local count = 0
     for _ in pairs(headers) do
         count = count + 1
     end
-    
+
     return count
 end
 
@@ -1061,18 +1061,18 @@ function _M.get_ai_metrics()
         successful_analyses = 0,
         failed_analyses = 0
     }
-    
+
     if ai_cache.requests then
         metrics.total_requests = #ai_cache.requests
     end
-    
+
     if ai_cache.responses then
         metrics.successful_analyses = 0
         for _ in pairs(ai_cache.responses) do
             metrics.successful_analyses = metrics.successful_analyses + 1
         end
     end
-    
+
     return metrics
 end
 
@@ -1082,7 +1082,7 @@ end
 function _M.cleanup_ai_cache()
     local current_time = ngx.time()
     local cache_ttl = 300 -- 5 minutes
-    
+
     -- Clean response cache
     if ai_cache.responses then
         for cache_key, cached_data in pairs(ai_cache.responses) do
@@ -1091,7 +1091,7 @@ function _M.cleanup_ai_cache()
             end
         end
     end
-    
+
     -- Clean request cache
     if ai_cache.requests then
         local cleaned_requests = {}
@@ -1102,7 +1102,7 @@ function _M.cleanup_ai_cache()
         end
         ai_cache.requests = cleaned_requests
     end
-    
+
     kong.log.debug("[Kong Guard AI Gateway] AI cache cleanup completed")
 end
 
@@ -1117,16 +1117,16 @@ function _M.send_feedback(original_analysis, actual_outcome, operator_feedback, 
     if not conf.ai_gateway_enabled or not conf.enable_learning then
         return
     end
-    
+
     kong.log.debug("[Kong Guard AI Gateway] Sending feedback to AI system")
-    
+
     local feedback_data = {
         original_analysis = original_analysis,
         actual_outcome = actual_outcome,
         operator_feedback = operator_feedback,
         timestamp = ngx.time()
     }
-    
+
     -- In production, this would send feedback to an AI training pipeline
     -- For now, just log the feedback
     kong.log.info("[Kong Guard AI Gateway] AI Feedback: " .. json.encode(feedback_data))

@@ -8,13 +8,13 @@ datasources:
     url: http://host.docker.internal:18002
     isDefault: true
     editable: true
-    
+
   - name: Kong-AI-Ollama-Direct
-    type: prometheus  
+    type: prometheus
     access: proxy
     url: http://host.docker.internal:18003
     editable: true
-    
+
   # Optional: Connect to production Prometheus
   - name: Kong-Production-Prometheus
     type: prometheus

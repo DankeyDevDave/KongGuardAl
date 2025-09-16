@@ -582,18 +582,18 @@
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.style.display = 'none';
             });
-            
+
             // Remove active class from all tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            
+
             // Show selected tab
             document.getElementById(tabName + '-tab').style.display = 'block';
-            
+
             // Add active class to clicked tab
             event.target.classList.add('active');
-            
+
             // Load tab-specific data
             if (tabName === 'services') {
                 loadServices();
@@ -606,18 +606,18 @@
         async function checkSystemStatus() {
             // Check Kong DB mode
             checkService(KONG_ADMIN, 'kong-db-status');
-            
+
             // Check Kong DB-less mode
             checkService(KONG_DBLESS_ADMIN, 'kong-dbless-status');
-            
+
             // Check Kong Manager
             checkService('http://localhost:8002', 'kong-manager-status');
-            
+
             // Check backend services
             checkService('http://localhost:8080', 'httpbin-status');
             checkService('http://localhost:8081', 'echo-status');
             checkService('http://localhost:8082', 'mockbin-status');
-            
+
             // Update main status
             updateMainStatus();
         }
@@ -625,14 +625,14 @@
         async function checkService(url, elementId) {
             const element = document.getElementById(elementId);
             if (!element) return;
-            
+
             try {
-                const response = await fetch(url, { 
+                const response = await fetch(url, {
                     method: 'GET',
                     mode: 'no-cors',
                     signal: AbortSignal.timeout(3000)
                 });
-                
+
                 element.textContent = 'Online';
                 element.className = 'status-badge online';
             } catch (error) {
@@ -644,7 +644,7 @@
         function updateMainStatus() {
             const kongStatus = document.getElementById('kong-db-status');
             const mainStatus = document.getElementById('main-status');
-            
+
             if (kongStatus && kongStatus.textContent === 'Online') {
                 mainStatus.textContent = 'RUNNING';
                 mainStatus.className = 'status-badge online';
@@ -660,15 +660,15 @@
                 // Services count
                 const services = await fetch(KONG_ADMIN + '/services').then(r => r.json());
                 document.getElementById('services-count').textContent = services.data ? services.data.length : '0';
-                
+
                 // Routes count
                 const routes = await fetch(KONG_ADMIN + '/routes').then(r => r.json());
                 document.getElementById('routes-count').textContent = routes.data ? routes.data.length : '0';
-                
+
                 // Plugins count
                 const plugins = await fetch(KONG_ADMIN + '/plugins').then(r => r.json());
                 document.getElementById('plugins-count').textContent = plugins.data ? plugins.data.length : '0';
-                
+
                 // Consumers count
                 const consumers = await fetch(KONG_ADMIN + '/consumers').then(r => r.json());
                 document.getElementById('consumers-count').textContent = consumers.data ? consumers.data.length : '0';
@@ -683,7 +683,7 @@
                 const response = await fetch(KONG_ADMIN + '/services');
                 const data = await response.json();
                 const list = document.getElementById('services-list');
-                
+
                 if (data.data && data.data.length > 0) {
                     list.innerHTML = data.data.map(service => `
                         <div class="service-item">
@@ -707,7 +707,7 @@
                 const response = await fetch(KONG_ADMIN + '/routes');
                 const data = await response.json();
                 const list = document.getElementById('routes-list');
-                
+
                 if (data.data && data.data.length > 0) {
                     list.innerHTML = data.data.map(route => `
                         <div class="service-item">
@@ -731,7 +731,7 @@
                 const response = await fetch(KONG_ADMIN + '/plugins');
                 const data = await response.json();
                 const list = document.getElementById('plugins-list');
-                
+
                 if (data.data && data.data.length > 0) {
                     list.innerHTML = data.data.map(plugin => `
                         <div class="service-item">
@@ -755,10 +755,10 @@
             const endpoint = document.getElementById('endpoint').value;
             const responseDiv = document.getElementById('response');
             const responseContent = document.getElementById('response-content');
-            
+
             responseDiv.style.display = 'block';
             responseContent.textContent = 'Sending request...';
-            
+
             try {
                 const response = await fetch(KONG_PROXY + endpoint, {
                     method: method,
@@ -766,16 +766,16 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 const data = await response.text();
                 let formattedData;
-                
+
                 try {
                     formattedData = JSON.stringify(JSON.parse(data), null, 2);
                 } catch {
                     formattedData = data;
                 }
-                
+
                 responseContent.textContent = `Status: ${response.status} ${response.statusText}\n\n${formattedData}`;
             } catch (error) {
                 responseContent.textContent = `Error: ${error.message}`;
@@ -819,7 +819,7 @@
             alert.className = `alert alert-${type}`;
             alert.textContent = message;
             alertsDiv.appendChild(alert);
-            
+
             setTimeout(() => {
                 alert.remove();
             }, 5000);

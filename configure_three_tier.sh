@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 
 # Service endpoints
 KONG_UNPROTECTED_ADMIN="http://localhost:8001"
-KONG_PROTECTED_ADMIN="http://localhost:8003"  
+KONG_PROTECTED_ADMIN="http://localhost:8003"
 KONG_LOCAL_ADMIN="http://localhost:8005"
 CLOUD_AI_SERVICE="http://localhost:18002"
 LOCAL_AI_SERVICE="http://localhost:18003"
@@ -26,7 +26,7 @@ echo -e "${BLUE}🔍 Checking service availability...${NC}"
 check_service() {
     local url=$1
     local name=$2
-    
+
     if curl -s -f "$url" > /dev/null; then
         echo -e "${GREEN}✅ $name is available${NC}"
         return 0
@@ -59,9 +59,9 @@ create_service() {
     local admin_url=$1
     local service_name=$2
     local backend_url=$3
-    
+
     echo -e "${BLUE}📦 Creating service '$service_name' on $(echo $admin_url | sed 's|http://localhost:||')...${NC}"
-    
+
     curl -s -X POST "$admin_url/services" \
         -H "Content-Type: application/json" \
         -d "{
@@ -75,9 +75,9 @@ create_route() {
     local admin_url=$1
     local service_name=$2
     local route_path=$3
-    
+
     echo -e "${BLUE}🛤️  Creating route '$route_path' for service '$service_name'...${NC}"
-    
+
     curl -s -X POST "$admin_url/services/$service_name/routes" \
         -H "Content-Type: application/json" \
         -d "{
@@ -92,9 +92,9 @@ add_guard_ai_plugin() {
     local service_name=$2
     local ai_service_url=$3
     local tier_name=$4
-    
+
     echo -e "${BLUE}🛡️  Adding Kong Guard AI plugin to '$service_name' (${tier_name})...${NC}"
-    
+
     curl -s -X POST "$admin_url/services/$service_name/plugins" \
         -H "Content-Type: application/json" \
         -d "{
@@ -133,7 +133,7 @@ echo ""
 
 # 3. Setup Local AI Protected Tier
 echo -e "${GREEN}🏠 TIER 3: Local AI Protected Kong Gateway${NC}"
-create_service "$KONG_LOCAL_ADMIN" "demo-backend-local" "http://mock-backend:80"  
+create_service "$KONG_LOCAL_ADMIN" "demo-backend-local" "http://mock-backend:80"
 create_route "$KONG_LOCAL_ADMIN" "demo-backend-local" "/api/local"
 add_guard_ai_plugin "$KONG_LOCAL_ADMIN" "demo-backend-local" "$LOCAL_AI_SERVICE" "local"
 echo ""
@@ -144,7 +144,7 @@ echo -e "${YELLOW}🔄 Creating comprehensive test routes...${NC}"
 # Common endpoints for all tiers
 endpoints=(
     "/api/users"
-    "/api/login" 
+    "/api/login"
     "/api/transfer"
     "/api/ping"
     "/api/download"
@@ -156,13 +156,13 @@ endpoints=(
 
 for endpoint in "${endpoints[@]}"; do
     echo -e "${BLUE}  Adding routes for $endpoint...${NC}"
-    
+
     # Unprotected routes
     create_route "$KONG_UNPROTECTED_ADMIN" "demo-backend-unprotected" "/unprotected$endpoint" > /dev/null
-    
+
     # Protected routes (cloud)
     create_route "$KONG_PROTECTED_ADMIN" "demo-backend-protected" "/protected$endpoint" > /dev/null
-    
+
     # Local AI routes
     create_route "$KONG_LOCAL_ADMIN" "demo-backend-local" "/local$endpoint" > /dev/null
 done
@@ -172,7 +172,7 @@ echo -e "${GREEN}✅ Three-tier Kong configuration complete!${NC}"
 echo ""
 echo -e "${YELLOW}📊 Service Endpoints:${NC}"
 echo -e "🔓 Unprotected Kong:    http://localhost:8000"
-echo -e "☁️  Cloud AI Protected:  http://localhost:8004"  
+echo -e "☁️  Cloud AI Protected:  http://localhost:8004"
 echo -e "🏠 Local AI Protected:   http://localhost:8006"
 echo -e "🤖 Cloud AI Service:     http://localhost:18002"
 echo -e "🏠 Local AI Service:     http://localhost:18003"
@@ -184,7 +184,7 @@ echo -e "${RED}Unprotected (will allow malicious requests):${NC}"
 echo "curl -X POST http://localhost:8000/unprotected/api/users \\"
 echo "  -d \"id=1' OR '1'='1; DROP TABLE users;--\""
 echo ""
-echo -e "${BLUE}Cloud AI Protected (will block attacks):${NC}"  
+echo -e "${BLUE}Cloud AI Protected (will block attacks):${NC}"
 echo "curl -X POST http://localhost:8004/protected/api/users \\"
 echo "  -d \"id=1' OR '1'='1; DROP TABLE users;--\""
 echo ""

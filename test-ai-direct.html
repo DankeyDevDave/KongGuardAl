@@ -16,25 +16,25 @@
 <body>
     <h1>🧠 Kong Guard AI - Direct API Test</h1>
     <p>This tests the AI service directly without WebSocket</p>
-    
+
     <div class="box">
         <h2>Click to Send Attack:</h2>
         <button class="danger" onclick="testAttack('sql')">SQL Injection</button>
         <button class="danger" onclick="testAttack('xss')">XSS Attack</button>
         <button class="success" onclick="testAttack('normal')">Normal Traffic</button>
     </div>
-    
+
     <div class="box">
         <h2>AI Response:</h2>
         <div id="result">Click a button to test...</div>
     </div>
-    
+
     <script>
         async function testAttack(type) {
             const attacks = {
                 sql: {
                     query: "SELECT * FROM users WHERE id=1 OR 1=1; DROP TABLE users;--",
-                    path: "/api/users", 
+                    path: "/api/users",
                     method: "GET"
                 },
                 xss: {
@@ -48,10 +48,10 @@
                     method: "GET"
                 }
             };
-            
+
             const attack = attacks[type];
             document.getElementById('result').innerHTML = 'AI is analyzing...';
-            
+
             try {
                 const response = await fetch('http://localhost:8000/analyze', {
                     method: 'POST',
@@ -77,9 +77,9 @@
                         }
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 const threatClass = data.threat_score > 0.5 ? 'threat-high' : 'threat-safe';
                 document.getElementById('result').className = 'result ' + threatClass;
                 document.getElementById('result').innerHTML = `

@@ -6,14 +6,14 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    
+
     steps:
     - name: Force clean workspace
       run: |
         echo "Force cleaning workspace..."
         # Use the runner work directory
         WORK_DIR="/home/runner/actions-runner/_work/KongGuardAl/KongGuardAl"
-        
+
         # Force remove everything with sudo
         if [ -d "$WORK_DIR" ]; then
           echo "Removing entire work directory: $WORK_DIR"
@@ -21,17 +21,17 @@ jobs:
           echo "Creating fresh work directory..."
           mkdir -p "$WORK_DIR"
         fi
-        
+
         # Also clean current directory
         echo "Cleaning current directory..."
         sudo rm -rf * .[^.]* 2>/dev/null || true
-        
+
     - name: Clone repository manually
       run: |
         echo "Manually cloning repository..."
         git clone https://github.com/jlwainwright/KongGuardAl.git .
         git checkout main
-        
+
     - name: Set up Node.js 20
       run: |
         echo "Installing Node.js 20 for Claude-Flow compatibility..."
@@ -43,11 +43,11 @@ jobs:
         nvm use 20
         node --version
         npm --version
-      
+
     - name: Set up Docker and Docker Compose
       run: |
         docker --version
-        
+
         # Check if docker compose v2 is available (comes with newer Docker)
         if docker compose version &> /dev/null; then
           echo "Docker Compose v2 is available"
@@ -65,7 +65,7 @@ jobs:
           export PATH=$HOME/.local/bin:$PATH
           docker-compose --version
         fi
-        
+
     - name: Build Kong Guard AI plugin
       run: |
         echo "Building Kong Guard AI security plugin..."
@@ -75,14 +75,14 @@ jobs:
         else
           echo "Lua compiler not found, skipping syntax validation"
         fi
-        
+
     - name: Deploy to Proxmox environment
       run: |
         echo "Deploying Kong Guard AI to Proxmox environment..."
-        
+
         # Ensure PATH includes local bin if we installed docker-compose there
         export PATH=$HOME/.local/bin:$PATH
-        
+
         # Start the Docker stack
         # Try docker compose v2 first, fallback to docker-compose v1
         if docker compose version &> /dev/null; then
@@ -95,7 +95,7 @@ jobs:
           echo "Error: Docker Compose not found"
           exit 1
         fi
-        
+
         # Wait for services to be ready
         echo "Waiting for Kong Gateway to be ready..."
         for i in {1..60}; do
@@ -106,14 +106,14 @@ jobs:
           echo "Waiting for Kong... ($i/60)"
           sleep 2
         done
-        
+
         # Final validation
         curl -f http://localhost:8001/status || {
           echo "❌ Kong Gateway failed to start after 2 minutes"
           docker-compose logs kong
           exit 1
         }
-        
+
     - name: Run integration tests
       run: |
         echo "Running integration tests..."
@@ -122,36 +122,36 @@ jobs:
           chmod +x tests/run_integration_tests.sh
           ./tests/run_integration_tests.sh
         fi
-        
+
         # Run validation scripts if available
         if [ -f "scripts/validate-all.sh" ]; then
           chmod +x scripts/validate-all.sh
           ./scripts/validate-all.sh || echo "Validation completed with warnings"
         fi
-        
+
     - name: Cleanup
       if: always()
       run: |
         echo "Cleaning up deployment..."
         # Ensure PATH includes local bin if we installed docker-compose there
         export PATH=$HOME/.local/bin:$PATH
-        
+
         # Stop containers
         if docker compose version &> /dev/null; then
           docker compose down || true
         elif command -v docker-compose &> /dev/null; then
           docker-compose down || true
         fi
-        
+
         # Clean Docker system
         docker system prune -f || true
-        
+
         # Clean up directories with proper permissions
         sudo rm -rf redis-data || true
         sudo rm -rf .hive-mind || true
         sudo rm -rf .swarm || true
         sudo rm -rf kong-guard-ai/memory || true
-        
+
     - name: Deployment status
       run: |
         echo "Kong Guard AI deployment to Proxmox completed successfully!"

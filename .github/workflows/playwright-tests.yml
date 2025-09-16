@@ -11,7 +11,7 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:13
@@ -26,7 +26,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
+
       redis:
         image: redis:7-alpine
         ports:
@@ -39,45 +39,45 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - uses: actions/setup-node@v4
       with:
         node-version: 20
-        
+
     - name: Start Kong stack
       run: |
         docker compose up -d
         echo "Waiting for Kong to be ready..."
         sleep 30
-        
+
     - name: Verify Kong is running
       run: |
         curl -f http://localhost:18001 || exit 1
         curl -f http://localhost:18000 || exit 1
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-      
+
     - name: Run Playwright tests
       run: npm test
-      
+
     - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
-        
+
     - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
         path: test-results/
         retention-days: 30
-        
+
     - name: Stop containers
       if: always()
       run: docker compose down

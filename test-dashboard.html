@@ -8,7 +8,7 @@
     <button onclick="testNormal()">Test Normal Request</button>
     <button onclick="testSQL()">Test SQL Injection</button>
     <div id="result"></div>
-    
+
     <script>
         async function testNormal() {
             try {
@@ -19,7 +19,7 @@
                 document.getElementById('result').innerText = 'Error: ' + error.message;
             }
         }
-        
+
         async function testSQL() {
             try {
                 const response = await fetch('http://localhost:18000/test/get?id=' + encodeURIComponent("1' OR '1'='1"));

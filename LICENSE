@@ -37,7 +37,7 @@ Different components have different licenses:
 #### PROPRIETARY Components (All Rights Reserved):
 - **ML Models** (`ml_models/`): Anomaly detection, attack classification, feature extraction
 - **AI Integration** (`ai-service/app.py`): Multi-provider AI orchestration
-- **Model Manager** (`ml_models/model_manager.py`): ML orchestration system  
+- **Model Manager** (`ml_models/model_manager.py`): ML orchestration system
 - **Training Algorithms**: All model training code
 - **Feature Engineering**: 70+ feature extraction pipeline
 - **Threat Scoring**: Proprietary scoring algorithms
@@ -58,7 +58,7 @@ Any API keys, credentials, or sensitive configuration included in examples are f
 
 By accessing this code as part of the Kong Hackathon submission:
 - Judges may evaluate the code for competition purposes
-- Kong Inc. may showcase the project for promotional purposes  
+- Kong Inc. may showcase the project for promotional purposes
 - No transfer of ownership or broad license is granted
 - Author retains all commercial rights
 

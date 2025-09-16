@@ -96,7 +96,7 @@ spec:
                   key: postgres-password
             - name: KONG_PG_DATABASE
               value: {{ .Values.postgresql.auth.database | quote }}
-            
+
             # Network Configuration
             - name: KONG_PROXY_LISTEN
               value: "0.0.0.0:{{ .Values.kong.proxy.http.containerPort }}{{- if .Values.kong.proxy.tls.enabled }}, 0.0.0.0:{{ .Values.kong.proxy.tls.containerPort }} ssl http2{{- end }}"
@@ -106,7 +106,7 @@ spec:
               value: "0.0.0.0:8100"
             - name: KONG_CLUSTER_LISTEN
               value: "0.0.0.0:8005"
-            
+
             # Performance Configuration
             - name: KONG_NGINX_WORKER_PROCESSES
               value: {{ .Values.kong.env.nginx_worker_processes | quote }}
@@ -114,13 +114,13 @@ spec:
               value: {{ .Values.kong.env.nginx_worker_connections | quote }}
             - name: KONG_MEM_CACHE_SIZE
               value: {{ .Values.kong.env.mem_cache_size | quote }}
-            
+
             # Plugin Configuration
             - name: KONG_PLUGINS
               value: {{ .Values.kong.env.plugins | quote }}
             - name: KONG_LUA_PACKAGE_PATH
               value: {{ .Values.kong.env.lua_package_path | quote }}
-            
+
             # Security Configuration
             - name: KONG_HEADERS
               value: {{ .Values.kong.env.headers | quote }}
@@ -132,7 +132,7 @@ spec:
               value: {{ .Values.kong.env.real_ip_recursive | quote }}
             - name: KONG_TRUSTED_IPS
               value: {{ .Values.kong.env.trusted_ips | quote }}
-            
+
             # Logging Configuration
             - name: KONG_LOG_LEVEL
               value: {{ .Values.kong.env.log_level | quote }}
@@ -144,7 +144,7 @@ spec:
               value: {{ .Values.kong.env.proxy_error_log | quote }}
             - name: KONG_ADMIN_ERROR_LOG
               value: {{ .Values.kong.env.admin_error_log | quote }}
-            
+
             # Kong Guard AI Configuration
             {{- if .Values.secrets.aiApiKey }}
             - name: KONG_GUARD_AI_AI_API_KEY
@@ -167,7 +167,7 @@ spec:
                   name: {{ include "kong-guard-ai.fullname" . }}-secret
                   key: email-smtp-password
             {{- end }}
-            
+
             # Shared Memory Configuration
             - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_CACHE
               value: "64m"
@@ -179,7 +179,7 @@ spec:
               value: "16m"
             - name: KONG_LUA_SHARED_DICT_KONG_GUARD_AI_AI_CACHE
               value: "32m"
-          
+
           volumeMounts:
             - name: kong-config
               mountPath: /etc/kong/kong.conf
@@ -189,24 +189,24 @@ spec:
               mountPath: /tmp
             - name: var-lib-kong
               mountPath: /var/lib/kong
-          
+
           livenessProbe:
             {{- toYaml .Values.kong.livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.kong.readinessProbe | nindent 12 }}
           startupProbe:
             {{- toYaml .Values.kong.startupProbe | nindent 12 }}
-          
+
           resources:
             {{- toYaml .Values.kong.resources | nindent 12 }}
-          
+
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
-      
+
       volumes:
         - name: kong-config
           configMap:
@@ -215,7 +215,7 @@ spec:
           emptyDir: {}
         - name: var-lib-kong
           emptyDir: {}
-      
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -228,5 +228,5 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      
+
       terminationGracePeriodSeconds: 30

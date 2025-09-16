@@ -18,10 +18,10 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should check plugin status', async ({ page }) => {
     await page.getByRole('button', { name: 'Get Plugin Status' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
-    
+
     // Should have configuration data
     if (response.success === false) {
       // Plugin endpoint might not be available
@@ -34,10 +34,10 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should view blocked IPs', async ({ page }) => {
     await page.getByRole('button', { name: 'View Blocked IPs' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
-    
+
     // Response should be an array or error message
     if (Array.isArray(response)) {
       expect(response).toBeDefined();
@@ -49,10 +49,10 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should view metrics', async ({ page }) => {
     await page.getByRole('button', { name: 'View Metrics' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
-    
+
     // Should have metrics or error
     if (!response.error) {
       expect(response).toBeDefined();
@@ -62,7 +62,7 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should display configuration info box', async ({ page }) => {
     const configInfo = page.locator('#config-info');
     await expect(configInfo).toBeVisible();
-    
+
     const text = await configInfo.textContent();
     expect(text).toBeTruthy();
   });
@@ -70,14 +70,14 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should enable plugin on test service', async ({ page }) => {
     await page.getByRole('button', { name: 'Enable Plugin' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
-    
+
     if (response.success) {
       expect(response.message).toContain('enabled successfully');
       expect(response.plugin).toBeDefined();
-      
+
       // Check config info updated
       const configText = await page.locator('#config-info').textContent();
       expect(configText).toContain('Plugin enabled');
@@ -90,7 +90,7 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should display plugin configuration after enabling', async ({ page }) => {
     await page.getByRole('button', { name: 'Enable Plugin' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     if (response.success) {
       const configText = await page.locator('#config-info').textContent();
@@ -102,14 +102,14 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should handle plugin management errors gracefully', async ({ page }) => {
     // Update admin URL to invalid endpoint
     await helpers.updateConfiguration('admin-url', 'http://localhost:99999');
-    
+
     // Try to get plugin status
     await page.getByRole('button', { name: 'Get Plugin Status' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response.error).toBeDefined();
-    
+
     // Reset to correct URL
     await helpers.updateConfiguration('admin-url', 'http://localhost:18001');
   });
@@ -129,10 +129,10 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should view incidents', async ({ page }) => {
     await page.getByRole('button', { name: 'View Incidents' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
-    
+
     // Should return incidents array or error
     if (!response.error) {
       // If incidents endpoint exists, should return array
@@ -145,11 +145,11 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
   test('should maintain response formatting for plugin data', async ({ page }) => {
     await page.getByRole('button', { name: 'Get Plugin Status' }).click();
     await helpers.waitForResponse();
-    
+
     // Check response is properly formatted JSON
     const responseText = await page.locator('#response').textContent();
     expect(responseText).toBeTruthy();
-    
+
     // Should be valid JSON
     const parsed = JSON.parse(responseText!);
     expect(parsed).toBeDefined();
@@ -157,11 +157,11 @@ test.describe('Kong Guard AI Dashboard - Plugin Management', () => {
 
   test('should update config info when plugin is configured', async ({ page }) => {
     const initialText = await page.locator('#config-info').textContent();
-    
+
     // Enable plugin
     await page.getByRole('button', { name: 'Enable Plugin' }).click();
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     if (response.success) {
       const updatedText = await page.locator('#config-info').textContent();

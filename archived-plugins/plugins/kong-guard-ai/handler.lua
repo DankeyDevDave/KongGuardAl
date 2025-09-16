@@ -22,10 +22,10 @@ end
 
 function KongGuardAIHandler:access(conf)
   KongGuardAIHandler.super.access(self)
-  
+
   -- TODO: Implement threat detection logic
   kong.log.debug("Kong Guard AI Plugin: Processing request")
-  
+
   -- Placeholder: Log request details for development
   kong.log.info("Request method: ", kong.request.get_method())
   kong.log.info("Request path: ", kong.request.get_path())
@@ -34,7 +34,7 @@ end
 
 function KongGuardAIHandler:log(conf)
   KongGuardAIHandler.super.log(self)
-  
+
   -- TODO: Implement logging and learning logic
   kong.log.debug("Kong Guard AI Plugin: Logging request")
 end

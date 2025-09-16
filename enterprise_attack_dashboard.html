@@ -6,8 +6,8 @@
     <title>Kong Guard AI - Enterprise Attack Simulation Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
+
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0f0f23 0%, #1a0a2e 50%, #16213e 100%);
             color: white;
@@ -15,7 +15,7 @@
             min-height: 100vh;
             overflow-x: hidden;
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -25,7 +25,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
         }
-        
+
         .header h1 {
             font-size: 3rem;
             background: linear-gradient(45deg, #ff6b6b, #ee5a24, #feca57, #ff9ff3);
@@ -33,7 +33,7 @@
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
         }
-        
+
         .threat-level {
             display: inline-block;
             padding: 8px 20px;
@@ -42,19 +42,19 @@
             font-size: 14px;
             margin: 5px;
         }
-        
+
         .threat-critical { background: linear-gradient(135deg, #ff4757, #c44569); }
         .threat-high { background: linear-gradient(135deg, #ffa502, #ff6348); }
         .threat-medium { background: linear-gradient(135deg, #fffa65, #ff9f1a); color: #000; }
         .threat-low { background: linear-gradient(135deg, #7bed9f, #70a1ff); }
-        
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .control-panel {
             background: rgba(255,255,255,0.08);
             padding: 25px;
@@ -62,14 +62,14 @@
             border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
         }
-        
+
         .metrics-panel {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
-        
+
         .metric-card {
             background: rgba(255,255,255,0.05);
             padding: 20px;
@@ -78,28 +78,28 @@
             border: 1px solid rgba(255,255,255,0.1);
             transition: transform 0.3s;
         }
-        
+
         .metric-card:hover { transform: translateY(-5px); }
-        
+
         .metric-value {
             font-size: 2.5rem;
             font-weight: bold;
             margin: 10px 0;
         }
-        
+
         .metric-label {
             font-size: 0.9rem;
             opacity: 0.8;
             text-transform: uppercase;
         }
-        
+
         .attack-simulator {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
-        
+
         .attack-button {
             padding: 15px 20px;
             border: none;
@@ -111,16 +111,16 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .attack-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        
+
         .attack-button:active {
             transform: translateY(-1px);
         }
-        
+
         .attack-button::before {
             content: '';
             position: absolute;
@@ -131,11 +131,11 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
             transition: left 0.5s;
         }
-        
+
         .attack-button:hover::before {
             left: 100%;
         }
-        
+
         .btn-sql { background: linear-gradient(135deg, #ff4757, #c44569); }
         .btn-xss { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
         .btn-cmd { background: linear-gradient(135deg, #ffa502, #ff6348); }
@@ -144,14 +144,14 @@
         .btn-api { background: linear-gradient(135deg, #fd79a8, #fdcb6e); }
         .btn-ransomware { background: linear-gradient(135deg, #2d3436, #636e72); }
         .btn-supply-chain { background: linear-gradient(135deg, #74b9ff, #0984e3); }
-        
+
         .industry-selector {
             display: flex;
             gap: 10px;
             margin: 20px 0;
             flex-wrap: wrap;
         }
-        
+
         .industry-btn {
             padding: 10px 20px;
             background: rgba(255,255,255,0.1);
@@ -161,13 +161,13 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .industry-btn:hover,
         .industry-btn.active {
             background: rgba(255,255,255,0.2);
             border-color: rgba(255,255,255,0.4);
         }
-        
+
         .threat-feed {
             background: rgba(0,0,0,0.3);
             padding: 20px;
@@ -176,7 +176,7 @@
             overflow-y: auto;
             margin-top: 20px;
         }
-        
+
         .threat-item {
             background: rgba(255,255,255,0.05);
             margin: 10px 0;
@@ -186,17 +186,17 @@
             position: relative;
             animation: slideIn 0.5s ease-out;
         }
-        
+
         @keyframes slideIn {
             from { transform: translateX(-100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         .threat-item.critical { border-left-color: #ff4757; }
         .threat-item.high { border-left-color: #ffa502; }
         .threat-item.medium { border-left-color: #fffa65; }
         .threat-item.low { border-left-color: #7bed9f; }
-        
+
         .attack-matrix {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -206,7 +206,7 @@
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
         }
-        
+
         .matrix-cell {
             width: 30px;
             height: 30px;
@@ -214,12 +214,12 @@
             transition: all 0.3s;
             cursor: pointer;
         }
-        
+
         .matrix-cell.safe { background: #27ae60; }
         .matrix-cell.warning { background: #f39c12; }
         .matrix-cell.danger { background: #e74c3c; }
         .matrix-cell.unknown { background: #34495e; }
-        
+
         .ai-thinking {
             position: fixed;
             top: 20px;
@@ -232,12 +232,12 @@
             z-index: 1000;
             backdrop-filter: blur(10px);
         }
-        
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.05); opacity: 0.8; }
         }
-        
+
         .status-indicator {
             display: inline-block;
             width: 12px;
@@ -245,18 +245,18 @@
             border-radius: 50%;
             margin-right: 8px;
         }
-        
+
         .status-online { background: #2ecc71; }
         .status-offline { background: #e74c3c; }
         .status-warning { background: #f39c12; }
-        
+
         .attack-timeline {
             background: rgba(255,255,255,0.05);
             padding: 20px;
             border-radius: 15px;
             margin-top: 20px;
         }
-        
+
         .timeline-item {
             display: flex;
             align-items: center;
@@ -265,14 +265,14 @@
             border-radius: 8px;
             background: rgba(255,255,255,0.03);
         }
-        
+
         .timeline-time {
             font-family: 'Courier New', monospace;
             color: #74b9ff;
             margin-right: 15px;
             min-width: 80px;
         }
-        
+
         .demo-controls {
             position: fixed;
             bottom: 30px;
@@ -281,7 +281,7 @@
             gap: 10px;
             z-index: 1000;
         }
-        
+
         .control-btn {
             width: 60px;
             height: 60px;
@@ -292,20 +292,20 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .control-btn:hover { transform: scale(1.1); }
-        
+
         .btn-play { background: #2ecc71; }
         .btn-pause { background: #f39c12; }
         .btn-stop { background: #e74c3c; }
-        
+
         .enterprise-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin: 20px 0;
         }
-        
+
         .stat-card {
             background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
             padding: 20px;
@@ -313,13 +313,13 @@
             text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
             color: #ff6b6b;
         }
-        
+
         .stat-description {
             margin-top: 10px;
             font-size: 0.9rem;
@@ -368,7 +368,7 @@
     <div class="dashboard-grid">
         <div class="control-panel">
             <h3>🎯 Enterprise Attack Categories</h3>
-            
+
             <!-- Protection Module Selector - Compact Version -->
             <div style="margin: 15px 0; padding: 10px; background: rgba(116,185,255,0.1); border-radius: 8px; border: 1px solid rgba(116,185,255,0.3);">
                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
@@ -387,7 +387,7 @@
                     </label>
                 </div>
             </div>
-            
+
             <div class="attack-simulator">
                 <button class="attack-button btn-sql" onclick="launchAttackCategory('sql')">
                     💉 Advanced SQL Injection
@@ -426,7 +426,7 @@
                 <button class="industry-btn" onclick="selectIndustry('government')">🏛️ Government</button>
                 <button class="industry-btn" onclick="selectIndustry('energy')">⚡ Energy</button>
             </div>
-            
+
             <div class="enterprise-stats">
                 <div class="stat-card">
                     <div class="stat-number">$50M+</div>
@@ -467,20 +467,20 @@
     <div class="control-panel">
         <h3>🔥 Comprehensive Attack Demonstration</h3>
         <div style="display: flex; gap: 20px; align-items: center; margin-top: 20px;">
-            <button class="attack-button" onclick="runFullDemo()" 
+            <button class="attack-button" onclick="runFullDemo()"
                     style="background: linear-gradient(135deg, #ff4757, #c44569); flex: 1;">
                 🚀 Launch Complete Enterprise Attack Demo
             </button>
-            <button class="attack-button" onclick="runRandomAttacks()" 
+            <button class="attack-button" onclick="runRandomAttacks()"
                     style="background: linear-gradient(135deg, #a55eea, #778beb); flex: 1;">
                 🎲 Random Vicious Attack Sequence
             </button>
-            <button class="attack-button" onclick="clearAll()" 
+            <button class="attack-button" onclick="clearAll()"
                     style="background: linear-gradient(135deg, #2d3436, #636e72);">
                 🧹 Clear
             </button>
         </div>
-        
+
         <div class="attack-matrix" id="attackMatrix">
             <!-- Matrix cells will be generated dynamically -->
         </div>
@@ -501,7 +501,7 @@
         };
         let selectedIndustry = 'all';
         let demoRunning = false;
-        
+
         // Protection modules state
         let protectionModules = {
             kongDirect: true,
@@ -512,24 +512,24 @@
         // Initialize WebSocket connection
         function initWebSocket() {
             ws = new WebSocket('ws://localhost:18002/ws');
-            
+
             ws.onopen = () => {
                 console.log('🔌 Connected to Kong Guard AI');
                 document.querySelector('.status-indicator').className = 'status-indicator status-online';
             };
-            
+
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data.type === 'threat_analysis') {
                     handleThreatAnalysis(data);
                 }
             };
-            
+
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 document.querySelector('.status-indicator').className = 'status-indicator status-offline';
             };
-            
+
             ws.onclose = () => {
                 document.querySelector('.status-indicator').className = 'status-indicator status-warning';
                 setTimeout(initWebSocket, 3000);
@@ -540,21 +540,21 @@
             // Update metrics
             metrics.total++;
             if (data.data.threat_score > 0.7) metrics.blocked++;
-            
+
             const responseTime = data.data.processing_time * 1000;
             metrics.avgResponse = Math.round((metrics.avgResponse * (metrics.total - 1) + responseTime) / metrics.total);
-            
+
             updateMetrics();
-            
+
             // Add to threat feed
             addThreatToFeed(data.data);
-            
+
             // Add to timeline
             addToTimeline(data.data);
-            
+
             // Update attack matrix
             updateAttackMatrix(data.data);
-            
+
             // Show AI thinking animation
             showAIThinking();
         }
@@ -562,22 +562,22 @@
         function updateMetrics() {
             document.getElementById('totalAttacks').textContent = metrics.total;
             document.getElementById('threatsBlocked').textContent = metrics.blocked;
-            document.getElementById('detectionRate').textContent = 
+            document.getElementById('detectionRate').textContent =
                 metrics.total > 0 ? Math.round((metrics.blocked / metrics.total) * 100) + '%' : '100%';
             document.getElementById('avgResponse').textContent = metrics.avgResponse + 'ms';
         }
 
         function addThreatToFeed(threat) {
             const feed = document.getElementById('threatFeed');
-            
+
             if (feed.innerHTML.includes('Ready to detect')) {
                 feed.innerHTML = '';
             }
-            
-            const severity = threat.threat_score >= 0.9 ? 'critical' : 
+
+            const severity = threat.threat_score >= 0.9 ? 'critical' :
                            threat.threat_score >= 0.7 ? 'high' :
                            threat.threat_score >= 0.5 ? 'medium' : 'low';
-            
+
             const item = document.createElement('div');
             item.className = `threat-item ${severity}`;
             item.innerHTML = `
@@ -596,9 +596,9 @@
                     </div>
                 </div>
             `;
-            
+
             feed.insertBefore(item, feed.firstChild);
-            
+
             // Keep only last 10 items
             while (feed.children.length > 10) {
                 feed.removeChild(feed.lastChild);
@@ -607,11 +607,11 @@
 
         function addToTimeline(threat) {
             const timeline = document.getElementById('attackTimeline');
-            
+
             if (timeline.innerHTML.includes('timeline will appear')) {
                 timeline.innerHTML = '';
             }
-            
+
             const item = document.createElement('div');
             item.className = 'timeline-item';
             item.innerHTML = `
@@ -623,9 +623,9 @@
                     </div>
                 </div>
             `;
-            
+
             timeline.insertBefore(item, timeline.firstChild);
-            
+
             while (timeline.children.length > 15) {
                 timeline.removeChild(timeline.lastChild);
             }
@@ -642,7 +642,7 @@
                     matrix.appendChild(cell);
                 }
             }
-            
+
             // Update random cells based on threat level
             const cellsToUpdate = Math.ceil(threat.threat_score * 5);
             for (let i = 0; i < cellsToUpdate; i++) {
@@ -667,15 +667,15 @@
 
         async function launchAttackCategory(category) {
             if (demoRunning) return;
-            
+
             // Update protection module state from checkboxes
             protectionModules.kongDirect = document.getElementById('kongDirect').checked;
             protectionModules.cloudAI = document.getElementById('cloudAI').checked;
             protectionModules.localAI = document.getElementById('localAI').checked;
-            
+
             console.log(`Launching ${category} attacks with protection:`, protectionModules);
             showAIThinking();
-            
+
             // Send with protection modules if WebSocket is connected
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -685,7 +685,7 @@
                     timestamp: new Date().toISOString()
                 }));
             }
-            
+
             // Fallback simulation
             setTimeout(() => {
                 simulateAttack(category);
@@ -703,43 +703,43 @@
                 ransomware: { threat_type: 'Ransomware Pattern', threat_score: 0.99 },
                 supply: { threat_type: 'Supply Chain Attack', threat_score: 0.75 }
             };
-            
+
             const threat = mockThreats[category] || { threat_type: 'Unknown Attack', threat_score: 0.5 };
             threat.method = 'POST';
             threat.path = '/api/enterprise/target';
             threat.client_ip = '203.0.113.42';
             threat.recommended_action = threat.threat_score > 0.8 ? 'block' : 'monitor';
             threat.processing_time = Math.random() * 0.1 + 0.05;
-            
+
             handleThreatAnalysis({ data: threat });
         }
 
         function selectIndustry(industry) {
             selectedIndustry = industry;
-            
+
             // Update button states
             document.querySelectorAll('.industry-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
+
             console.log(`Selected industry: ${industry}`);
         }
 
         async function runFullDemo() {
             if (demoRunning) return;
-            
+
             demoRunning = true;
             document.querySelector('.btn-play').style.background = '#f39c12';
-            
+
             const categories = ['sql', 'xss', 'command', 'zero-day', 'business', 'api', 'ransomware', 'supply'];
-            
+
             for (const category of categories) {
                 if (!demoRunning) break;
                 await new Promise(resolve => setTimeout(resolve, 3000));
                 launchAttackCategory(category);
             }
-            
+
             demoRunning = false;
             document.querySelector('.btn-play').style.background = '#2ecc71';
         }
@@ -751,29 +751,29 @@
         }
 
         function clearAll() {
-            document.getElementById('threatFeed').innerHTML = 
+            document.getElementById('threatFeed').innerHTML =
                 '<div style="text-align: center; opacity: 0.5; padding: 30px;">🔍 Ready to detect enterprise threats...</div>';
-            document.getElementById('attackTimeline').innerHTML = 
+            document.getElementById('attackTimeline').innerHTML =
                 '<div style="text-align: center; opacity: 0.5; padding: 30px;">📋 Attack timeline will appear here...</div>';
-            
+
             // Reset matrix
             document.getElementById('attackMatrix').innerHTML = '';
-            
+
             // Reset metrics
             metrics = { total: 0, blocked: 0, avgResponse: 0 };
             updateMetrics();
         }
 
-        function playDemo() { 
-            runFullDemo(); 
+        function playDemo() {
+            runFullDemo();
         }
-        
-        function pauseDemo() { 
+
+        function pauseDemo() {
             demoRunning = false;
             document.querySelector('.btn-play').style.background = '#2ecc71';
         }
-        
-        function stopDemo() { 
+
+        function stopDemo() {
             demoRunning = false;
             document.querySelector('.btn-play').style.background = '#2ecc71';
             clearAll();

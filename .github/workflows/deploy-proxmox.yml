@@ -10,7 +10,7 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    
+
     steps:
     - name: Clean workspace
       run: |
@@ -18,7 +18,7 @@ jobs:
         # Get the workspace path
         WORKSPACE_PATH="${GITHUB_WORKSPACE:-/home/runner/actions-runner/_work/KongGuardAl/KongGuardAl}"
         echo "Workspace path: $WORKSPACE_PATH"
-        
+
         # Clean up any Docker-created directories with proper permissions
         if [ -d "$WORKSPACE_PATH/redis-data" ]; then
           echo "Removing redis-data directory..."
@@ -36,15 +36,15 @@ jobs:
           echo "Removing kong-guard-ai/memory directory..."
           sudo rm -rf "$WORKSPACE_PATH/kong-guard-ai/memory" || true
         fi
-        
+
         # Also clean the current directory if we're already in workspace
         sudo rm -rf redis-data .hive-mind .swarm kong-guard-ai/memory 2>/dev/null || true
-        
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         clean: false  # Don't try to clean, we already did it manually
-      
+
     - name: Set up Node.js 20
       run: |
         echo "Installing Node.js 20 for Claude-Flow compatibility..."
@@ -56,11 +56,11 @@ jobs:
         nvm use 20
         node --version
         npm --version
-      
+
     - name: Set up Docker and Docker Compose
       run: |
         docker --version
-        
+
         # Check if docker compose v2 is available (comes with newer Docker)
         if docker compose version &> /dev/null; then
           echo "Docker Compose v2 is available"
@@ -78,7 +78,7 @@ jobs:
           export PATH=$HOME/.local/bin:$PATH
           docker-compose --version
         fi
-        
+
     - name: Build Kong Guard AI plugin
       run: |
         echo "Building Kong Guard AI security plugin..."
@@ -88,7 +88,7 @@ jobs:
         else
           echo "Lua compiler not found, skipping syntax validation"
         fi
-        
+
     - name: Run security tests
       run: |
         echo "Running security validation tests..."
@@ -96,7 +96,7 @@ jobs:
         echo "✅ Plugin structure validated"
         echo "✅ Lua syntax check passed"
         echo "✅ Ready for deployment"
-        
+
     - name: Initialize Claude-Flow v2.0.0 Alpha
       run: |
         echo "Initializing Claude-Flow v2.0.0 Alpha for Kong Guard AI..."
@@ -106,26 +106,26 @@ jobs:
         nvm use 20
         node --version
         npm --version
-        
+
         # Initialize Claude-Flow with Kong Guard AI optimization (optional enhancement)
         echo "Attempting Claude-Flow initialization..."
         npx claude-flow@alpha init --force --hive-mind --neural-enhanced || {
           echo "⚠️ Claude-Flow initialization failed - continuing without AI enhancements"
           echo "✅ Kong Guard AI will deploy with standard security features"
         }
-        
+
         # Store deployment context if Claude-Flow is available
         npx claude-flow@alpha memory store "production-deployment" \
           "Kong Guard AI deployed to Proxmox with enterprise security capabilities" \
           --namespace kong-security || echo "Memory storage skipped"
-        
+
     - name: Deploy to Proxmox environment
       run: |
         echo "Deploying Kong Guard AI to Proxmox environment..."
-        
+
         # Ensure PATH includes local bin if we installed docker-compose there
         export PATH=$HOME/.local/bin:$PATH
-        
+
         # Start the Docker stack with Claude-Flow coordination
         # Try docker compose v2 first, fallback to docker-compose v1
         if docker compose version &> /dev/null; then
@@ -138,7 +138,7 @@ jobs:
           echo "Error: Docker Compose not found"
           exit 1
         fi
-        
+
         # Wait for services to be ready
         echo "Waiting for Kong Gateway to be ready..."
         for i in {1..60}; do
@@ -149,28 +149,28 @@ jobs:
           echo "Waiting for Kong... ($i/60)"
           sleep 2
         done
-        
+
         # Final validation
         curl -f http://localhost:8001/status || {
           echo "❌ Kong Gateway failed to start after 2 minutes"
           docker-compose logs kong
           exit 1
         }
-        
+
         # Initialize neural threat prediction with Node.js 20
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         nvm use 20
         npx claude-flow@alpha neural train --pattern prediction \
           --training-data "kong-guard-ai production deployment" --epochs 10 || echo "Neural training skipped"
-        
+
         # Test plugin loading with AI coordination
         echo "Testing Kong Guard AI plugin with Claude-Flow..."
         if [ -f "scripts/validate-plugin-lifecycle.sh" ]; then
           chmod +x scripts/validate-plugin-lifecycle.sh
           ./scripts/validate-plugin-lifecycle.sh
         fi
-        
+
     - name: Run integration tests
       run: |
         echo "Running integration tests..."
@@ -179,7 +179,7 @@ jobs:
           chmod +x tests/run_integration_tests.sh
           ./tests/run_integration_tests.sh
         fi
-        
+
     - name: Performance validation
       run: |
         echo "Validating performance requirements..."
@@ -188,37 +188,37 @@ jobs:
           echo "Running performance test with wrk..."
           wrk -t4 -c100 -d30s http://localhost:8000/demo || echo "Performance test completed"
         fi
-        
+
     - name: Security scan
       run: |
         echo "Running security scans..."
         # Basic security validation
         docker exec $(docker ps --filter name=kong --format '{{.ID}}' | head -1) \
           kong health || echo "Kong health check completed"
-          
+
     - name: Cleanup
       if: always()
       run: |
         echo "Cleaning up deployment..."
         # Ensure PATH includes local bin if we installed docker-compose there
         export PATH=$HOME/.local/bin:$PATH
-        
+
         # Stop containers
         if docker compose version &> /dev/null; then
           docker compose down || true
         elif command -v docker-compose &> /dev/null; then
           docker-compose down || true
         fi
-        
+
         # Clean Docker system
         docker system prune -f || true
-        
+
         # Clean up directories with proper permissions
         sudo rm -rf redis-data || true
         sudo rm -rf .hive-mind || true
         sudo rm -rf .swarm || true
         sudo rm -rf kong-guard-ai/memory || true
-        
+
     - name: Deployment status
       run: |
         echo "Kong Guard AI deployment to Proxmox completed successfully!"

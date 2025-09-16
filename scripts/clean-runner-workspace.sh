@@ -38,7 +38,7 @@ print_warning() {
 # Clean local workspace (if running locally)
 clean_local() {
     print_header "Cleaning Local Workspace"
-    
+
     # Directories that might have permission issues
     PROBLEM_DIRS=(
         "redis-data"
@@ -47,7 +47,7 @@ clean_local() {
         "_work"
         ".git/objects"
     )
-    
+
     for dir in "${PROBLEM_DIRS[@]}"; do
         if [ -d "$dir" ]; then
             echo "Cleaning $dir..."
@@ -58,16 +58,16 @@ clean_local() {
             }
         fi
     done
-    
+
     print_success "Local workspace cleaned"
 }
 
 # Clean runner workspace on Proxmox
 clean_runner() {
     print_header "Cleaning Runner Workspace on Container $RUNNER_CONTAINER"
-    
+
     echo "Connecting to Proxmox container..."
-    
+
     # Create cleanup script
     cat > /tmp/runner-cleanup.sh << 'SCRIPT_END'
 #!/bin/bash
@@ -79,13 +79,13 @@ RUNNER_DIRS=$(find /home/runner -type d -name "_work" 2>/dev/null)
 
 for work_dir in $RUNNER_DIRS; do
     echo "Cleaning $work_dir..."
-    
+
     # Find the repository directory
     REPO_DIR=$(find "$work_dir" -maxdepth 2 -type d -name "KongGuardAl" 2>/dev/null | head -1)
-    
+
     if [ -n "$REPO_DIR" ]; then
         echo "Found repository at: $REPO_DIR"
-        
+
         # Clean problematic directories
         for dir in redis-data postgres-data kong-data; do
             if [ -d "$REPO_DIR/$dir" ]; then
@@ -98,7 +98,7 @@ for work_dir in $RUNNER_DIRS; do
                 }
             fi
         done
-        
+
         # Clean git objects if needed
         if [ -d "$REPO_DIR/.git/objects" ]; then
             echo "  Fixing git permissions..."
@@ -118,7 +118,7 @@ docker container prune -f 2>/dev/null || true
 
 echo "✓ Cleanup complete"
 SCRIPT_END
-    
+
     # Execute cleanup on runner
     echo "Executing cleanup script..."
     scp -o StrictHostKeyChecking=no /tmp/runner-cleanup.sh root@${RUNNER_HOST}:/tmp/ 2>/dev/null || {
@@ -129,24 +129,24 @@ SCRIPT_END
         echo "  sudo rm -rf /home/runner/actions-runner/_work/KongGuardAl/KongGuardAl/redis-data"
         return 1
     }
-    
+
     ssh root@${RUNNER_HOST} "pct push ${RUNNER_CONTAINER} /tmp/runner-cleanup.sh /tmp/runner-cleanup.sh" 2>/dev/null
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- chmod +x /tmp/runner-cleanup.sh" 2>/dev/null
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- /tmp/runner-cleanup.sh" 2>/dev/null || {
         print_warning "Cleanup script had some errors, but continuing..."
     }
-    
+
     # Cleanup temp files
     rm -f /tmp/runner-cleanup.sh
     ssh root@${RUNNER_HOST} "rm -f /tmp/runner-cleanup.sh" 2>/dev/null
-    
+
     print_success "Runner workspace cleaned"
 }
 
 # Fix permissions permanently
 fix_permissions() {
     print_header "Fixing Runner Permissions"
-    
+
     cat > /tmp/fix-permissions.sh << 'SCRIPT_END'
 #!/bin/bash
 
@@ -164,24 +164,24 @@ find /home/runner -type d -name "_work" -exec chmod 755 {} \; 2>/dev/null || tru
 
 echo "✓ Permissions fixed"
 SCRIPT_END
-    
+
     echo "Applying permission fixes..."
     scp -o StrictHostKeyChecking=no /tmp/fix-permissions.sh root@${RUNNER_HOST}:/tmp/ 2>/dev/null
     ssh root@${RUNNER_HOST} "pct push ${RUNNER_CONTAINER} /tmp/fix-permissions.sh /tmp/fix-permissions.sh" 2>/dev/null
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- chmod +x /tmp/fix-permissions.sh" 2>/dev/null
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- /tmp/fix-permissions.sh" 2>/dev/null
-    
+
     # Cleanup
     rm -f /tmp/fix-permissions.sh
     ssh root@${RUNNER_HOST} "rm -f /tmp/fix-permissions.sh" 2>/dev/null
-    
+
     print_success "Permissions fixed"
 }
 
 # Restart runner after cleanup
 restart_runner() {
     print_header "Restarting Runner Service"
-    
+
     echo "Restarting runner service..."
     ssh root@${RUNNER_HOST} "pct exec ${RUNNER_CONTAINER} -- systemctl restart 'actions.runner.*.service'" 2>/dev/null && {
         print_success "Runner service restarted"
@@ -203,7 +203,7 @@ show_menu() {
     echo "q) Quit"
     echo
     read -p "Select option: " option
-    
+
     case $option in
         1)
             clean_runner
@@ -239,7 +239,7 @@ main() {
         clean_local
         exit 0
     fi
-    
+
     # If no arguments, show menu
     if [ $# -eq 0 ]; then
         show_menu
@@ -271,7 +271,7 @@ main() {
                 ;;
         esac
     fi
-    
+
     echo
     print_success "Cleanup complete!"
     echo "You can now retry your GitHub Actions workflow"

@@ -45,7 +45,7 @@ kong-data/
 
 # GitHub Actions runner artifacts
 _work/
-.runner/ 
+.runner/
 
 # GitHub secrets configuration
 .github-secrets.env

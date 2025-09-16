@@ -21,7 +21,7 @@ route:
       receiver: 'security-critical'
       group_wait: 10s
       repeat_interval: 5m
-    
+
     # Performance alerts - business hours only
     - match:
         severity: warning
@@ -29,7 +29,7 @@ route:
       receiver: 'performance-team'
       active_time_intervals:
         - business-hours
-    
+
     # Database alerts - immediate for critical, delayed for warnings
     - match:
         component: database
@@ -43,17 +43,17 @@ route:
             severity: warning
           receiver: 'database-warning'
           group_wait: 5m
-    
+
     # AI Gateway alerts - development team
     - match:
         component: ai-integration
       receiver: 'ai-team'
-    
+
     # Cost alerts - finance team
     - match:
         component: cost
       receiver: 'finance-team'
-    
+
     # Notification system alerts - operations team
     - match:
         component: notifications
@@ -103,7 +103,7 @@ receivers:
         subject: '[CRITICAL SECURITY] Kong Guard AI - {{ .GroupLabels.alertname }}'
         body: |
           🚨 CRITICAL SECURITY ALERT 🚨
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -111,7 +111,7 @@ receivers:
           Client IP: {{ .Labels.client_ip }}
           Time: {{ .StartsAt }}
           Runbook: {{ .Annotations.runbook_url }}
-          
+
           IMMEDIATE ACTION REQUIRED
           {{ end }}
     slack_configs:
@@ -122,13 +122,13 @@ receivers:
         text: |
           {{ range .Alerts }}
           *{{ .Annotations.summary }}*
-          
+
           *Threat Level:* {{ .Labels.threat_level }}
           *Client IP:* {{ .Labels.client_ip }}
           *Description:* {{ .Annotations.description }}
           *Time:* {{ .StartsAt }}
           {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
-          
+
           <!channel> IMMEDIATE ACTION REQUIRED
           {{ end }}
     webhook_configs:
@@ -142,7 +142,7 @@ receivers:
         subject: '[Performance] Kong Guard AI - {{ .GroupLabels.alertname }}'
         body: |
           Performance Alert
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -194,7 +194,7 @@ receivers:
         subject: '[Cost Alert] Kong Guard AI - {{ .GroupLabels.alertname }}'
         body: |
           Cost Alert
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}

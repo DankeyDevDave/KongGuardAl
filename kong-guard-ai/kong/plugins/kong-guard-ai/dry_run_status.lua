@@ -22,23 +22,23 @@ function _M.handle_status_request(conf)
             message = "Enable status_endpoint_enabled in plugin configuration"
         })
     end
-    
+
     -- Get current request path
     local request_path = kong.request.get_path()
     local status_path = conf.status_endpoint_path or "/_guard_ai/status"
-    
+
     -- Only handle requests to the status endpoint
     if not request_path:match(status_path) then
         return nil -- Let other handlers process the request
     end
-    
+
     -- Generate status response
     local status_response = _M.generate_status_response(conf)
-    
+
     -- Set appropriate headers
     kong.response.set_header("Content-Type", "application/json")
     kong.response.set_header("X-Kong-Guard-AI-Status", "ok")
-    
+
     -- Return status response
     return kong.response.exit(200, status_response)
 end
@@ -63,7 +63,7 @@ function _M.generate_status_response(conf)
         configuration_summary = _M.get_configuration_summary(conf),
         system_health = _M.get_system_health_status()
     }
-    
+
     -- Add dry-run specific information
     if conf.dry_run_mode then
         status.dry_run_info = {
@@ -79,7 +79,7 @@ function _M.generate_status_response(conf)
             enforcement_enabled = true
         }
     end
-    
+
     return status
 end
 
@@ -118,7 +118,7 @@ function _M.get_system_health_status()
         uptime_seconds = ngx.time() - (kong.configuration.start_time or ngx.time()),
         worker_id = ngx.worker.id()
     }
-    
+
     -- Add any health checks here
     -- For example, check if enforcement gate is functioning
     local enforcement_stats = enforcement_gate.get_enforcement_stats()
@@ -127,7 +127,7 @@ function _M.get_system_health_status()
     else
         health.checks.enforcement_gate = "not_tested"
     end
-    
+
     return health
 end
 
@@ -144,23 +144,23 @@ function _M.handle_metrics_request(conf)
             message = "Enable metrics_endpoint_enabled in plugin configuration"
         })
     end
-    
+
     -- Get current request path
     local request_path = kong.request.get_path()
     local metrics_path = conf.metrics_endpoint_path or "/_guard_ai/metrics"
-    
+
     -- Only handle requests to the metrics endpoint
     if not request_path:match(metrics_path) then
         return nil -- Let other handlers process the request
     end
-    
+
     -- Generate metrics response
     local metrics_response = _M.generate_metrics_response(conf)
-    
+
     -- Set appropriate headers
     kong.response.set_header("Content-Type", "application/json")
     kong.response.set_header("X-Kong-Guard-AI-Metrics", "ok")
-    
+
     -- Return metrics response
     return kong.response.exit(200, metrics_response)
 end
@@ -177,13 +177,13 @@ function _M.generate_metrics_response(conf)
         plugin_mode = conf.dry_run_mode and "dry_run" or "active",
         enforcement_metrics = enforcement_gate.get_enforcement_stats()
     }
-    
+
     -- Add HTTP method filtering metrics (PHASE 4)
     if conf.enable_method_filtering then
         metrics.method_filtering = method_filter.get_method_analytics()
         metrics.method_config = method_filter.get_config_summary()
     end
-    
+
     -- Add dry-run specific metrics
     if conf.dry_run_mode then
         local dry_run_registry = enforcement_gate.get_dry_run_registry()
@@ -193,13 +193,13 @@ function _M.generate_metrics_response(conf)
             actions_by_type = {},
             recent_simulations = _M.get_recent_simulations(dry_run_registry, 10)
         }
-        
+
         -- Count actions by type
         for action_type, actions in pairs(dry_run_registry.actions) do
             metrics.dry_run_metrics.actions_by_type[action_type] = #actions
         end
     end
-    
+
     return metrics
 end
 
@@ -212,7 +212,7 @@ end
 function _M.get_recent_simulations(dry_run_registry, limit)
     local simulations = {}
     local count = 0
-    
+
     -- Collect all simulations with timestamps
     for action_type, actions in pairs(dry_run_registry.actions) do
         for _, action in ipairs(actions) do
@@ -225,18 +225,18 @@ function _M.get_recent_simulations(dry_run_registry, limit)
             count = count + 1
         end
     end
-    
+
     -- Sort by timestamp (most recent first)
     table.sort(simulations, function(a, b)
         return a.timestamp > b.timestamp
     end)
-    
+
     -- Return limited results
     local result = {}
     for i = 1, math.min(limit, #simulations) do
         table.insert(result, simulations[i])
     end
-    
+
     return result
 end
 
@@ -248,7 +248,7 @@ end
 function _M.generate_prometheus_metrics(conf)
     local enforcement_stats = enforcement_gate.get_enforcement_stats()
     local dry_run_registry = enforcement_gate.get_dry_run_registry()
-    
+
     local metrics_lines = {
         "# HELP kong_guard_ai_total_actions Total number of enforcement actions processed",
         "# TYPE kong_guard_ai_total_actions counter",
@@ -270,13 +270,13 @@ function _M.generate_prometheus_metrics(conf)
         "# TYPE kong_guard_ai_dry_run_mode gauge",
         string.format("kong_guard_ai_dry_run_mode %d", conf.dry_run_mode and 1 or 0)
     }
-    
+
     -- Add per-action-type metrics for dry-run mode
     if conf.dry_run_mode then
         table.insert(metrics_lines, "")
         table.insert(metrics_lines, "# HELP kong_guard_ai_simulated_actions_by_type Number of simulated actions by type")
         table.insert(metrics_lines, "# TYPE kong_guard_ai_simulated_actions_by_type counter")
-        
+
         for action_type, actions in pairs(dry_run_registry.actions) do
             table.insert(metrics_lines, string.format(
                 'kong_guard_ai_simulated_actions_by_type{action_type="%s"} %d',
@@ -284,7 +284,7 @@ function _M.generate_prometheus_metrics(conf)
             ))
         end
     end
-    
+
     return table.concat(metrics_lines, "\n")
 end
 
@@ -295,17 +295,17 @@ end
 ---
 function _M.handle_prometheus_request(conf)
     local request_path = kong.request.get_path()
-    
+
     -- Check for Prometheus metrics path
     if not request_path:match("/_guard_ai/prometheus") then
         return nil
     end
-    
+
     local prometheus_metrics = _M.generate_prometheus_metrics(conf)
-    
+
     kong.response.set_header("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
     kong.response.set_header("X-Kong-Guard-AI-Prometheus", "ok")
-    
+
     return kong.response.exit(200, prometheus_metrics)
 end
 
@@ -320,19 +320,19 @@ function _M.handle_status_endpoints(conf)
     if status_result then
         return true
     end
-    
+
     -- Handle metrics endpoint
     local metrics_result = _M.handle_metrics_request(conf)
     if metrics_result then
         return true
     end
-    
+
     -- Handle Prometheus endpoint
     local prometheus_result = _M.handle_prometheus_request(conf)
     if prometheus_result then
         return true
     end
-    
+
     return false -- Request not handled by status endpoints
 end
 

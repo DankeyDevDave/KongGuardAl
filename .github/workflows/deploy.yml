@@ -28,7 +28,7 @@ on:
 env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  
+
 jobs:
   test:
     name: Test
@@ -36,12 +36,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -49,31 +49,31 @@ jobs:
             ~/.cache/pip
             ~/.cache/pypoetry
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/poetry.lock') }}
-          
+
       - name: Install Lua dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y lua5.1 luarocks
           sudo luarocks install busted
           sudo luarocks install luacheck
-          
+
       - name: Run Lua tests
         run: |
           cd kong-guard-ai
           busted spec/
           luacheck kong/plugins/kong-guard-ai/*.lua
-          
+
       - name: Install Python dependencies
         run: |
           cd fastapi-generated
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          
+
       - name: Run Python tests
         run: |
           cd fastapi-generated
           pytest tests/ -v --cov=app --cov-report=xml
-          
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -87,7 +87,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -96,12 +96,12 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-          
+
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
-          
+
       - name: Run Snyk security scan
         uses: snyk/actions/python@master
         env:
@@ -122,17 +122,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -146,7 +146,7 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=${{ matrix.target }}-${{ github.run_id }}-latest,enable={{is_default_branch}}
             type=raw,value=${{ matrix.target }}-latest,enable=${{ github.ref == 'refs/heads/main' && matrix.target == 'kong-production' }}
-            
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -175,14 +175,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/staging_key
           chmod 600 ~/.ssh/staging_key
           echo "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          
+
       - name: Create secrets
         run: |
           mkdir -p secrets
@@ -192,7 +192,7 @@ jobs:
           echo "${{ secrets.API_SECRET_KEY }}" > secrets/api_secret_key.txt
           echo "${{ secrets.AI_GATEWAY_KEY }}" > secrets/ai_gateway_key.txt
           echo "${{ secrets.GRAFANA_PASSWORD }}" > secrets/grafana_password.txt
-          
+
       - name: Deploy to staging
         env:
           REMOTE_HOST: ${{ secrets.STAGING_HOST }}
@@ -202,13 +202,13 @@ jobs:
         run: |
           chmod +x scripts/deploy.sh
           ./scripts/deploy.sh deploy
-          
+
       - name: Run smoke tests
         run: |
           sleep 30
           curl -f https://staging.kongguard.ai/health || exit 1
           curl -f https://staging.kongguard.ai/v1/monitoring/health || exit 1
-          
+
       - name: Notify deployment
         uses: 8398a7/action-slack@v3
         with:
@@ -228,14 +228,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.PRODUCTION_SSH_KEY }}" > ~/.ssh/production_key
           chmod 600 ~/.ssh/production_key
           echo "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          
+
       - name: Create secrets
         run: |
           mkdir -p secrets
@@ -247,7 +247,7 @@ jobs:
           echo "${{ secrets.GRAFANA_PASSWORD }}" > secrets/grafana_password.txt
           echo "${{ secrets.SSL_CERT }}" > secrets/server.crt
           echo "${{ secrets.SSL_KEY }}" > secrets/server.key
-          
+
       - name: Backup production
         env:
           REMOTE_HOST: ${{ secrets.PRODUCTION_HOST }}
@@ -256,7 +256,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/production_key ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} \
             "cd /opt/kong-guard-ai && ./scripts/backup.sh"
-            
+
       - name: Deploy to production
         env:
           REMOTE_HOST: ${{ secrets.PRODUCTION_HOST }}
@@ -268,7 +268,7 @@ jobs:
         run: |
           chmod +x scripts/deploy.sh
           ./scripts/deploy.sh deploy
-          
+
       - name: Run health checks
         run: |
           sleep 60
@@ -283,7 +283,7 @@ jobs:
           done
           echo "Health checks failed"
           exit 1
-          
+
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
@@ -292,7 +292,7 @@ jobs:
             CHANGELOG.md
             docker-compose.production.yml
           generate_release_notes: true
-          
+
       - name: Notify deployment
         uses: 8398a7/action-slack@v3
         with:
@@ -300,7 +300,7 @@ jobs:
           text: 'Production deployment ${{ job.status }} for version ${{ github.ref_name }}'
           webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         if: always()
-        
+
       - name: Rollback on failure
         if: failure()
         env:
@@ -309,7 +309,7 @@ jobs:
           SSH_KEY: ~/.ssh/production_key
         run: |
           ./scripts/deploy.sh rollback
-          
+
   monitoring:
     name: Post-Deployment Monitoring
     needs: [deploy-staging, deploy-production]
@@ -320,14 +320,14 @@ jobs:
         run: |
           # Check Prometheus metrics
           curl -s https://monitoring.kongguard.ai/api/v1/query?query=up | jq '.data.result'
-          
+
           # Check error rates
           ERROR_RATE=$(curl -s "https://monitoring.kongguard.ai/api/v1/query?query=rate(kong_http_requests_total{status=~'5..'}[5m])" | jq '.data.result[0].value[1]')
           if (( $(echo "$ERROR_RATE > 0.01" | bc -l) )); then
             echo "High error rate detected: $ERROR_RATE"
             exit 1
           fi
-          
+
       - name: Check logs
         run: |
           # Check for critical errors in logs

@@ -10,22 +10,22 @@ on:
 jobs:
   deploy:
     runs-on: proxmox-runner-201
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Docker
       run: |
         docker --version
         docker-compose --version
-        
+
     - name: Build Kong Guard AI plugin
       run: |
         echo "Building Kong Guard AI security plugin..."
         # Validate Lua syntax
         find kong-guard-ai/kong/plugins -name "*.lua" -exec luac -p {} \;
-        
+
     - name: Run security tests
       run: |
         echo "Running security validation tests..."
@@ -34,41 +34,41 @@ jobs:
           chmod +x scripts/validate-all.sh
           ./scripts/validate-all.sh
         fi
-        
+
     - name: Initialize Claude-Flow v2.0.0 Alpha
       run: |
         echo "Initializing Claude-Flow v2.0.0 Alpha for Kong Guard AI..."
         # Initialize Claude-Flow with Kong Guard AI optimization
         npx claude-flow@alpha init --force --hive-mind --neural-enhanced
-        
+
         # Store Kong Guard AI deployment context in memory
         npx claude-flow@alpha memory store "production-deployment" \
           "Kong Guard AI deployed to Proxmox with enterprise security capabilities" \
           --namespace kong-security
-        
+
     - name: Deploy to Proxmox environment
       run: |
         echo "Deploying Kong Guard AI to Proxmox environment..."
         # Start the Docker stack with Claude-Flow coordination
         docker-compose up -d --build
-        
+
         # Wait for services to be ready
         sleep 30
-        
+
         # Validate Kong is running
         curl -f http://localhost:8001/status || exit 1
-        
+
         # Initialize neural threat prediction
         npx claude-flow@alpha neural train --pattern prediction \
           --training-data "kong-guard-ai production deployment" --epochs 10
-        
+
         # Test plugin loading with AI coordination
         echo "Testing Kong Guard AI plugin with Claude-Flow..."
         if [ -f "scripts/validate-plugin-lifecycle.sh" ]; then
           chmod +x scripts/validate-plugin-lifecycle.sh
           ./scripts/validate-plugin-lifecycle.sh
         fi
-        
+
     - name: Run integration tests
       run: |
         echo "Running integration tests..."
@@ -77,7 +77,7 @@ jobs:
           chmod +x tests/run_integration_tests.sh
           ./tests/run_integration_tests.sh
         fi
-        
+
     - name: Performance validation
       run: |
         echo "Validating performance requirements..."
@@ -86,21 +86,21 @@ jobs:
           echo "Running performance test with wrk..."
           wrk -t4 -c100 -d30s http://localhost:8000/demo || echo "Performance test completed"
         fi
-        
+
     - name: Security scan
       run: |
         echo "Running security scans..."
         # Basic security validation
         docker exec $(docker ps --filter name=kong --format '{{.ID}}' | head -1) \
           kong health || echo "Kong health check completed"
-          
+
     - name: Cleanup
       if: always()
       run: |
         echo "Cleaning up deployment..."
         docker-compose down || true
         docker system prune -f || true
-        
+
     - name: Deployment status
       run: |
         echo "Kong Guard AI deployment to Proxmox completed successfully!"

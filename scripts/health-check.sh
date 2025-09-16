@@ -43,9 +43,9 @@ check_service() {
     local service_name=$1
     local health_url=$2
     local expected_status=${3:-200}
-    
+
     SERVICES_CHECKED=$((SERVICES_CHECKED + 1))
-    
+
     if response=$(curl -s -o /dev/null -w "%{http_code}" "$health_url" 2>/dev/null); then
         if [ "$response" = "$expected_status" ]; then
             log_success "$service_name is healthy (HTTP $response)"
@@ -66,13 +66,13 @@ check_service() {
 # Check Kong Gateway
 check_kong() {
     log_info "Checking Kong Gateway..."
-    
+
     # Check proxy health
     check_service "Kong Proxy" "$KONG_URL/health"
-    
+
     # Check admin API
     check_service "Kong Admin API" "$KONG_ADMIN_URL/status"
-    
+
     # Check plugin status
     if plugins=$(curl -s "$KONG_ADMIN_URL/plugins/enabled" 2>/dev/null); then
         if echo "$plugins" | grep -q "kong-guard-ai"; then
@@ -81,7 +81,7 @@ check_kong() {
             log_warning "Kong Guard AI plugin is not enabled"
         fi
     fi
-    
+
     # Check routes and services
     routes_count=$(curl -s "$KONG_ADMIN_URL/routes" 2>/dev/null | jq '.data | length' 2>/dev/null || echo 0)
     services_count=$(curl -s "$KONG_ADMIN_URL/services" 2>/dev/null | jq '.data | length' 2>/dev/null || echo 0)
@@ -91,14 +91,14 @@ check_kong() {
 # Check FastAPI
 check_fastapi() {
     log_info "Checking FastAPI Management API..."
-    
+
     # Check health endpoint
     check_service "FastAPI Health" "$FASTAPI_URL/health"
-    
+
     # Check API endpoints
     check_service "FastAPI Docs" "$FASTAPI_URL/docs"
     check_service "FastAPI OpenAPI" "$FASTAPI_URL/openapi.json"
-    
+
     # Check specific endpoints
     if config=$(curl -s "$FASTAPI_URL/v1/config" -H "Authorization: Bearer test" 2>/dev/null); then
         if echo "$config" | jq -e '.dry_run_mode' >/dev/null 2>&1; then
@@ -111,7 +111,7 @@ check_fastapi() {
 # Check Database
 check_database() {
     log_info "Checking Database connections..."
-    
+
     # Check Kong database
     if docker exec kong-database pg_isready -U kong >/dev/null 2>&1; then
         log_success "Kong database is ready"
@@ -121,7 +121,7 @@ check_database() {
         OVERALL_STATUS=1
     fi
     SERVICES_CHECKED=$((SERVICES_CHECKED + 1))
-    
+
     # Check API database
     if docker exec api-database pg_isready -U kongguard >/dev/null 2>&1; then
         log_success "API database is ready"
@@ -136,13 +136,13 @@ check_database() {
 # Check Redis
 check_redis() {
     log_info "Checking Redis..."
-    
+
     SERVICES_CHECKED=$((SERVICES_CHECKED + 1))
-    
+
     if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping >/dev/null 2>&1; then
         log_success "Redis is responding"
         SERVICES_HEALTHY=$((SERVICES_HEALTHY + 1))
-        
+
         # Check memory usage
         memory_usage=$(redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" INFO memory | grep used_memory_human | cut -d: -f2 | tr -d '\r')
         log_info "Redis memory usage: $memory_usage"
@@ -155,10 +155,10 @@ check_redis() {
 # Check Monitoring Stack
 check_monitoring() {
     log_info "Checking Monitoring Stack..."
-    
+
     # Check Prometheus
     check_service "Prometheus" "$PROMETHEUS_URL/-/healthy"
-    
+
     if [ $? -eq 0 ]; then
         # Query metrics
         if metrics=$(curl -s "$PROMETHEUS_URL/api/v1/query?query=up" 2>/dev/null); then
@@ -167,7 +167,7 @@ check_monitoring() {
             log_info "Prometheus: $up_count targets up, $down_count targets down"
         fi
     fi
-    
+
     # Check Grafana
     check_service "Grafana" "$GRAFANA_URL/api/health"
 }
@@ -175,12 +175,12 @@ check_monitoring() {
 # Check Performance Metrics
 check_performance() {
     log_info "Checking Performance Metrics..."
-    
+
     if ! command -v curl >/dev/null 2>&1; then
         log_warning "curl not found, skipping performance checks"
         return
     fi
-    
+
     # Check error rate
     if error_rate=$(curl -s "$PROMETHEUS_URL/api/v1/query?query=rate(kong_http_requests_total{status=~'5..'}[5m])" 2>/dev/null | jq -r '.data.result[0].value[1]' 2>/dev/null); then
         if [ "$error_rate" != "null" ] && [ "$error_rate" != "" ]; then
@@ -191,7 +191,7 @@ check_performance() {
             fi
         fi
     fi
-    
+
     # Check latency
     if latency_p95=$(curl -s "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.95,kong_latency_bucket)" 2>/dev/null | jq -r '.data.result[0].value[1]' 2>/dev/null); then
         if [ "$latency_p95" != "null" ] && [ "$latency_p95" != "" ]; then
@@ -207,12 +207,12 @@ check_performance() {
 # Check Docker containers
 check_containers() {
     log_info "Checking Docker containers..."
-    
+
     local containers=("kong" "fastapi" "kong-database" "api-database" "redis" "prometheus" "grafana")
-    
+
     for container in "${containers[@]}"; do
         SERVICES_CHECKED=$((SERVICES_CHECKED + 1))
-        
+
         if docker ps --format "table {{.Names}}" | grep -q "^${container}$"; then
             status=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null || echo "unknown")
             if [ "$status" = "running" ]; then
@@ -238,9 +238,9 @@ check_containers() {
 # Check disk usage
 check_disk_usage() {
     log_info "Checking disk usage..."
-    
+
     disk_usage=$(df -h / | awk 'NR==2 {print $5}' | tr -d '%')
-    
+
     if [ "$disk_usage" -gt 90 ]; then
         log_error "Critical disk usage: ${disk_usage}%"
         OVERALL_STATUS=1
@@ -262,7 +262,7 @@ generate_report() {
     echo "Services Healthy: $SERVICES_HEALTHY"
     echo "Overall Status: $([ $OVERALL_STATUS -eq 0 ] && echo "HEALTHY" || echo "UNHEALTHY")"
     echo "=========================================="
-    
+
     if [ $OVERALL_STATUS -ne 0 ]; then
         echo ""
         echo "⚠️  Some services are experiencing issues."
@@ -278,33 +278,33 @@ generate_report() {
 main() {
     log_info "Starting Kong Guard AI Health Check..."
     echo ""
-    
+
     check_containers
     echo ""
-    
+
     check_kong
     echo ""
-    
+
     check_fastapi
     echo ""
-    
+
     check_database
     echo ""
-    
+
     check_redis
     echo ""
-    
+
     check_monitoring
     echo ""
-    
+
     check_performance
     echo ""
-    
+
     check_disk_usage
     echo ""
-    
+
     generate_report
-    
+
     exit $OVERALL_STATUS
 }
 

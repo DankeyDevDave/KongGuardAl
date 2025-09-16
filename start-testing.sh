@@ -36,7 +36,7 @@ wait_for_service() {
     local port=$2
     local max_wait=60
     local count=0
-    
+
     echo -e "${BLUE}Waiting for $service on port $port...${NC}"
     while [ $count -lt $max_wait ]; do
         if lsof -i :$port > /dev/null 2>&1; then
@@ -72,7 +72,7 @@ check_service "PostgreSQL" 5432 || SERVICES_RUNNING=false
 
 if [ "$SERVICES_RUNNING" = false ]; then
     echo -e "${YELLOW}Starting services with Docker Compose...${NC}"
-    
+
     # Try docker compose v2 first, then v1
     if docker compose version > /dev/null 2>&1; then
         docker compose up -d
@@ -82,7 +82,7 @@ if [ "$SERVICES_RUNNING" = false ]; then
         echo -e "${RED}❌ Docker Compose not found${NC}"
         exit 1
     fi
-    
+
     # Wait for services to be ready
     wait_for_service "PostgreSQL" 5432
     sleep 5 # Give PostgreSQL time to initialize
@@ -101,17 +101,17 @@ if curl -s http://localhost:8001/plugins | grep -q "kong-guard-ai"; then
     echo -e "${GREEN}✅ Kong Guard AI plugin is already configured${NC}"
 else
     echo -e "${YELLOW}Setting up Kong Guard AI plugin...${NC}"
-    
+
     # Create a test service if it doesn't exist
     curl -s -X POST http://localhost:8001/services \
         -d name=test-api \
         -d url=http://demo-api:80 > /dev/null 2>&1 || true
-    
+
     # Create a route for the service
     curl -s -X POST http://localhost:8001/services/test-api/routes \
         -d paths[]=/api \
         -d strip_path=false > /dev/null 2>&1 || true
-    
+
     # Enable Kong Guard AI plugin
     curl -s -X POST http://localhost:8001/services/test-api/plugins \
         -d name=kong-guard-ai \
@@ -120,7 +120,7 @@ else
         -d config.sensitivity=medium \
         -d config.ml_enabled=true \
         -d config.threat_threshold=0.7 > /dev/null 2>&1 || true
-    
+
     echo -e "${GREEN}✅ Kong Guard AI plugin configured${NC}"
 fi
 echo
@@ -169,7 +169,7 @@ echo
 # Check if browser should be opened
 if [ "$1" != "--no-browser" ]; then
     echo -e "${BLUE}Opening Testing Dashboard in browser...${NC}"
-    
+
     # Detect OS and open browser
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
@@ -194,13 +194,13 @@ trap cleanup EXIT INT TERM
 cleanup() {
     echo
     echo -e "${YELLOW}Shutting down testing environment...${NC}"
-    
+
     # Kill Python server
     if [ ! -z "$SERVER_PID" ]; then
         kill $SERVER_PID 2>/dev/null || true
         echo -e "${GREEN}✅ Testing UI server stopped${NC}"
     fi
-    
+
     # Optionally stop Docker services
     read -p "Stop Docker services? (y/N) " -n 1 -r
     echo
@@ -212,7 +212,7 @@ cleanup() {
         fi
         echo -e "${GREEN}✅ Docker services stopped${NC}"
     fi
-    
+
     echo -e "${CYAN}Testing environment shutdown complete${NC}"
     exit 0
 }

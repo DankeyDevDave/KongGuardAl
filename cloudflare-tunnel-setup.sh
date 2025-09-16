@@ -81,33 +81,33 @@ ingress:
     originRequest:
       noTLSVerify: true
       connectTimeout: 30s
-      
+
   # Grafana Monitoring
   - hostname: kong-grafana.yourdomain.com
     service: http://localhost:3000
     originRequest:
       noTLSVerify: true
-      
+
   # Kong Admin API (Secured)
   - hostname: kong-admin.yourdomain.com
     service: http://localhost:8001
     originRequest:
       noTLSVerify: true
       # Add access policies in Zero Trust dashboard
-      
+
   # Konga UI
   - hostname: kong-ui.yourdomain.com
     service: http://localhost:1337
     originRequest:
       noTLSVerify: true
-      
+
   # AI Service Status (Read-only endpoints)
   - hostname: kong-ai.yourdomain.com
     service: http://localhost:18002
     originRequest:
       noTLSVerify: true
       # Only expose /health and /metrics endpoints
-      
+
   # Catch-all rule (required)
   - service: http_status:404
 EOF
@@ -240,10 +240,10 @@ cat << 'EOF'
 
 1. Dashboard:
    https://kong-dashboard.yourdomain.com
-   
+
 2. Grafana:
    https://kong-grafana.yourdomain.com
-   
+
 3. Kong Admin (restricted):
    https://kong-admin.yourdomain.com
 

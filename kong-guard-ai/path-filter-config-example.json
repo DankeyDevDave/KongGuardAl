@@ -3,13 +3,13 @@
   "config": {
     "dry_run_mode": false,
     "threat_threshold": 6.0,
-    
+
     "_comment_path_filtering": "=== PHASE 4: PATH REGEX FILTERING CONFIGURATION ===",
-    
+
     "enable_path_filtering": true,
     "path_filter_block_threshold": 7.0,
     "path_filter_suspicious_threshold": 4.0,
-    
+
     "_comment_custom_patterns": "Custom regex patterns for organization-specific threats",
     "custom_path_patterns": [
       {
@@ -33,7 +33,7 @@
         "description": "Backup and temporary file access"
       }
     ],
-    
+
     "_comment_whitelist": "Legitimate paths that should never be blocked",
     "path_whitelist": [
       "/api/v1/users/select_preferences",
@@ -42,35 +42,35 @@
       "/docs/sql_tutorial",
       "/assets/admin-theme.css"
     ],
-    
+
     "_comment_method_filtering": "Skip path filtering for specific HTTP methods",
     "path_filter_skip_methods": ["OPTIONS", "HEAD", "TRACE"],
-    
+
     "_comment_performance": "Performance and analytics configuration",
     "path_filter_case_sensitive": false,
     "path_filter_max_pattern_matches": 15,
     "path_filter_analytics_enabled": true,
-    
+
     "_comment_integration": "Integration with other security features",
     "enable_rate_limiting_detection": true,
     "enable_ip_reputation": true,
     "enable_payload_analysis": true,
-    
+
     "_comment_responses": "Response configuration for path-based threats",
     "enable_auto_blocking": true,
     "block_duration_seconds": 3600,
     "sanitize_error_responses": true,
-    
+
     "_comment_notifications": "Notification settings for path filter incidents",
     "enable_notifications": true,
     "notification_threshold": 6.0,
     "slack_webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
-    
+
     "_comment_logging": "Enhanced logging for path filter events",
     "structured_logging_enabled": true,
     "log_level": "info",
     "external_logging_enabled": false,
-    
+
     "_comment_monitoring": "Dashboard and status endpoints",
     "status_endpoint_enabled": true,
     "status_endpoint_path": "/_guard_ai/status",

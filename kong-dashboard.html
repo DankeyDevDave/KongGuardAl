@@ -10,19 +10,19 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         h1 {
             color: white;
             text-align: center;
@@ -30,7 +30,7 @@
             font-size: 2.5em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-        
+
         .status-bar {
             background: white;
             border-radius: 10px;
@@ -38,40 +38,40 @@
             margin-bottom: 30px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
+
         .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
-        
+
         .status-item {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        
+
         .status-indicator.online {
             background: #10b981;
         }
-        
+
         .status-indicator.offline {
             background: #ef4444;
         }
-        
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
-        
+
         .test-section {
             background: white;
             border-radius: 10px;
@@ -79,43 +79,43 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
+
         h2 {
             color: #333;
             margin-bottom: 20px;
             font-size: 1.5em;
         }
-        
+
         .test-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
         }
-        
+
         .test-card {
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             padding: 15px;
             transition: all 0.3s ease;
         }
-        
+
         .test-card:hover {
             border-color: #667eea;
             box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
         }
-        
+
         .test-card h3 {
             color: #667eea;
             margin-bottom: 10px;
             font-size: 1.1em;
         }
-        
+
         .test-card p {
             color: #666;
             font-size: 0.9em;
             margin-bottom: 15px;
         }
-        
+
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -127,15 +127,15 @@
             width: 100%;
             transition: transform 0.2s;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
         }
-        
+
         button:active {
             transform: translateY(0);
         }
-        
+
         .response-area {
             margin-top: 20px;
             padding: 15px;
@@ -147,11 +147,11 @@
             overflow-y: auto;
             display: none;
         }
-        
+
         .response-area.show {
             display: block;
         }
-        
+
         .threat-level {
             display: inline-block;
             padding: 3px 8px;
@@ -160,22 +160,22 @@
             font-weight: bold;
             margin-left: 10px;
         }
-        
+
         .threat-level.high {
             background: #ef4444;
             color: white;
         }
-        
+
         .threat-level.medium {
             background: #f59e0b;
             color: white;
         }
-        
+
         .threat-level.low {
             background: #10b981;
             color: white;
         }
-        
+
         .info-box {
             background: #eff6ff;
             border-left: 4px solid #3b82f6;
@@ -183,12 +183,12 @@
             margin: 20px 0;
             border-radius: 4px;
         }
-        
+
         .info-box h3 {
             color: #1e40af;
             margin-bottom: 5px;
         }
-        
+
         .info-box p {
             color: #64748b;
         }
@@ -197,7 +197,7 @@
 <body>
     <div class="container">
         <h1>🛡️ Kong Guard AI Testing Dashboard</h1>
-        
+
         <div class="status-bar">
             <div class="status-grid">
                 <div class="status-item">
@@ -218,7 +218,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="test-section">
             <h2>🔍 API Security Tests</h2>
             <div class="test-grid">
@@ -227,31 +227,31 @@
                     <p>Send a legitimate API request through Kong</p>
                     <button onclick="testNormal()">Send Normal Request</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>SQL Injection <span class="threat-level high">HIGH</span></h3>
                     <p>Test SQL injection detection and blocking</p>
                     <button onclick="testSQLInjection()">Test SQL Injection</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>XSS Attack <span class="threat-level high">HIGH</span></h3>
                     <p>Test cross-site scripting detection</p>
                     <button onclick="testXSS()">Test XSS Attack</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>DDoS Simulation <span class="threat-level high">HIGH</span></h3>
                     <p>Simulate rapid requests to trigger rate limiting</p>
                     <button onclick="testDDoS()">Simulate DDoS</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>Path Traversal <span class="threat-level medium">MEDIUM</span></h3>
                     <p>Test directory traversal attack detection</p>
                     <button onclick="testPathTraversal()">Test Path Traversal</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>Malformed Headers <span class="threat-level low">LOW</span></h3>
                     <p>Send request with suspicious headers</p>
@@ -259,7 +259,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="test-section">
             <h2>📊 Plugin Management</h2>
             <div class="info-box">
@@ -272,19 +272,19 @@
                     <p>Check Kong Guard AI plugin status</p>
                     <button onclick="checkPluginStatus()">Check Status</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>View Incidents</h3>
                     <p>View detected security incidents</p>
                     <button onclick="viewIncidents()">View Incidents</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>Enable Plugin</h3>
                     <p>Enable Guard AI on test service</p>
                     <button onclick="enablePlugin()">Enable Plugin</button>
                 </div>
-                
+
                 <div class="test-card">
                     <h3>Configure Logging</h3>
                     <p>Set plugin logging verbosity</p>
@@ -299,7 +299,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="test-section">
             <h2>📝 Response</h2>
             <div class="response-area" id="response">
@@ -307,18 +307,18 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         const KONG_PROXY = 'http://localhost:18000';
         const KONG_ADMIN = 'http://localhost:18001';
         const DEMO_API = 'http://localhost:18085';
-        
+
         // Check service status on load
         window.onload = function() {
             checkServices();
             setInterval(checkServices, 5000); // Check every 5 seconds
         };
-        
+
         async function checkServices() {
             // Check Kong Admin
             try {
@@ -326,43 +326,43 @@
                 if (adminResp.ok) {
                     document.getElementById('admin-status').className = 'status-indicator online';
                     const data = await adminResp.json();
-                    document.getElementById('plugin-state').textContent = 
+                    document.getElementById('plugin-state').textContent =
                         data.plugins?.available_on_server?.includes('kong-guard-ai') ? 'Loaded' : 'Not Loaded';
-                    document.getElementById('plugin-status').className = 
-                        data.plugins?.available_on_server?.includes('kong-guard-ai') ? 
+                    document.getElementById('plugin-status').className =
+                        data.plugins?.available_on_server?.includes('kong-guard-ai') ?
                         'status-indicator online' : 'status-indicator offline';
                 }
             } catch (e) {
                 document.getElementById('admin-status').className = 'status-indicator offline';
                 document.getElementById('plugin-status').className = 'status-indicator offline';
             }
-            
+
             // Check Kong Proxy
             try {
                 const proxyResp = await fetch(KONG_PROXY + '/test/get');
-                document.getElementById('kong-status').className = 
+                document.getElementById('kong-status').className =
                     proxyResp.ok ? 'status-indicator online' : 'status-indicator offline';
             } catch (e) {
                 document.getElementById('kong-status').className = 'status-indicator offline';
             }
-            
+
             // Check Demo API
             try {
                 const demoResp = await fetch(DEMO_API + '/status/200');
-                document.getElementById('demo-status').className = 
+                document.getElementById('demo-status').className =
                     demoResp.ok ? 'status-indicator online' : 'status-indicator offline';
             } catch (e) {
                 document.getElementById('demo-status').className = 'status-indicator offline';
             }
         }
-        
+
         function showResponse(data) {
             const responseArea = document.getElementById('response');
             responseArea.textContent = JSON.stringify(data, null, 2);
             responseArea.className = 'response-area show';
             responseArea.style.display = 'block';
         }
-        
+
         async function testNormal() {
             try {
                 const response = await fetch(KONG_PROXY + '/test/get');
@@ -378,7 +378,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function testSQLInjection() {
             try {
                 const sqlPayload = "1' OR '1'='1";
@@ -396,7 +396,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function testXSS() {
             try {
                 const xssPayload = String.fromCharCode(60,115,99,114,105,112,116,62,97,108,101,114,116,40,34,88,83,83,34,41,60,47,115,99,114,105,112,116,62);
@@ -414,11 +414,11 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function testDDoS() {
             const results = [];
             showResponse({status: 'Sending 50 rapid requests...'});
-            
+
             for (let i = 0; i < 50; i++) {
                 try {
                     const response = await fetch(KONG_PROXY + '/test/get');
@@ -431,7 +431,7 @@
                     results.push({request: i + 1, error: error.message});
                 }
             }
-            
+
             const blocked = results.filter(r => r.blocked).length;
             showResponse({
                 threat: 'DDoS Attack',
@@ -442,7 +442,7 @@
                 results: results.slice(-10) // Show last 10 results
             });
         }
-        
+
         async function testPathTraversal() {
             try {
                 const pathPayload = '../../../etc/passwd';
@@ -460,7 +460,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function testMalformedHeaders() {
             try {
                 const response = await fetch(KONG_PROXY + '/test/get', {
@@ -482,7 +482,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function checkPluginStatus() {
             try {
                 const response = await fetch(KONG_ADMIN + '/kong-guard-ai/status');
@@ -496,7 +496,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function viewIncidents() {
             try {
                 const response = await fetch(KONG_ADMIN + '/kong-guard-ai/incidents');
@@ -510,7 +510,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function enablePlugin() {
             try {
                 // First check if service exists
@@ -525,7 +525,7 @@
                             url: 'http://demo-api:80'
                         })
                     });
-                    
+
                     // Create route
                     await fetch(KONG_ADMIN + '/services/test-api/routes', {
                         method: 'POST',
@@ -536,10 +536,10 @@
                         })
                     });
                 }
-                
+
                 // Get selected log level
                 const logLevel = document.getElementById('log-level-select').value;
-                
+
                 // Enable plugin with log configuration
                 const response = await fetch(KONG_ADMIN + '/services/test-api/plugins', {
                     method: 'POST',
@@ -561,7 +561,7 @@
                         }
                     })
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     showResponse({
@@ -569,7 +569,7 @@
                         message: 'Kong Guard AI plugin enabled successfully',
                         plugin: data
                     });
-                    document.getElementById('config-info').textContent = 
+                    document.getElementById('config-info').textContent =
                         `Plugin enabled - Log Level: ${logLevel}, Block: 0.8, Rate Limit: 0.6`;
                 } else {
                     const error = await response.text();
@@ -579,7 +579,7 @@
                 showResponse({error: error.message});
             }
         }
-        
+
         async function updateLogLevel() {
             try {
                 // Get the plugin ID first
@@ -588,17 +588,17 @@
                     showResponse({error: 'Service or plugin not found. Please enable the plugin first.'});
                     return;
                 }
-                
+
                 const plugins = await pluginsResponse.json();
                 const guardPlugin = plugins.data.find(p => p.name === 'kong-guard-ai');
-                
+
                 if (!guardPlugin) {
                     showResponse({error: 'Kong Guard AI plugin not found. Please enable it first.'});
                     return;
                 }
-                
+
                 const logLevel = document.getElementById('log-level-select').value;
-                
+
                 // Update plugin configuration
                 const response = await fetch(KONG_ADMIN + '/plugins/' + guardPlugin.id, {
                     method: 'PATCH',
@@ -612,7 +612,7 @@
                         }
                     })
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     showResponse({
@@ -625,7 +625,7 @@
                             log_decisions: data.config.log_decisions
                         }
                     });
-                    document.getElementById('config-info').textContent = 
+                    document.getElementById('config-info').textContent =
                         `Plugin Log Level: ${logLevel} | Threats: ${data.config.log_threats ? 'ON' : 'OFF'} | Requests: ${data.config.log_requests ? 'ON' : 'OFF'}`;
                 } else {
                     const error = await response.text();

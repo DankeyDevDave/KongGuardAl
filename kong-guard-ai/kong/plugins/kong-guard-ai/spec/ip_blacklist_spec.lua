@@ -10,7 +10,7 @@ describe("Kong Guard AI IP Blacklist", function()
         -- Reset module state
         package.loaded["kong.plugins.kong-guard-ai.ip_blacklist"] = nil
         ip_blacklist = require "kong.plugins.kong-guard-ai.ip_blacklist"
-        
+
         -- Mock Kong functions
         mock_kong = {
             log = {
@@ -36,7 +36,7 @@ describe("Kong Guard AI IP Blacklist", function()
                 plugin = {}
             }
         }
-        
+
         -- Mock global functions
         _G.kong = mock_kong
         _G.ngx = {
@@ -93,19 +93,19 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should match IPs in CIDR blocks correctly", function()
             local ip_int = ip_blacklist.ipv4_to_int("203.0.113.100")
             local network_int = ip_blacklist.ipv4_to_int("203.0.113.0")
-            
+
             -- Should match /24 network
             assert.is_true(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 24))
-            
+
             -- Should not match /25 network (203.0.113.0-127)
             assert.is_false(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 25))
-            
+
             -- Should match /16 network
             assert.is_true(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 16))
-            
+
             -- Should match /0 (all IPs)
             assert.is_true(ip_blacklist.ipv4_in_cidr(ip_int, network_int, 0))
-            
+
             -- Should not match different /24 network
             local other_network = ip_blacklist.ipv4_to_int("203.0.113.0")
             assert.is_false(ip_blacklist.ipv4_in_cidr(ip_int, other_network, 24))
@@ -124,7 +124,7 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should add single IPs to blacklist", function()
             local success = ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test_reason", 3600)
             assert.is_true(success)
-            
+
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_not_nil(block_result)
             assert.is_true(block_result.blocked)
@@ -135,7 +135,7 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should add CIDR blocks to blacklist", function()
             local success = ip_blacklist.add_ip_to_blacklist("203.0.113.0/24", "network_block", 3600)
             assert.is_true(success)
-            
+
             -- Should block IPs in the CIDR range
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_not_nil(block_result)
@@ -143,7 +143,7 @@ describe("Kong Guard AI IP Blacklist", function()
             assert.equal("network_block", block_result.reason)
             assert.equal("cidr_block", block_result.match_type)
             assert.equal("203.0.113.0/24", block_result.cidr)
-            
+
             -- Should not block IPs outside the CIDR range
             local no_block = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_nil(no_block)
@@ -152,10 +152,10 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should handle whitelist overrides", function()
             -- Add IP to blacklist
             ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test_block", 3600)
-            
+
             -- Add same IP to whitelist
             ip_blacklist.add_ip_to_whitelist("203.0.113.100")
-            
+
             -- Should not block whitelisted IP
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_nil(block_result)
@@ -164,14 +164,14 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should handle CIDR whitelist overrides", function()
             -- Add CIDR to blacklist
             ip_blacklist.add_ip_to_blacklist("203.0.113.0/16", "network_block", 3600)
-            
+
             -- Add more specific CIDR to whitelist
             ip_blacklist.add_ip_to_whitelist("203.0.113.0/24")
-            
+
             -- Should not block IPs in whitelisted subnet
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_nil(block_result)
-            
+
             -- Should still block IPs outside whitelisted subnet
             local should_block = ip_blacklist.check_ip_blacklist("203.0.113.50")
             assert.is_not_nil(should_block)
@@ -182,7 +182,7 @@ describe("Kong Guard AI IP Blacklist", function()
             -- Add and verify IP is blocked
             ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 3600)
             assert.is_not_nil(ip_blacklist.check_ip_blacklist("203.0.113.100"))
-            
+
             -- Remove and verify IP is no longer blocked
             local removed = ip_blacklist.remove_from_blacklist("203.0.113.100")
             assert.is_true(removed)
@@ -192,10 +192,10 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should handle invalid IP formats gracefully", function()
             local success = ip_blacklist.add_ip_to_blacklist("invalid.ip.address", "test", 3600)
             assert.is_false(success)
-            
+
             local success2 = ip_blacklist.add_ip_to_blacklist("", "test", 3600)
             assert.is_false(success2)
-            
+
             local success3 = ip_blacklist.add_ip_to_blacklist(nil, "test", 3600)
             assert.is_false(success3)
         end)
@@ -212,7 +212,7 @@ describe("Kong Guard AI IP Blacklist", function()
             mock_kong.request.get_headers = function()
                 return { ["x-forwarded-for"] = "203.0.113.45, 203.0.113.100" }
             end
-            
+
             local conf = { trust_proxy_headers = true }
             local client_ip = ip_blacklist.get_real_client_ip(conf)
             assert.equal("203.0.113.45", client_ip)
@@ -222,7 +222,7 @@ describe("Kong Guard AI IP Blacklist", function()
             mock_kong.request.get_headers = function()
                 return { ["x-real-ip"] = "203.0.113.45" }
             end
-            
+
             local conf = { trust_proxy_headers = true }
             local client_ip = ip_blacklist.get_real_client_ip(conf)
             assert.equal("203.0.113.45", client_ip)
@@ -232,7 +232,7 @@ describe("Kong Guard AI IP Blacklist", function()
             mock_kong.request.get_headers = function()
                 return { ["cf-connecting-ip"] = "203.0.113.45" }
             end
-            
+
             local conf = { trust_proxy_headers = true }
             local client_ip = ip_blacklist.get_real_client_ip(conf)
             assert.equal("203.0.113.45", client_ip)
@@ -246,7 +246,7 @@ describe("Kong Guard AI IP Blacklist", function()
                     ["x-forwarded-for"] = "203.0.113.47"
                 }
             end
-            
+
             local conf = { trust_proxy_headers = true }
             local client_ip = ip_blacklist.get_real_client_ip(conf)
             -- CF-Connecting-IP should have highest priority
@@ -264,12 +264,12 @@ describe("Kong Guard AI IP Blacklist", function()
             -- Add some IPs and test blocking
             ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 3600)
             ip_blacklist.add_ip_to_blacklist("198.51.100.0/8", "network", 3600)
-            
+
             -- Test some IPs
             ip_blacklist.check_ip_blacklist("203.0.113.100")  -- Should hit
             ip_blacklist.check_ip_blacklist("198.51.100.50")      -- Should hit
             ip_blacklist.check_ip_blacklist("203.0.113.45")   -- Should miss
-            
+
             local stats = ip_blacklist.get_blacklist_stats()
             assert.is_not_nil(stats)
             assert.equal(2, stats.cache_hits)
@@ -290,17 +290,17 @@ describe("Kong Guard AI IP Blacklist", function()
             -- Mock time progression
             local current_time = 1640995200
             _G.ngx.time = function() return current_time end
-            
+
             -- Add IP with short TTL
             ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 10)
-            
+
             -- Should be blocked initially
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_not_nil(block_result)
-            
+
             -- Advance time past TTL
             current_time = current_time + 20
-            
+
             -- Should no longer be blocked
             local no_block = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_nil(no_block)
@@ -309,17 +309,17 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should clean up expired entries", function()
             local current_time = 1640995200
             _G.ngx.time = function() return current_time end
-            
+
             -- Add entries with different TTLs
             ip_blacklist.add_ip_to_blacklist("203.0.113.100", "short", 10)
             ip_blacklist.add_ip_to_blacklist("203.0.113.101", "long", 3600)
-            
+
             -- Advance time to expire first entry
             current_time = current_time + 20
-            
+
             -- Trigger cleanup
             ip_blacklist.cleanup_expired_entries()
-            
+
             local stats = ip_blacklist.get_blacklist_stats()
             -- Should have cleaned up the expired entry
             assert.equal(1, stats.blacklist_size.active_ips)
@@ -334,7 +334,7 @@ describe("Kong Guard AI IP Blacklist", function()
 
         it("should provide response time metrics", function()
             ip_blacklist.add_ip_to_blacklist("203.0.113.100", "test", 3600)
-            
+
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.100")
             assert.is_not_nil(block_result)
             assert.is_number(block_result.response_time_us)
@@ -346,17 +346,17 @@ describe("Kong Guard AI IP Blacklist", function()
             for i = 1, 100 do
                 ip_blacklist.add_ip_to_blacklist("203.0.113." .. i, "bulk_test", 3600)
             end
-            
+
             -- Add CIDR blocks
             for i = 1, 10 do
                 ip_blacklist.add_ip_to_blacklist("10." .. i .. ".0.0/16", "bulk_cidr", 3600)
             end
-            
+
             -- Test lookup performance
             local start_time = _G.ngx.now()
             local block_result = ip_blacklist.check_ip_blacklist("203.0.113.50")
             local end_time = _G.ngx.now()
-            
+
             assert.is_not_nil(block_result)
             local lookup_time_ms = (end_time - start_time) * 1000
             -- Should be very fast (under 2ms requirement)
@@ -368,11 +368,11 @@ describe("Kong Guard AI IP Blacklist", function()
         it("should handle missing dependencies gracefully", function()
             -- Mock missing enforcement_gate
             package.loaded["kong.plugins.kong-guard-ai.enforcement_gate"] = nil
-            
+
             local success, err = pcall(function()
                 ip_blacklist.enforce_ip_blacklist({})
             end)
-            
+
             -- Should handle missing dependencies without crashing
             assert.is_boolean(success)
         end)
@@ -382,7 +382,7 @@ describe("Kong Guard AI IP Blacklist", function()
                 ip_blacklist = { "invalid-ip", "", nil, 12345 },
                 ip_whitelist = { "also-invalid" }
             }
-            
+
             -- Should not crash during initialization
             local success = pcall(function()
                 ip_blacklist.init_worker(malformed_conf)
@@ -432,9 +432,9 @@ describe("Kong Guard AI IP Blacklist", function()
                 dry_run_mode = false
             }
             ip_blacklist.init_worker(test_conf)
-            
+
             mock_kong.client.get_ip = function() return "203.0.113.100" end
-            
+
             local enforcement_result = ip_blacklist.enforce_ip_blacklist(test_conf)
             assert.is_not_nil(enforcement_result)
             assert.is_true(enforcement_result.executed)
@@ -447,9 +447,9 @@ describe("Kong Guard AI IP Blacklist", function()
                 dry_run_mode = true
             }
             ip_blacklist.init_worker(test_conf)
-            
+
             mock_kong.client.get_ip = function() return "203.0.113.100" end
-            
+
             local enforcement_result = ip_blacklist.enforce_ip_blacklist(test_conf)
             assert.is_not_nil(enforcement_result)
             assert.is_false(enforcement_result.executed)

@@ -70,26 +70,26 @@ local feedback_data = {
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Gateway] Initializing Enhanced AI Gateway integration")
-    
+
     -- Validate AI Gateway configuration
     if not conf.ai_gateway_enabled then
         kong.log.info("[Kong Guard AI Gateway] AI Gateway disabled in configuration")
         return
     end
-    
+
     -- Initialize enhanced cache systems
     _M.init_cache_systems()
-    
+
     -- Initialize model performance tracking
     _M.init_model_tracking(conf)
-    
+
     -- Test AI Gateway connectivity for all configured models
     _M.test_multi_model_connectivity(conf)
-    
+
     -- Initialize feedback collection system
     _M.init_feedback_system()
-    
-    kong.log.info("[Kong Guard AI Gateway] Enhanced AI Gateway integration initialized with %d models", 
+
+    kong.log.info("[Kong Guard AI Gateway] Enhanced AI Gateway integration initialized with %d models",
                   _M.count_available_models(conf))
 end
 
@@ -104,53 +104,53 @@ function _M.analyze_threat(request_context, threat_result, conf)
     if not conf.ai_gateway_enabled then
         return nil
     end
-    
+
     -- Determine analysis complexity and model selection
     local analysis_type = _M.determine_analysis_type(request_context, threat_result)
     local risk_level = _M.calculate_risk_level(threat_result)
-    
+
     -- Apply cost optimization sampling
     if not _M.should_analyze_request(risk_level, conf) then
         kong.log.debug("[Kong Guard AI Gateway] Request skipped due to cost optimization")
         return nil
     end
-    
+
     -- Check enhanced cache first
     local cache_key = _M.generate_enhanced_cache_key(request_context, threat_result, analysis_type)
     local cached_result = _M.get_cached_analysis(cache_key, analysis_type)
-    
+
     if cached_result then
         kong.log.debug("[Kong Guard AI Gateway] Using cached AI analysis")
         return cached_result
     end
-    
-    kong.log.debug("[Kong Guard AI Gateway] Performing enhanced AI threat analysis - Type: %s, Risk: %s", 
+
+    kong.log.debug("[Kong Guard AI Gateway] Performing enhanced AI threat analysis - Type: %s, Risk: %s",
                    analysis_type, risk_level)
-    
+
     -- Select optimal model based on analysis requirements
     local selected_model = _M.select_optimal_model(analysis_type, risk_level, conf)
     if not selected_model then
         kong.log.warn("[Kong Guard AI Gateway] No AI models available for analysis")
         return nil
     end
-    
+
     -- Perform comprehensive analysis
     local ai_result = _M.perform_comprehensive_analysis(request_context, threat_result, selected_model, conf)
-    
+
     if ai_result then
         -- Cache the result with appropriate TTL
         _M.cache_analysis_result(cache_key, ai_result, analysis_type)
-        
+
         -- Update model performance metrics
         _M.update_model_performance(selected_model.name, true, ai_result.confidence or 0)
-        
-        kong.log.info("[Kong Guard AI Gateway] Enhanced AI analysis completed - Model: %s, Threat Level: %d, Confidence: %.2f", 
+
+        kong.log.info("[Kong Guard AI Gateway] Enhanced AI analysis completed - Model: %s, Threat Level: %d, Confidence: %.2f",
                      selected_model.name, ai_result.threat_level or 0, ai_result.confidence or 0)
     else
         -- Update model performance for failed request
         _M.update_model_performance(selected_model.name, false, 0)
     end
-    
+
     return ai_result
 end
 
@@ -166,12 +166,12 @@ function _M.analyze_contextual_threat(request_context, behavioral_data, threat_h
     if not conf.ai_gateway_enabled then
         return nil
     end
-    
+
     local selected_model = _M.select_optimal_model("comprehensive", "high", conf)
     if not selected_model then
         return nil
     end
-    
+
     -- Build comprehensive context for AI analysis
     local context = {
         request = {
@@ -187,7 +187,7 @@ function _M.analyze_contextual_threat(request_context, behavioral_data, threat_h
         business_context = _M.get_business_context(request_context.path),
         security_posture = _M.get_security_posture(conf)
     }
-    
+
     local prompt = string.format([[
 Perform comprehensive contextual threat assessment for this HTTP request:
 
@@ -203,7 +203,7 @@ Analyze for:
 
 Provide detailed JSON response with threat scoring, attack timeline analysis, and adaptive response recommendations.
 ]], json.encode(context))
-    
+
     local ai_response = _M.call_ai_model(prompt, selected_model, conf)
     return _M.parse_ai_response(ai_response, "contextual")
 end
@@ -219,12 +219,12 @@ function _M.generate_security_recommendations(threat_patterns, incident_history,
     if not conf.ai_gateway_enabled then
         return {}
     end
-    
+
     local selected_model = _M.select_optimal_model("standard", "medium", conf)
     if not selected_model then
         return {}
     end
-    
+
     local prompt = string.format([[
 Based on the following threat patterns and incident history, generate actionable security recommendations:
 
@@ -241,10 +241,10 @@ Generate recommendations for:
 
 Provide JSON response with prioritized recommendations and implementation guidance.
 ]], json.encode(threat_patterns), json.encode(incident_history))
-    
+
     local ai_response = _M.call_ai_model(prompt, selected_model, conf)
     local result = _M.parse_ai_response(ai_response, "recommendations")
-    
+
     return result and result.recommendations or {}
 end
 
@@ -260,7 +260,7 @@ function _M.analyze_session_behavior(request_context, session_data, conf)
     if not selected_model then
         return nil
     end
-    
+
     local prompt = string.format([[
 Analyze this session behavior for anomalies and attack indicators:
 
@@ -277,7 +277,7 @@ Focus on:
 
 Provide detailed JSON analysis with risk scoring and recommended actions.
 ]], json.encode(session_data), json.encode(request_context))
-    
+
     local ai_response = _M.call_ai_model(prompt, selected_model, conf)
     return _M.parse_ai_response(ai_response, "behavioral")
 end
@@ -305,7 +305,7 @@ function _M.get_ai_metrics()
             analyst_corrections = #(feedback_data.analyst_corrections or {})
         }
     }
-    
+
     -- Get model-specific metrics
     for model_name, _ in pairs(AI_MODELS) do
         local perf_data = model_performance_cache:get("perf_" .. model_name)
@@ -319,7 +319,7 @@ function _M.get_ai_metrics()
             }
         end
     end
-    
+
     return metrics
 end
 
@@ -334,7 +334,7 @@ function _M.process_analyst_feedback(analysis_id, feedback_data, incident_outcom
     if not conf.ai_learning_enabled then
         return
     end
-    
+
     local feedback_entry = {
         analysis_id = analysis_id,
         analyst_feedback = feedback_data,
@@ -342,17 +342,17 @@ function _M.process_analyst_feedback(analysis_id, feedback_data, incident_outcom
         timestamp = ngx.time(),
         learning_weight = _M.calculate_feedback_weight(feedback_data)
     }
-    
+
     -- Store for model retraining
     table.insert(feedback_data.analyst_corrections, feedback_entry)
-    
+
     kong.log.info("[Kong Guard AI Gateway] Analyst feedback processed for model improvement")
 end
 
 -- Internal utility functions (abbreviated for space)
 -- Full implementation would include all helper functions for:
 -- - Model selection and failover
--- - Cache management 
+-- - Cache management
 -- - Performance tracking
 -- - Cost optimization
 -- - Payload analysis utilities

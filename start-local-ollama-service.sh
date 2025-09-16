@@ -13,7 +13,7 @@ export OLLAMA_MODEL=llama3.2:3b
 
 echo "Configuration:"
 echo "  Port: $PORT"
-echo "  Provider: $AI_PROVIDER" 
+echo "  Provider: $AI_PROVIDER"
 echo "  Ollama Host: $OLLAMA_HOST"
 echo "  Model: $OLLAMA_MODEL"
 echo ""

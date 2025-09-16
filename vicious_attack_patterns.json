@@ -420,7 +420,7 @@
     "user_agents": {
       "malicious": [
         "sqlmap/1.7.2#stable",
-        "XSSHunter/1.0", 
+        "XSSHunter/1.0",
         "JWTTool/1.0",
         "AttackBot/1.0",
         "GraphQL-Attacker/1.0"
@@ -454,7 +454,7 @@
     "command_injection": [
       "Input validation/whitelisting",
       "Command parameterization",
-      "Sandboxing/containerization", 
+      "Sandboxing/containerization",
       "Principle of least privilege"
     ],
     "zero_day": [

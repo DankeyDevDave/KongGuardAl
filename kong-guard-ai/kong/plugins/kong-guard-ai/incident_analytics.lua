@@ -17,18 +17,18 @@ local dashboard_cache = {}
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Incident Analytics] Initializing analytics system")
-    
+
     -- Initialize analytics caches
     analytics_cache.metrics = {}
     analytics_cache.trends = {}
     analytics_cache.aggregations = {}
     analytics_cache.last_update = 0
-    
+
     -- Initialize dashboard cache
     dashboard_cache.charts = {}
     dashboard_cache.alerts = {}
     dashboard_cache.last_refresh = 0
-    
+
     kong.log.info("[Kong Guard AI Incident Analytics] Analytics system initialized")
 end
 
@@ -40,12 +40,12 @@ end
 function _M.handle_dashboard_request(conf)
     local uri = ngx.var.uri
     local method = ngx.var.request_method
-    
+
     -- Check if this is a dashboard request
     if not uri:match("^/kong%-guard%-ai/incidents") then
         return false
     end
-    
+
     -- Dashboard endpoints
     if uri == "/kong-guard-ai/incidents/dashboard" and method == "GET" then
         _M.serve_dashboard_html(conf)
@@ -67,7 +67,7 @@ function _M.handle_dashboard_request(conf)
         _M.serve_incident_details_api(incident_id, conf)
         return true
     end
-    
+
     return false
 end
 
@@ -77,7 +77,7 @@ end
 ---
 function _M.serve_dashboard_html(conf)
     local dashboard_html = _M.generate_dashboard_html(conf)
-    
+
     ngx.header["Content-Type"] = "text/html"
     ngx.header["Cache-Control"] = "no-cache"
     ngx.status = 200
@@ -245,7 +245,7 @@ function _M.generate_dashboard_html(conf)
 
     <script>
         let incidentsChart, typesChart, severityChart;
-        
+
         function initCharts() {
             // Incidents trend chart
             const incidentsCtx = document.getElementById('incidents-chart').getContext('2d');
@@ -281,7 +281,7 @@ function _M.generate_dashboard_html(conf)
                         data: [],
                         backgroundColor: [
                             '#FF6384',
-                            '#36A2EB', 
+                            '#36A2EB',
                             '#FFCE56',
                             '#4BC0C0',
                             '#9966FF',
@@ -338,7 +338,7 @@ function _M.generate_dashboard_html(conf)
                     document.getElementById('total-incidents').textContent = data.total_incidents_24h || '--';
                     document.getElementById('active-incidents').textContent = data.active_incidents || '--';
                     document.getElementById('blocked-requests').textContent = data.blocked_requests_1h || '--';
-                    
+
                     // Update severity chart
                     severityChart.data.datasets[0].data = [
                         data.incidents_by_severity.low || 0,
@@ -368,7 +368,7 @@ function _M.generate_dashboard_html(conf)
                 .then(data => {
                     if (data.top_threat_types && data.top_threat_types.length > 0) {
                         document.getElementById('top-threat-type').textContent = data.top_threat_types[0].type;
-                        
+
                         typesChart.data.labels = data.top_threat_types.map(t => t.type);
                         typesChart.data.datasets[0].data = data.top_threat_types.map(t => t.count);
                         typesChart.update();
@@ -383,7 +383,7 @@ function _M.generate_dashboard_html(conf)
                 .then(data => {
                     const feed = document.getElementById('incident-feed');
                     feed.innerHTML = '';
-                    
+
                     data.recent_incidents.forEach(incident => {
                         const item = document.createElement('div');
                         item.className = 'incident-item';
@@ -402,7 +402,7 @@ function _M.generate_dashboard_html(conf)
         document.addEventListener('DOMContentLoaded', function() {
             initCharts();
             refreshDashboard();
-            
+
             // Auto-refresh every 30 seconds
             setInterval(refreshDashboard, 30000);
         });
@@ -418,10 +418,10 @@ end
 ---
 function _M.serve_metrics_api(conf)
     local incident_manager = require "kong.plugins.kong-guard-ai.incident_manager"
-    
+
     -- Get current incident statistics
     local stats = incident_manager.get_incident_statistics()
-    
+
     -- Calculate 24h and 1h metrics
     local current_time = ngx.time()
     local metrics = {
@@ -435,7 +435,7 @@ function _M.serve_metrics_api(conf)
         response_time_ms = 0.5,
         last_updated = current_time
     }
-    
+
     ngx.header["Content-Type"] = "application/json"
     ngx.header["Cache-Control"] = "no-cache"
     ngx.status = 200
@@ -449,7 +449,7 @@ end
 ---
 function _M.serve_trends_api(conf)
     local trends = _M.calculate_incident_trends()
-    
+
     ngx.header["Content-Type"] = "application/json"
     ngx.header["Cache-Control"] = "no-cache"
     ngx.status = 200
@@ -464,21 +464,21 @@ end
 function _M.serve_top_threats_api(conf)
     local incident_manager = require "kong.plugins.kong-guard-ai.incident_manager"
     local stats = incident_manager.get_incident_statistics()
-    
+
     -- Convert incident types to sorted array
     local top_threat_types = {}
     for threat_type, count in pairs(stats.incidents_by_type) do
         table.insert(top_threat_types, {type = threat_type, count = count})
     end
-    
+
     -- Sort by count descending
     table.sort(top_threat_types, function(a, b) return a.count > b.count end)
-    
+
     local response = {
         top_threat_types = top_threat_types,
         generated_at = ngx.time()
     }
-    
+
     ngx.header["Content-Type"] = "application/json"
     ngx.header["Cache-Control"] = "no-cache"
     ngx.status = 200
@@ -487,17 +487,17 @@ function _M.serve_top_threats_api(conf)
 end
 
 ---
--- Serve live incident feed API endpoint  
+-- Serve live incident feed API endpoint
 -- @param conf Plugin configuration
 ---
 function _M.serve_live_feed_api(conf)
     local recent_incidents = _M.get_recent_incidents(20) -- Last 20 incidents
-    
+
     local response = {
         recent_incidents = recent_incidents,
         generated_at = ngx.time()
     }
-    
+
     ngx.header["Content-Type"] = "application/json"
     ngx.header["Cache-Control"] = "no-cache"
     ngx.status = 200
@@ -512,17 +512,17 @@ end
 ---
 function _M.serve_incident_details_api(incident_id, conf)
     local incident_manager = require "kong.plugins.kong-guard-ai.incident_manager"
-    
+
     -- This would need to be implemented in incident_manager
     local incident = nil -- incident_manager.get_incident_by_id(incident_id)
-    
+
     if not incident then
         ngx.status = 404
         ngx.say(json.encode({error = "Incident not found", incident_id = incident_id}))
         ngx.exit(404)
         return
     end
-    
+
     ngx.header["Content-Type"] = "application/json"
     ngx.status = 200
     ngx.say(json.encode(incident))
@@ -540,24 +540,24 @@ function _M.calculate_incident_trends()
         values = {},
         timeframe = "24h"
     }
-    
+
     -- Generate hourly buckets for last 24 hours
     for i = 23, 0, -1 do
         local hour_start = current_time - (i * 3600)
         local hour_end = hour_start + 3600
         local hour_label = os.date("%H:00", hour_start)
-        
+
         table.insert(trends.labels, hour_label)
         table.insert(trends.values, _M.count_incidents_in_timeframe(hour_start, hour_end))
     end
-    
+
     return trends
 end
 
 ---
 -- Count incidents in a specific timeframe
 -- @param start_time Start timestamp
--- @param end_time End timestamp  
+-- @param end_time End timestamp
 -- @return Number of incidents
 ---
 function _M.count_incidents_in_timeframe(start_time, end_time)
@@ -587,7 +587,7 @@ function _M.get_recent_incidents(limit)
     -- For now, return simulated data
     local incidents = {}
     local current_time = ngx.time()
-    
+
     for i = 1, math.min(limit, 10) do
         table.insert(incidents, {
             incident_id = string.format("INC-%d-%d", current_time, i),
@@ -598,7 +598,7 @@ function _M.get_recent_incidents(limit)
             status = "active"
         })
     end
-    
+
     return incidents
 end
 
@@ -609,22 +609,22 @@ end
 function _M.generate_security_alerts()
     local alerts = {}
     local current_time = ngx.time()
-    
+
     -- Check for high incident rates
     local incidents_last_hour = _M.count_incidents_in_timeframe(current_time - 3600, current_time)
     if incidents_last_hour > 50 then
         table.insert(alerts, {
             type = "high_incident_rate",
-            severity = "critical", 
+            severity = "critical",
             message = string.format("High incident rate detected: %d incidents in the last hour", incidents_last_hour),
             timestamp = current_time,
             action_required = true
         })
     end
-    
+
     -- Check for attack campaigns
     -- This would integrate with incident correlation data
-    
+
     return alerts
 end
 
@@ -636,10 +636,10 @@ end
 ---
 function _M.export_incident_data(export_format, timeframe)
     local incident_manager = require "kong.plugins.kong-guard-ai.incident_manager"
-    
+
     -- Get incidents for timeframe
     local incidents = {} -- This would come from incident_manager
-    
+
     if export_format == "csv" then
         return _M.export_to_csv(incidents)
     elseif export_format == "json" then
@@ -660,7 +660,7 @@ function _M.export_to_csv(incidents)
     local csv_lines = {
         "incident_id,timestamp,type,severity,source_ip,decision,threat_level,confidence"
     }
-    
+
     for _, incident in ipairs(incidents) do
         local line = string.format("%s,%s,%s,%s,%s,%s,%s,%s",
             incident.incident_id,
@@ -674,7 +674,7 @@ function _M.export_to_csv(incidents)
         )
         table.insert(csv_lines, line)
     end
-    
+
     return table.concat(csv_lines, "\n")
 end
 
@@ -684,13 +684,13 @@ end
 function _M.cleanup_analytics_cache()
     local current_time = ngx.time()
     local cache_ttl = 300 -- 5 minutes
-    
+
     if analytics_cache.last_update < current_time - cache_ttl then
         analytics_cache.metrics = {}
         analytics_cache.trends = {}
         analytics_cache.last_update = current_time
     end
-    
+
     if dashboard_cache.last_refresh < current_time - cache_ttl then
         dashboard_cache.charts = {}
         dashboard_cache.alerts = {}

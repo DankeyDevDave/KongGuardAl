@@ -6,7 +6,7 @@
     <title>Kong Guard AI - Live AI Analysis</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
@@ -14,14 +14,14 @@
             min-height: 100vh;
         }
         .container { max-width: 1400px; margin: 0 auto; }
-        .header { 
-            text-align: center; 
+        .header {
+            text-align: center;
             margin-bottom: 30px;
             padding: 20px;
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
         }
-        .status { 
+        .status {
             display: inline-block;
             padding: 5px 15px;
             border-radius: 20px;
@@ -30,13 +30,13 @@
         }
         .status.connected { background: #4CAF50; }
         .status.disconnected { background: #f44336; }
-        
-        .grid { 
-            display: grid; 
+
+        .grid {
+            display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
-        
+
         .card {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -44,7 +44,7 @@
             padding: 20px;
             border: 1px solid rgba(255,255,255,0.2);
         }
-        
+
         .ai-thinking {
             position: fixed;
             top: 20px;
@@ -56,12 +56,12 @@
             animation: pulse 1s infinite;
             z-index: 1000;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.8; transform: scale(1.05); }
         }
-        
+
         .threat-bar {
             height: 40px;
             background: rgba(0,0,0,0.3);
@@ -70,7 +70,7 @@
             margin: 20px 0;
             position: relative;
         }
-        
+
         .threat-fill {
             height: 100%;
             transition: width 0.5s ease;
@@ -80,39 +80,39 @@
             font-weight: bold;
             border-radius: 20px;
         }
-        
+
         .threat-critical { background: linear-gradient(90deg, #ff0000, #990000); }
         .threat-high { background: linear-gradient(90deg, #ff4444, #cc0000); }
         .threat-medium { background: linear-gradient(90deg, #ffaa00, #ff6600); }
         .threat-low { background: linear-gradient(90deg, #ffff00, #cccc00); }
         .threat-safe { background: linear-gradient(90deg, #00ff00, #00cc00); }
-        
+
         .metrics {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
-        
+
         .metric {
             text-align: center;
             padding: 15px;
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
         }
-        
+
         .metric-value {
             font-size: 28px;
             font-weight: bold;
             margin: 5px 0;
         }
-        
+
         .metric-label {
             font-size: 11px;
             opacity: 0.8;
             text-transform: uppercase;
         }
-        
+
         .button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -124,12 +124,12 @@
             margin: 5px;
             transition: transform 0.2s;
         }
-        
+
         .button:hover { transform: scale(1.05); }
         .button.danger { background: linear-gradient(135deg, #f44336, #d32f2f); }
         .button.warning { background: linear-gradient(135deg, #ff9800, #f57c00); }
         .button.success { background: linear-gradient(135deg, #4CAF50, #388E3C); }
-        
+
         .history-item {
             padding: 10px;
             margin: 5px 0;
@@ -137,7 +137,7 @@
             border-radius: 8px;
             border-left: 4px solid;
         }
-        
+
         .code-block {
             background: rgba(0,0,0,0.4);
             padding: 15px;
@@ -147,7 +147,7 @@
             overflow-x: auto;
             margin: 10px 0;
         }
-        
+
         #aiReasoning {
             background: rgba(139, 92, 246, 0.1);
             border-left: 4px solid #8b5cf6;
@@ -155,14 +155,14 @@
             border-radius: 8px;
             margin: 15px 0;
         }
-        
+
         .indicators {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin: 10px 0;
         }
-        
+
         .indicator {
             background: rgba(255,0,0,0.3);
             padding: 5px 12px;
@@ -210,29 +210,29 @@
             <div class="left">
                 <div class="card">
                     <h2>🔍 Current AI Analysis</h2>
-                    
+
                     <div class="threat-bar">
                         <div id="threatBar" class="threat-fill threat-safe" style="width: 0%;">
                             <span id="threatScore">0%</span>
                         </div>
                     </div>
-                    
+
                     <div id="threatType" style="text-align: center; font-size: 18px; margin: 10px 0;">
                         Waiting for analysis...
                     </div>
-                    
+
                     <div id="aiReasoning">
                         <strong>AI Reasoning:</strong>
                         <p id="reasoningText">No analysis yet...</p>
                     </div>
-                    
+
                     <div>
                         <strong>Threat Indicators:</strong>
                         <div class="indicators" id="indicators">
                             <span style="opacity: 0.5;">None detected</span>
                         </div>
                     </div>
-                    
+
                     <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                             <span>Confidence:</span>
@@ -315,31 +315,31 @@
             confidence: 0,
             processing: 0
         };
-        
+
         let isTestAttack = false;
 
         function connect() {
             ws = new WebSocket('ws://localhost:18002/ws');
-            
+
             ws.onopen = () => {
                 console.log('Connected to AI Service');
                 document.getElementById('status').className = 'status connected';
                 document.getElementById('status').textContent = '● LIVE';
             };
-            
+
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data.type === 'threat_analysis') {
                     updateAnalysis(data);
                 }
             };
-            
+
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 document.getElementById('status').className = 'status disconnected';
                 document.getElementById('status').textContent = '● DISCONNECTED';
             };
-            
+
             ws.onclose = () => {
                 document.getElementById('status').className = 'status disconnected';
                 document.getElementById('status').textContent = '● RECONNECTING...';
@@ -353,14 +353,14 @@
             setTimeout(() => {
                 document.getElementById('aiThinking').style.display = 'none';
             }, 1500);
-            
+
             // Extract data from the correct structure
             const data = messageData.data || {};
             const event = messageData.event || {};
-            
+
             // Update metrics with null checks
             metrics.total++;
-            
+
             // Distinguish between test attacks and actual blocked threats
             if (isTestAttack) {
                 metrics.testAttacks++;
@@ -368,62 +368,62 @@
             } else if ((data.threat_score || 0) > 0.7) {
                 metrics.blocked++;
             }
-            
+
             const confidence = data.confidence || 0;
             const processingTime = data.processing_time_ms || (data.processing_time ? data.processing_time * 1000 : 0);
-            
+
             if (confidence > 0) {
                 metrics.confidence = ((metrics.confidence * (metrics.total - 1) + confidence) / metrics.total);
             }
             if (processingTime > 0) {
                 metrics.processing = ((metrics.processing * (metrics.total - 1) + processingTime) / metrics.total);
             }
-            
+
             document.getElementById('totalAnalyzed').textContent = metrics.total;
             document.getElementById('threatsBlocked').textContent = `${metrics.testAttacks}/${metrics.blocked}`;
             document.getElementById('avgConfidence').textContent = (metrics.confidence * 100).toFixed(1) + '%';
             document.getElementById('avgProcessing').textContent = metrics.processing.toFixed(0) + 'ms';
-            
+
             // Update threat bar
             const score = data.threat_score || 0;
             const threatBar = document.getElementById('threatBar');
             threatBar.style.width = (score * 100) + '%';
             threatBar.className = 'threat-fill ' + getThreatClass(score);
             document.getElementById('threatScore').textContent = (score * 100).toFixed(1) + '%';
-            
+
             // Update threat type
-            document.getElementById('threatType').textContent = 
+            document.getElementById('threatType').textContent =
                 'Threat Type: ' + (data.threat_type || 'none').toUpperCase();
-            
+
             // Update AI reasoning
-            document.getElementById('reasoningText').textContent = 
+            document.getElementById('reasoningText').textContent =
                 data.reasoning || 'Analysis completed successfully';
-            
+
             // Update indicators
             const indicatorsDiv = document.getElementById('indicators');
             if (data.indicators && data.indicators.length > 0) {
-                indicatorsDiv.innerHTML = data.indicators.map(i => 
+                indicatorsDiv.innerHTML = data.indicators.map(i =>
                     `<span class="indicator">${i}</span>`
                 ).join('');
             } else {
                 indicatorsDiv.innerHTML = '<span style="opacity: 0.5;">None detected</span>';
             }
-            
+
             // Update details
-            document.getElementById('confidence').textContent = 
+            document.getElementById('confidence').textContent =
                 ((confidence || 0) * 100).toFixed(1) + '%';
-            document.getElementById('processingTime').textContent = 
+            document.getElementById('processingTime').textContent =
                 (processingTime || 0).toFixed(0) + 'ms';
-            document.getElementById('action').textContent = 
+            document.getElementById('action').textContent =
                 (data.recommended_action || 'monitor').toUpperCase();
-            
+
             // Update request details - use both data and event sources
-            document.getElementById('requestDetails').innerHTML = 
+            document.getElementById('requestDetails').innerHTML =
                 `Method: ${data.method || event.method || 'N/A'}<br>
                 Path: ${data.path || event.path || 'N/A'}<br>
                 Client IP: ${data.client_ip || event.client_ip || 'N/A'}<br>
                 Query: ${(data.query || 'None').substring(0, 100)}${data.query && data.query.length > 100 ? '...' : ''}`;
-            
+
             // Add to history - pass the combined data
             addToHistory({
                 ...data,
@@ -446,15 +446,15 @@
             const item = document.createElement('div');
             item.className = 'history-item';
             item.style.borderLeftColor = getColor(data.threat_score || 0);
-            
+
             const score = data.threat_score || 0;
             const threatType = data.threat_type || 'none';
             const method = data.method || 'N/A';
             const path = data.path || 'N/A';
             const action = data.recommended_action || 'monitor';
             const processingTime = data.processing_time_ms || (data.processing_time ? data.processing_time * 1000 : 0);
-            
-            item.innerHTML = 
+
+            item.innerHTML =
                 '<div style="display: flex; justify-content: space-between;">' +
                     '<strong>' + (score * 100).toFixed(0) + '%</strong>' +
                     '<span>' + threatType + '</span>' +
@@ -463,13 +463,13 @@
                     method + ' ' + path + '<br>' +
                     'Action: ' + action + ' | ' + processingTime.toFixed(0) + 'ms' +
                 '</div>';
-            
+
             if (history.children[0] && history.children[0].textContent.includes('No analysis yet')) {
                 history.innerHTML = '';
             }
-            
+
             history.insertBefore(item, history.firstChild);
-            
+
             // Keep only last 10 items
             while (history.children.length > 10) {
                 history.removeChild(history.lastChild);
@@ -550,10 +550,10 @@
                     body: 'npm install compromised-package-with-crypto-miner'
                 }
             };
-            
+
             const attack = attacks[type];
             document.getElementById('aiThinking').style.display = 'block';
-            
+
             try {
                 await fetch('http://localhost:18002/analyze', {
                     method: 'POST',

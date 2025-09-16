@@ -36,7 +36,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # Function to check prerequisites
 check_prerequisites() {
     log_info "Checking prerequisites..."
-    
+
     # Check for required commands
     local required_commands=("docker" "docker-compose" "ssh" "rsync" "git")
     for cmd in "${required_commands[@]}"; do
@@ -45,54 +45,54 @@ check_prerequisites() {
             exit 1
         fi
     done
-    
+
     # Check Docker daemon
     if ! docker info &> /dev/null; then
         log_error "Docker daemon is not running"
         exit 1
     fi
-    
+
     # Check remote host configuration
     if [ -z "$REMOTE_HOST" ]; then
         log_error "REMOTE_HOST is not set. Please configure the remote server."
         echo "Usage: REMOTE_HOST=your-server.com $0"
         exit 1
     fi
-    
+
     # Test SSH connection
     if ! ssh -o ConnectTimeout=5 -p "$REMOTE_PORT" -i "$SSH_KEY" \
          "$REMOTE_USER@$REMOTE_HOST" "echo 'SSH connection successful'" &> /dev/null; then
         log_error "Cannot connect to remote host $REMOTE_HOST"
         exit 1
     fi
-    
+
     log_success "Prerequisites check passed"
 }
 
 # Function to generate secrets
 generate_secrets() {
     log_info "Generating secrets..."
-    
+
     local secrets_dir="$PROJECT_ROOT/secrets"
     mkdir -p "$secrets_dir"
     chmod 700 "$secrets_dir"
-    
+
     # Generate passwords if they don't exist
     [ ! -f "$secrets_dir/kong_postgres_password.txt" ] && \
         openssl rand -base64 32 > "$secrets_dir/kong_postgres_password.txt"
-    
+
     [ ! -f "$secrets_dir/api_postgres_password.txt" ] && \
         openssl rand -base64 32 > "$secrets_dir/api_postgres_password.txt"
-    
+
     [ ! -f "$secrets_dir/redis_password.txt" ] && \
         openssl rand -base64 32 > "$secrets_dir/redis_password.txt"
-    
+
     [ ! -f "$secrets_dir/api_secret_key.txt" ] && \
         openssl rand -hex 32 > "$secrets_dir/api_secret_key.txt"
-    
+
     [ ! -f "$secrets_dir/grafana_password.txt" ] && \
         openssl rand -base64 20 > "$secrets_dir/grafana_password.txt"
-    
+
     # Generate self-signed SSL certificate if not exists
     if [ ! -f "$secrets_dir/server.crt" ] || [ ! -f "$secrets_dir/server.key" ]; then
         log_info "Generating self-signed SSL certificate..."
@@ -101,7 +101,7 @@ generate_secrets() {
             -out "$secrets_dir/server.crt" \
             -subj "/C=US/ST=State/L=City/O=Organization/CN=$REMOTE_HOST"
     fi
-    
+
     chmod 600 "$secrets_dir"/*
     log_success "Secrets generated"
 }
@@ -109,7 +109,7 @@ generate_secrets() {
 # Function to create environment file
 create_env_file() {
     log_info "Creating environment configuration..."
-    
+
     cat > "$PROJECT_ROOT/.env.production" << EOF
 # Kong Guard AI Production Environment Configuration
 # Generated: $(date)
@@ -147,20 +147,20 @@ LOG_LEVEL=info
 AI_GATEWAY_ENABLED=false
 AI_GATEWAY_MODEL=gpt-4o-mini
 EOF
-    
+
     log_success "Environment configuration created"
 }
 
 # Function to build Docker images
 build_images() {
     log_info "Building Docker images..."
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Build production images
     docker build -f Dockerfile.production --target kong-production -t kong-guard-ai:kong-latest .
     docker build -f Dockerfile.production --target fastapi-production -t kong-guard-ai:api-latest .
-    
+
     # Tag images for registry
     # Conditionally tag with registry prefix only if not localhost
     if [ -n "${DOCKER_REGISTRY:-}" ] && [ "${DOCKER_REGISTRY}" != "localhost" ]; then
@@ -168,10 +168,10 @@ build_images() {
     else
         REGISTRY_PREFIX=""
     fi
-    
+
     docker tag kong-guard-ai:kong-latest "${REGISTRY_PREFIX}kong-guard-ai:kong-${VERSION:-latest}"
     docker tag kong-guard-ai:api-latest "${REGISTRY_PREFIX}kong-guard-ai:api-${VERSION:-latest}"
-    
+
     log_success "Docker images built successfully"
 }
 
@@ -181,34 +181,34 @@ backup_deployment() {
         log_warning "Backup is disabled, skipping..."
         return
     fi
-    
+
     log_info "Creating backup of existing deployment..."
-    
+
     local backup_name="backup-$(date +%Y%m%d-%H%M%S)"
-    
+
     ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" << EOF
         if [ -d "$REMOTE_PATH" ]; then
             mkdir -p "$REMOTE_PATH/../backups"
             cd "$REMOTE_PATH/.."
             tar czf "backups/${backup_name}.tar.gz" kong-guard-ai/
             echo "Backup created: ${backup_name}.tar.gz"
-            
+
             # Keep only last 5 backups
             ls -t backups/*.tar.gz | tail -n +6 | xargs -r rm
         fi
 EOF
-    
+
     log_success "Backup completed"
 }
 
 # Function to deploy to remote server
 deploy_to_remote() {
     log_info "Deploying to remote server $REMOTE_HOST..."
-    
+
     # Create remote directory
     ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" \
         "mkdir -p $REMOTE_PATH"
-    
+
     # Sync files to remote server
     log_info "Synchronizing files..."
     rsync -avz --delete \
@@ -221,51 +221,51 @@ deploy_to_remote() {
         --exclude='venv' \
         "$PROJECT_ROOT/" \
         "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/"
-    
+
     log_success "Files synchronized"
 }
 
 # Function to start services on remote
 start_remote_services() {
     log_info "Starting services on remote server..."
-    
+
     ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" << 'ENDSSH'
         cd "$REMOTE_PATH"
-        
+
         # Stop existing services
         docker-compose -f docker-compose.production.yml down --remove-orphans || true
-        
+
         # Pull latest images (if using registry)
         # docker-compose -f docker-compose.production.yml pull
-        
+
         # Start services
         docker-compose -f docker-compose.production.yml up -d
-        
+
         # Wait for services to start
         sleep 10
-        
+
         # Show service status
         docker-compose -f docker-compose.production.yml ps
 ENDSSH
-    
+
     log_success "Services started"
 }
 
 # Function to perform health checks
 health_check() {
     log_info "Performing health checks..."
-    
+
     local retry_count=0
     local all_healthy=false
-    
+
     while [ $retry_count -lt $HEALTH_CHECK_RETRIES ]; do
         log_info "Health check attempt $((retry_count + 1))/$HEALTH_CHECK_RETRIES"
-        
+
         # Check Kong health
         if ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" \
            "curl -sf http://localhost:8001/status" &> /dev/null; then
             log_success "Kong is healthy"
-            
+
             # Check FastAPI health
             if ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" \
                "curl -sf http://localhost:8080/health" &> /dev/null; then
@@ -278,14 +278,14 @@ health_check() {
         else
             log_warning "Kong is not healthy yet"
         fi
-        
+
         retry_count=$((retry_count + 1))
         if [ $retry_count -lt $HEALTH_CHECK_RETRIES ]; then
             log_info "Waiting ${HEALTH_CHECK_DELAY} seconds before next check..."
             sleep $HEALTH_CHECK_DELAY
         fi
     done
-    
+
     if [ "$all_healthy" = true ]; then
         log_success "All services are healthy"
         return 0
@@ -298,10 +298,10 @@ health_check() {
 # Function to setup SSL with Let's Encrypt
 setup_ssl() {
     log_info "Setting up SSL with Let's Encrypt..."
-    
+
     ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" << ENDSSH
         cd "$REMOTE_PATH"
-        
+
         # Initialize Let's Encrypt certificates
         docker-compose -f docker-compose.production.yml run --rm certbot certonly \
             --webroot --webroot-path=/var/www/certbot \
@@ -310,46 +310,46 @@ setup_ssl() {
             --no-eff-email \
             -d $REMOTE_HOST \
             -d www.$REMOTE_HOST
-        
+
         # Reload nginx to use new certificates
         docker-compose -f docker-compose.production.yml exec nginx nginx -s reload
 ENDSSH
-    
+
     log_success "SSL setup completed"
 }
 
 # Function to setup firewall rules
 setup_firewall() {
     log_info "Setting up firewall rules..."
-    
+
     ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" << 'ENDSSH'
         # Allow SSH
         sudo ufw allow 22/tcp
-        
+
         # Allow HTTP and HTTPS
         sudo ufw allow 80/tcp
         sudo ufw allow 443/tcp
-        
+
         # Allow Kong proxy ports
         sudo ufw allow 8000/tcp
         sudo ufw allow 8443/tcp
-        
+
         # Block Kong Admin API from external access
         sudo ufw deny 8001/tcp
         sudo ufw deny 8444/tcp
-        
+
         # Block monitoring ports from external access
         sudo ufw deny 9090/tcp  # Prometheus
         sudo ufw deny 3000/tcp  # Grafana
         sudo ufw deny 3100/tcp  # Loki
-        
+
         # Enable firewall
         sudo ufw --force enable
-        
+
         # Show status
         sudo ufw status verbose
 ENDSSH
-    
+
     log_success "Firewall configured"
 }
 
@@ -379,65 +379,65 @@ display_info() {
 # Function to rollback deployment
 rollback() {
     log_warning "Rolling back deployment..."
-    
+
     local latest_backup=$(ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" \
         "find \$(dirname '$REMOTE_PATH')/backups -name '*.tar.gz' -type f | sort -r | head -1 2>/dev/null")
-    
+
     if [ -z "$latest_backup" ]; then
         log_error "No backup found for rollback"
         exit 1
     fi
-    
+
     # Validate backup path and extract safely
     ssh -p "$REMOTE_PORT" -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" << EOF
         set -euo pipefail
-        
+
         # Resolve absolute paths
         BACKUP_FILE="\$(realpath '$latest_backup')"
         DEPLOY_DIR="\$(realpath '$REMOTE_PATH')"
         PARENT_DIR="\$(dirname '\$DEPLOY_DIR')"
-        
+
         # Validate paths
         if [[ "\$BACKUP_FILE" != "\$PARENT_DIR/backups/"* ]]; then
             echo "Invalid backup path: \$BACKUP_FILE"
             exit 1
         fi
-        
+
         # Stop services and clean up
         cd "\$DEPLOY_DIR"
         docker-compose -f docker-compose.production.yml down 2>/dev/null || true
-        
+
         # Extract to temporary directory first
         TEMP_DIR="\$(mktemp -d)"
         cd "\$TEMP_DIR"
         tar xzf "\$BACKUP_FILE" --strip-components=0
-        
+
         # Verify extraction contains expected directory structure
         if [ ! -d "kong-guard-ai" ]; then
             echo "Invalid backup structure - no kong-guard-ai directory found"
             rm -rf "\$TEMP_DIR"
             exit 1
         fi
-        
+
         # Replace deployment directory
         rm -rf "\$DEPLOY_DIR"
         mv "kong-guard-ai" "\$DEPLOY_DIR"
-        
+
         # Start services
         cd "\$DEPLOY_DIR"
         docker-compose -f docker-compose.production.yml up -d
-        
+
         # Cleanup temp directory
         rm -rf "\$TEMP_DIR"
 EOF
-    
+
     log_success "Rollback completed"
 }
 
 # Main deployment flow
 main() {
     log_info "Starting Kong Guard AI deployment..."
-    
+
     # Parse command line arguments
     case "${1:-deploy}" in
         deploy)
@@ -448,7 +448,7 @@ main() {
             backup_deployment
             deploy_to_remote
             start_remote_services
-            
+
             if health_check; then
                 setup_firewall
                 # Optionally setup SSL if domain is configured

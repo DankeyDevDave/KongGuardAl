@@ -27,7 +27,7 @@ scrape_configs:
     scrape_interval: 15s
     scrape_timeout: 10s
     honor_labels: true
-    
+
   # Kong Guard AI Plugin Metrics
   - job_name: 'kong-guard-ai-plugin'
     static_configs:
@@ -36,7 +36,7 @@ scrape_configs:
     scrape_interval: 30s
     scrape_timeout: 15s
     honor_labels: true
-    
+
   # Kong Admin API Health
   - job_name: 'kong-admin-health'
     static_configs:
@@ -44,31 +44,31 @@ scrape_configs:
     metrics_path: '/status'
     scrape_interval: 30s
     scrape_timeout: 10s
-    
+
   # PostgreSQL Metrics
   - job_name: 'postgres-exporter'
     static_configs:
       - targets: ['postgres-exporter:9187']
     scrape_interval: 30s
-    
+
   # Node Exporter for Host Metrics
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
     scrape_interval: 15s
-    
+
   # Redis Metrics (if enabled)
   - job_name: 'redis-exporter'
     static_configs:
       - targets: ['redis-exporter:9121']
     scrape_interval: 30s
-    
+
   # Elasticsearch Metrics
   - job_name: 'elasticsearch-exporter'
     static_configs:
       - targets: ['elasticsearch-exporter:9114']
     scrape_interval: 30s
-    
+
   # Kubernetes Pod Discovery
   - job_name: 'kubernetes-pods'
     kubernetes_sd_configs:
@@ -102,7 +102,7 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_pod_name]
         action: replace
         target_label: kubernetes_pod_name
-        
+
   # Kubernetes Service Discovery
   - job_name: 'kubernetes-services'
     kubernetes_sd_configs:

@@ -319,7 +319,7 @@
             <p style="color: #666; margin-top: 10px;">
                 Enterprise-grade API security testing with AI-powered threat detection
             </p>
-            
+
             <div class="status-bar">
                 <div class="status-item" id="kong-status">
                     <div>Kong Gateway</div>
@@ -348,17 +348,17 @@
             <!-- Configuration Card -->
             <div class="card">
                 <h2>🔧 Configuration</h2>
-                
+
                 <div class="input-group">
                     <label>Kong Admin URL</label>
                     <input type="text" id="admin-url" value="http://localhost:8001" />
                 </div>
-                
+
                 <div class="input-group">
                     <label>Kong Proxy URL</label>
                     <input type="text" id="proxy-url" value="http://localhost:8000" />
                 </div>
-                
+
                 <div class="input-group">
                     <label>Test Mode</label>
                     <select id="test-mode">
@@ -367,23 +367,23 @@
                         <option value="learning">Learning Mode</option>
                     </select>
                 </div>
-                
+
                 <button onclick="updateConfiguration()" class="success">Apply Configuration</button>
-                
+
                 <div class="response-area" id="config-response" style="display: none;"></div>
             </div>
 
             <!-- Threat Detection Tests -->
             <div class="card">
                 <h2>🚨 Threat Detection Tests</h2>
-                
+
                 <div class="tabs">
                     <div class="tab active" onclick="switchTab('injection')">Injection</div>
                     <div class="tab" onclick="switchTab('ddos')">DDoS</div>
                     <div class="tab" onclick="switchTab('auth')">Auth</div>
                     <div class="tab" onclick="switchTab('custom')">Custom</div>
                 </div>
-                
+
                 <div id="injection" class="tab-content active">
                     <div class="test-section">
                         <h3>SQL Injection Tests</h3>
@@ -393,7 +393,7 @@
                             <button onclick="testSQLInjection('blind')" class="danger">Blind SQL</button>
                         </div>
                     </div>
-                    
+
                     <div class="test-section">
                         <h3>XSS Tests</h3>
                         <div class="test-buttons">
@@ -403,7 +403,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="ddos" class="tab-content">
                     <div class="test-section">
                         <h3>Rate Limiting Tests</h3>
@@ -414,7 +414,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="auth" class="tab-content">
                     <div class="test-section">
                         <h3>Authentication Tests</h3>
@@ -425,7 +425,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="custom" class="tab-content">
                     <div class="test-section">
                         <h3>Custom Attack Pattern</h3>
@@ -436,14 +436,14 @@
                         <button onclick="testCustom()" class="danger">Execute Attack</button>
                     </div>
                 </div>
-                
+
                 <div class="response-area" id="threat-response"></div>
             </div>
 
             <!-- Legitimate Traffic Tests -->
             <div class="card">
                 <h2>✅ Legitimate Traffic Tests</h2>
-                
+
                 <div class="test-section">
                     <h3>Normal API Requests</h3>
                     <div class="test-buttons">
@@ -452,7 +452,7 @@
                         <button onclick="testLegitimate('batch')">Batch Requests</button>
                     </div>
                 </div>
-                
+
                 <div class="test-section">
                     <h3>Performance Tests</h3>
                     <div class="test-buttons">
@@ -461,14 +461,14 @@
                         <button onclick="testPerformance('concurrent')">Concurrent Users</button>
                     </div>
                 </div>
-                
+
                 <div class="response-area" id="legitimate-response"></div>
             </div>
 
             <!-- Metrics Dashboard -->
             <div class="card">
                 <h2>📊 Real-time Metrics</h2>
-                
+
                 <div class="metrics">
                     <div class="metric">
                         <div class="metric-value" id="requests-total">0</div>
@@ -487,7 +487,7 @@
                         <div class="metric-label">False Positives</div>
                     </div>
                 </div>
-                
+
                 <div class="test-section" style="margin-top: 20px;">
                     <h3>AI Model Performance</h3>
                     <div class="metrics">
@@ -505,20 +505,20 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <button onclick="refreshMetrics()" class="success" style="margin-top: 20px;">Refresh Metrics</button>
             </div>
 
             <!-- Event Log -->
             <div class="card" style="grid-column: span 2;">
                 <h2>📜 Event Log</h2>
-                
+
                 <div class="test-buttons" style="margin-bottom: 15px;">
                     <button onclick="clearLog()">Clear Log</button>
                     <button onclick="exportLog()">Export Log</button>
                     <button onclick="toggleAutoScroll()" id="autoscroll-btn" class="success">Auto-scroll: ON</button>
                 </div>
-                
+
                 <div class="response-area" id="event-log" style="max-height: 400px;">
                     <div class="log-entry success">🚀 Kong Guard AI Testing Dashboard initialized</div>
                     <div class="log-entry">📡 Connecting to Kong Gateway...</div>
@@ -554,11 +554,11 @@
 
             for (const service of services) {
                 try {
-                    const response = await fetch(service.url, { 
+                    const response = await fetch(service.url, {
                         method: 'GET',
                         mode: 'no-cors'
                     }).catch(() => null);
-                    
+
                     const element = document.getElementById(service.id);
                     if (response || service.id === 'redis-status' || service.id === 'ai-status') {
                         element.classList.add('active');
@@ -600,7 +600,7 @@
 
             const payload = payloads[type];
             logEvent(`🔴 Testing SQL Injection: ${type}`, 'warning');
-            
+
             await sendAttack('/api/users?id=' + encodeURIComponent(payload), 'SQL Injection', type);
         }
 
@@ -614,14 +614,14 @@
 
             const payload = payloads[type];
             logEvent(`🔴 Testing XSS: ${type}`, 'warning');
-            
+
             await sendAttack('/api/search?q=' + payload, 'XSS', type);
         }
 
         // Test Rate Limiting
         async function testRateLimit(type) {
             logEvent(`🔴 Testing Rate Limit: ${type}`, 'warning');
-            
+
             const configs = {
                 burst: { count: 100, delay: 0 },
                 sustained: { count: 50, delay: 100 },
@@ -663,7 +663,7 @@
         // Test Legitimate Traffic
         async function testLegitimate(type) {
             logEvent(`✅ Testing Legitimate Traffic: ${type}`, 'success');
-            
+
             const proxyUrl = document.getElementById('proxy-url').value;
             const tests = {
                 get: { method: 'GET', endpoint: '/api/users' },
@@ -684,7 +684,7 @@
         // Test Performance
         async function testPerformance(type) {
             logEvent(`⚡ Testing Performance: ${type}`, 'info');
-            
+
             const tests = {
                 latency: async () => {
                     const start = Date.now();
@@ -721,7 +721,7 @@
         async function sendAttack(endpoint, attackType, details, config = {}) {
             const proxyUrl = document.getElementById('proxy-url').value;
             const url = proxyUrl + endpoint;
-            
+
             requestCount++;
             updateRequestCount();
 
@@ -754,7 +754,7 @@
         async function sendRequest(endpoint, type, details, shouldLog = true, config = {}) {
             const proxyUrl = document.getElementById('proxy-url').value;
             const url = proxyUrl + endpoint;
-            
+
             requestCount++;
             updateRequestCount();
 
@@ -789,9 +789,9 @@
         async function updateConfiguration() {
             const adminUrl = document.getElementById('admin-url').value;
             const mode = document.getElementById('test-mode').value;
-            
+
             logEvent(`Updating configuration: Mode = ${mode}`, 'info');
-            
+
             // In a real implementation, this would update Kong configuration
             showResponse('config-response', `Configuration updated\nMode: ${mode}\nAdmin URL: ${adminUrl}`, 'success');
             document.getElementById('config-response').style.display = 'block';
@@ -816,7 +816,7 @@
             entry.className = `log-entry ${type}`;
             entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
             log.appendChild(entry);
-            
+
             if (autoScroll) {
                 log.scrollTop = log.scrollHeight;
             }
@@ -867,20 +867,20 @@
         // Refresh metrics
         async function refreshMetrics() {
             logEvent('Refreshing metrics...', 'info');
-            
+
             // Simulate fetching metrics from Kong
             const accuracy = Math.round(85 + Math.random() * 15);
             const confidence = Math.round(75 + Math.random() * 25);
             const patterns = Math.round(50 + Math.random() * 100);
-            
+
             document.getElementById('model-accuracy').textContent = `${accuracy}%`;
             document.getElementById('model-confidence').textContent = `${confidence}%`;
             document.getElementById('patterns-learned').textContent = patterns;
-            
+
             // Calculate false positives (simulated)
             const falsePositives = Math.max(0, Math.round(requestCount * 0.001));
             document.getElementById('false-positives').textContent = falsePositives;
-            
+
             logEvent('Metrics updated', 'success');
         }
 

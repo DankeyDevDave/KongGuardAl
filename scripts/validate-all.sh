@@ -41,16 +41,16 @@ log_error() {
 # Check prerequisites
 check_prerequisites() {
     log_header "Checking Prerequisites"
-    
+
     local failed=0
-    
+
     # Check if validation scripts exist
     local scripts=(
         "validate-docker-environment.sh"
         "validate-integration.sh"
         "validate-plugin-lifecycle.sh"
     )
-    
+
     for script in "${scripts[@]}"; do
         if [ -f "$SCRIPT_DIR/$script" ]; then
             log_success "$script found"
@@ -59,10 +59,10 @@ check_prerequisites() {
             ((failed++))
         fi
     done
-    
+
     # Check for required tools
     local tools=("curl" "jq" "docker")
-    
+
     for tool in "${tools[@]}"; do
         if command -v "$tool" > /dev/null 2>&1; then
             log_success "$tool is available"
@@ -70,52 +70,52 @@ check_prerequisites() {
             log_warning "$tool is not installed (some tests may fail)"
         fi
     done
-    
+
     return $failed
 }
 
 # Wait for development environment
 wait_for_environment() {
     log_header "Waiting for Development Environment"
-    
+
     local max_wait=300  # 5 minutes
     local wait_count=0
     local check_interval=10
-    
+
     log_info "Waiting for other agents to complete environment setup..."
-    
+
     while [ $wait_count -lt $max_wait ]; do
         # Check for key files that indicate environment is ready
         local ready_indicators=0
-        
+
         # Check for Docker Compose file
         if [ -f "../docker-compose.yml" ] || [ -f "./docker-compose.yml" ]; then
             ((ready_indicators++))
         fi
-        
+
         # Check for plugin files
         if [ -d "../kong" ] || [ -d "./kong" ] || [ -f "../kong-guard-ai.lua" ]; then
             ((ready_indicators++))
         fi
-        
+
         # Check for configuration files
         if [ -f "../kong.yml" ] || [ -f "./kong.yml" ] || [ -f "../kong.conf" ]; then
             ((ready_indicators++))
         fi
-        
+
         if [ $ready_indicators -ge 2 ]; then
             log_success "Development environment appears ready"
             return 0
         fi
-        
+
         sleep $check_interval
         ((wait_count += check_interval))
-        
+
         if [ $((wait_count % 30)) -eq 0 ]; then
             log_info "Still waiting... (${wait_count}s elapsed, ${ready_indicators}/3 indicators ready)"
         fi
     done
-    
+
     log_warning "Timeout waiting for environment (proceeding with available validation)"
     return 1
 }
@@ -123,7 +123,7 @@ wait_for_environment() {
 # Run Docker environment validation
 run_docker_validation() {
     log_header "Docker Environment Validation"
-    
+
     if [ -f "$SCRIPT_DIR/validate-docker-environment.sh" ]; then
         if bash "$SCRIPT_DIR/validate-docker-environment.sh"; then
             log_success "Docker environment validation passed"
@@ -141,11 +141,11 @@ run_docker_validation() {
 # Run integration tests
 run_integration_tests() {
     log_header "Integration Tests"
-    
+
     # Check if Kong is running
     if curl -s --connect-timeout 5 "http://localhost:8001/status" > /dev/null 2>&1; then
         log_info "Kong Admin API is accessible, running integration tests..."
-        
+
         if [ -f "$SCRIPT_DIR/validate-integration.sh" ]; then
             if bash "$SCRIPT_DIR/validate-integration.sh"; then
                 log_success "Integration tests passed"
@@ -168,11 +168,11 @@ run_integration_tests() {
 # Run plugin lifecycle tests
 run_lifecycle_tests() {
     log_header "Plugin Lifecycle Tests"
-    
+
     # Check if Kong is running and plugin is available
     if curl -s --connect-timeout 5 "http://localhost:8001/status" > /dev/null 2>&1; then
         log_info "Kong is running, testing plugin lifecycle..."
-        
+
         if [ -f "$SCRIPT_DIR/validate-plugin-lifecycle.sh" ]; then
             if bash "$SCRIPT_DIR/validate-plugin-lifecycle.sh"; then
                 log_success "Plugin lifecycle tests passed"
@@ -194,9 +194,9 @@ run_lifecycle_tests() {
 # Generate comprehensive report
 generate_report() {
     log_header "Generating Validation Report"
-    
+
     local report_file="validation-report-$(date +%Y%m%d-%H%M%S).md"
-    
+
     cat > "$report_file" << EOF
 # Kong Guard AI Validation Report
 
@@ -216,7 +216,7 @@ This report summarizes the validation results for the Kong Guard AI plugin devel
 ### Docker Environment
 - Docker daemon: $(docker info > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running")
 - Docker Compose: $(command -v docker-compose > /dev/null 2>&1 || docker compose version > /dev/null 2>&1 && echo "✅ Available" || echo "❌ Not available")
-- Port availability: 
+- Port availability:
   - 8000 (Kong Proxy): $(lsof -i :8000 > /dev/null 2>&1 && echo "🟡 In use" || echo "✅ Available")
   - 8001 (Kong Admin): $(lsof -i :8001 > /dev/null 2>&1 && echo "🟡 In use" || echo "✅ Available")
   - 5432 (PostgreSQL): $(lsof -i :5432 > /dev/null 2>&1 && echo "🟡 In use" || echo "✅ Available")
@@ -242,15 +242,15 @@ EOF
     if ! docker info > /dev/null 2>&1; then
         echo "- 🔥 **CRITICAL**: Start Docker daemon" >> "$report_file"
     fi
-    
+
     if ! curl -s --connect-timeout 5 "http://localhost:8001/status" > /dev/null 2>&1; then
         echo "- 🔧 **HIGH**: Start Kong Gateway (\`docker-compose up -d\`)" >> "$report_file"
     fi
-    
+
     if [ ! -f "../docker-compose.yml" ] && [ ! -f "./docker-compose.yml" ]; then
         echo "- ⏳ **MEDIUM**: Wait for Docker environment setup by other agents" >> "$report_file"
     fi
-    
+
     cat >> "$report_file" << EOF
 
 ### Development Workflow
@@ -303,49 +303,49 @@ main() {
     log_header "Kong Guard AI Master Validation"
     echo -e "${CYAN}Starting comprehensive validation suite...${NC}"
     echo
-    
+
     local failed_tests=0
     local total_tests=0
-    
+
     # Prerequisites
     ((total_tests++))
     if ! check_prerequisites; then
         ((failed_tests++))
         log_error "Prerequisites check failed, continuing with available tests"
     fi
-    
+
     # Wait for environment (optional)
     wait_for_environment
-    
+
     # Docker validation
     ((total_tests++))
     if ! run_docker_validation; then
         ((failed_tests++))
     fi
-    
+
     # Integration tests (conditional)
     ((total_tests++))
     if ! run_integration_tests; then
         ((failed_tests++))
     fi
-    
+
     # Lifecycle tests (conditional)
     ((total_tests++))
     if ! run_lifecycle_tests; then
         ((failed_tests++))
     fi
-    
+
     # Generate report
     local report_file=$(generate_report)
-    
+
     # Final summary
     log_header "Validation Summary"
-    
+
     echo -e "${BOLD}Total Tests:${NC} $total_tests"
     echo -e "${BOLD}Passed:${NC} $((total_tests - failed_tests))"
     echo -e "${BOLD}Failed/Pending:${NC} $failed_tests"
     echo
-    
+
     if [ $failed_tests -eq 0 ]; then
         log_success "🎉 All validation tests passed!"
         log_info "Kong Guard AI environment is fully operational"
@@ -355,11 +355,11 @@ main() {
     else
         log_error "❌ Validation incomplete - environment needs attention"
     fi
-    
+
     echo
     log_info "📄 Detailed report: $report_file"
     log_info "🔄 Re-run this script as development progresses"
-    
+
     exit $failed_tests
 }
 

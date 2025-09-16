@@ -74,11 +74,11 @@ local request_cache = {}
 ---
 function instrumentation.get_client_ip(config)
     local client_ip = kong.client.get_ip()
-    
+
     -- Check proxy headers if enabled in config
     if config and config.trust_proxy_headers then
         local headers = kong.request.get_headers()
-        
+
         -- X-Forwarded-For header (most common)
         local xff = headers["x-forwarded-for"]
         if xff then
@@ -88,20 +88,20 @@ function instrumentation.get_client_ip(config)
                 client_ip = first_ip:gsub("%s+", "")  -- Remove whitespace
             end
         end
-        
+
         -- X-Real-IP header (nginx proxy)
         local real_ip = headers["x-real-ip"]
         if real_ip and not xff then
             client_ip = real_ip
         end
-        
+
         -- Cloudflare CF-Connecting-IP
         local cf_ip = headers["cf-connecting-ip"]
         if cf_ip and not xff and not real_ip then
             client_ip = cf_ip
         end
     end
-    
+
     return client_ip or "unknown"
 end
 
@@ -115,13 +115,13 @@ function instrumentation.get_correlation_id()
     if request_id then
         return request_id
     end
-    
+
     -- Generate new correlation ID
     local correlation_id = "guard_ai_" .. ngx.time() .. "_" .. math.random(100000, 999999)
-    
+
     -- Set header for downstream services
     kong.service.request.set_header(CORRELATION_ID_HEADER, correlation_id)
-    
+
     return correlation_id
 end
 
@@ -134,78 +134,78 @@ end
 function instrumentation.capture_request_metadata(config)
     local start_time = ngx.now()
     local correlation_id = instrumentation.get_correlation_id()
-    
+
     -- Core request data
     local request_metadata = {
         -- Timing information
         start_time = start_time,
         start_time_ms = start_time * 1000,
         timestamp = ngx.time(),
-        
+
         -- Request identification
         correlation_id = correlation_id,
         request_id = ngx.var.request_id or correlation_id,
-        
+
         -- Basic request info
         method = kong.request.get_method(),
         path = kong.request.get_path(),
         query_string = ngx.var.query_string or "",
-        
+
         -- Client information
         client_ip = instrumentation.get_client_ip(config),
         user_agent = kong.request.get_header("user-agent") or "",
-        
+
         -- Kong routing context
         service_id = nil,
         route_id = nil,
         consumer_id = nil,
-        
+
         -- Request size and content type
         content_length = tonumber(kong.request.get_header("content-length")) or 0,
         content_type = kong.request.get_header("content-type") or "",
-        
+
         -- Security headers
         authorization = kong.request.get_header("authorization") and "present" or "absent",
-        
+
         -- Performance tracking
         processing_stages = {
             request_capture = 0  -- Will be updated at end of function
         }
     }
-    
+
     -- Safely get Kong routing context
     pcall(function()
         local service = kong.router.get_service()
         if service then
             request_metadata.service_id = service.id
         end
-        
+
         local route = kong.router.get_route()
         if route then
             request_metadata.route_id = route.id
         end
-        
+
         local consumer = kong.client.get_consumer()
         if consumer then
             request_metadata.consumer_id = consumer.id
         end
     end)
-    
+
     -- Capture important headers (with size limits)
     if config and config.capture_headers then
         local headers = kong.request.get_headers()
         local filtered_headers = {}
         local total_size = 0
-        
+
         for name, value in pairs(headers) do
             if total_size < MAX_HEADER_SIZE then
                 -- Skip sensitive headers
                 local lower_name = string.lower(name)
-                if not (lower_name:match("password") or 
-                        lower_name:match("secret") or 
+                if not (lower_name:match("password") or
+                        lower_name:match("secret") or
                         lower_name:match("token") or
                         lower_name:match("key")) then
-                    
+
                     local header_str = tostring(value)
                     if #header_str + total_size < MAX_HEADER_SIZE then
                         filtered_headers[name] = header_str:sub(1, 256)  -- Limit individual header size
@@ -216,21 +216,21 @@ function instrumentation.capture_request_metadata(config)
                 break
             end
         end
-        
+
         request_metadata.headers = filtered_headers
     end
-    
+
     -- Truncate path if too long
     if #request_metadata.path > MAX_PATH_LENGTH then
         request_metadata.path = request_metadata.path:sub(1, MAX_PATH_LENGTH) .. "..."
     end
-    
+
     -- Calculate request capture time
     request_metadata.processing_stages.request_capture = (ngx.now() - start_time) * 1000
-    
+
     -- Store in request cache for log phase
     request_cache[correlation_id] = request_metadata
-    
+
     return request_metadata
 end
 
@@ -243,64 +243,64 @@ end
 function instrumentation.capture_response_metadata(request_metadata, config)
     local end_time = ngx.now()
     local correlation_id = request_metadata.correlation_id
-    
+
     -- Retrieve cached request data
     local cached_request = request_cache[correlation_id]
     if not cached_request then
         kong.log.warn("[Kong Guard AI] No cached request data for correlation ID: " .. correlation_id)
         cached_request = request_metadata  -- Fallback to provided data
     end
-    
+
     -- Calculate latency with high precision
     local start_time = cached_request.start_time
     local total_latency_ms = (end_time - start_time) * 1000
-    
+
     -- Build response metadata
     local response_metadata = {
         -- Copy all request metadata
         request = cached_request,
-        
+
         -- Response timing
         end_time = end_time,
         end_time_ms = end_time * 1000,
         total_latency_ms = total_latency_ms,
-        
+
         -- Response data
         status_code = kong.response.get_status(),
         response_size = tonumber(ngx.var.bytes_sent) or 0,
-        
+
         -- Upstream timing
-        upstream_latency_ms = tonumber(ngx.var.upstream_response_time) and 
+        upstream_latency_ms = tonumber(ngx.var.upstream_response_time) and
                              (tonumber(ngx.var.upstream_response_time) * 1000) or 0,
-        
+
         -- Kong processing time (total - upstream)
-        kong_latency_ms = total_latency_ms - (tonumber(ngx.var.upstream_response_time) and 
+        kong_latency_ms = total_latency_ms - (tonumber(ngx.var.upstream_response_time) and
                           (tonumber(ngx.var.upstream_response_time) * 1000) or 0),
-        
+
         -- Error tracking
         error_occurred = false,
         error_type = nil
     }
-    
+
     -- Capture response headers if configured
     if config and config.capture_response_headers then
         local response_headers = kong.response.get_headers()
         local filtered_headers = {}
-        
+
         for name, value in pairs(response_headers) do
             local lower_name = string.lower(name)
             -- Capture important response headers
-            if lower_name:match("content%-") or 
+            if lower_name:match("content%-") or
                lower_name:match("cache%-") or
                lower_name:match("server") or
                lower_name:match("x%-") then
                 filtered_headers[name] = tostring(value):sub(1, 256)
             end
         end
-        
+
         response_metadata.response_headers = filtered_headers
     end
-    
+
     -- Determine if error occurred
     local status = response_metadata.status_code
     if status >= 400 then
@@ -311,19 +311,19 @@ function instrumentation.capture_response_metadata(request_metadata, config)
             response_metadata.error_type = "client_error"
         end
     end
-    
+
     -- Performance warnings
     if total_latency_ms > 1000 then  -- > 1 second
         response_metadata.performance_warning = "high_latency"
     end
-    
+
     if response_metadata.upstream_latency_ms > 500 then  -- > 500ms
         response_metadata.upstream_warning = "slow_upstream"
     end
-    
+
     -- Cleanup cache entry
     request_cache[correlation_id] = nil
-    
+
     return response_metadata
 end
 
@@ -342,7 +342,7 @@ function instrumentation.create_threat_log_entry(threat_result, request_metadata
         log_version = "1.0",
         timestamp = ngx.time(),
         correlation_id = request_metadata.correlation_id,
-        
+
         -- Threat information
         threat = {
             type = threat_result.threat_type,
@@ -352,7 +352,7 @@ function instrumentation.create_threat_log_entry(threat_result, request_metadata
             patterns_matched = threat_result.patterns_matched or {},
             ai_analysis = threat_result.ai_analysis or nil
         },
-        
+
         -- Request context
         request = {
             method = request_metadata.method,
@@ -364,20 +364,20 @@ function instrumentation.create_threat_log_entry(threat_result, request_metadata
             consumer_id = request_metadata.consumer_id,
             timestamp = request_metadata.timestamp
         },
-        
+
         -- Response context (if available)
         response = response_metadata and {
             status_code = response_metadata.status_code,
             latency_ms = response_metadata.total_latency_ms,
             error_occurred = response_metadata.error_occurred
         } or nil,
-        
+
         -- Performance metrics
         performance = {
             processing_time_ms = request_metadata.processing_stages.request_capture or 0,
             overhead_ms = response_metadata and response_metadata.kong_latency_ms or 0
         },
-        
+
         -- Plugin context
         plugin = {
             version = "0.1.0",
@@ -385,7 +385,7 @@ function instrumentation.create_threat_log_entry(threat_result, request_metadata
             enforcement_executed = threat_result.enforcement_executed or false
         }
     }
-    
+
     return log_entry
 end
 
@@ -402,7 +402,7 @@ function instrumentation.create_metrics_entry(request_metadata, response_metadat
         log_type = "performance_metrics",
         timestamp = ngx.time(),
         correlation_id = request_metadata.correlation_id,
-        
+
         -- Timing metrics
         timings = {
             total_request_time_ms = response_metadata.total_latency_ms,
@@ -410,20 +410,20 @@ function instrumentation.create_metrics_entry(request_metadata, response_metadat
             kong_processing_time_ms = response_metadata.kong_latency_ms,
             plugin_overhead_ms = request_metadata.processing_stages.request_capture or 0
         },
-        
+
         -- Request/response sizes
         sizes = {
             request_bytes = request_metadata.content_length,
             response_bytes = response_metadata.response_size
         },
-        
+
         -- Status and errors
         status = {
             response_code = response_metadata.status_code,
             error_occurred = response_metadata.error_occurred,
             error_type = response_metadata.error_type
         },
-        
+
         -- Kong context
         context = {
             service_id = request_metadata.service_id,
@@ -431,7 +431,7 @@ function instrumentation.create_metrics_entry(request_metadata, response_metadat
             consumer_id = request_metadata.consumer_id
         }
     }
-    
+
     return metrics_entry
 end
 
@@ -442,17 +442,17 @@ end
 function instrumentation.cleanup_cache()
     local current_time = ngx.now()
     local expired_keys = {}
-    
+
     for correlation_id, metadata in pairs(request_cache) do
         if metadata.start_time and (current_time - metadata.start_time) > METADATA_CACHE_TTL then
             table.insert(expired_keys, correlation_id)
         end
     end
-    
+
     for _, key in ipairs(expired_keys) do
         request_cache[key] = nil
     end
-    
+
     if #expired_keys > 0 then
         kong.log.debug("[Kong Guard AI] Cleaned up " .. #expired_keys .. " expired cache entries")
     end
@@ -465,14 +465,14 @@ end
 function instrumentation.get_cache_stats()
     local count = 0
     local oldest_time = ngx.now()
-    
+
     for _, metadata in pairs(request_cache) do
         count = count + 1
         if metadata.start_time and metadata.start_time < oldest_time then
             oldest_time = metadata.start_time
         end
     end
-    
+
     return {
         active_requests = count,
         oldest_request_age = count > 0 and (ngx.now() - oldest_time) or 0,

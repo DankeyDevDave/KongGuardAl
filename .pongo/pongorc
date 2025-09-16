@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Pongo configuration for Kong Guard AI plugin testing
+
+# Set Kong version for testing
+KONG_VERSION=${KONG_VERSION:-3.7}
+
+# Plugin path relative to project root
+KONG_PLUGIN_PATH="kong-plugin/kong/plugins/kong-guard-ai"
+
+# Test environment setup
+export PONGO_KONG_VERSION=$KONG_VERSION
+export PONGO_PLUGIN_PATH=$KONG_PLUGIN_PATH
+
+# Custom Kong configuration for testing
+export KONG_CUSTOM_PLUGINS="kong-guard-ai"
+export KONG_LOG_LEVEL="debug"
+
+# Test database configuration
+export KONG_DATABASE="postgres"
+export KONG_PG_HOST="postgres"
+export KONG_PG_PORT="5432"
+export KONG_PG_DATABASE="kong_tests"
+export KONG_PG_USER="kong"
+export KONG_PG_PASSWORD="kong"
+
+# Cache configuration for tests
+export KONG_REDIS_HOST="redis"
+export KONG_REDIS_PORT="6379"
+
+# Plugin-specific test environment variables
+export KONG_GUARD_AI_TEST_MODE="true"
+export AI_SERVICE_URL="http://mock-ai-service:8080"
+
+# Enable test coverage
+export KONG_COVERAGE="true"
+
+echo "Kong Guard AI plugin test environment configured"
+echo "Kong version: $KONG_VERSION"
+echo "Plugin path: $KONG_PLUGIN_PATH"

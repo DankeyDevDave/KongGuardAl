@@ -55,10 +55,10 @@ test.describe('Kong Guard AI Dashboard - Status Checks', () => {
   test('should auto-refresh status every 5 seconds', async ({ page }) => {
     // Get initial status
     const initialClass = await page.locator('#kong-status').getAttribute('class');
-    
+
     // Wait for refresh cycle
     await page.waitForTimeout(6000);
-    
+
     // Check status was updated (class should still exist)
     const updatedClass = await page.locator('#kong-status').getAttribute('class');
     expect(updatedClass).toBeDefined();
@@ -74,7 +74,7 @@ test.describe('Kong Guard AI Dashboard - Status Checks', () => {
   test('should update configuration values', async ({ page }) => {
     await helpers.updateConfiguration('api-path', '/api/v1');
     await expect(page.locator('#api-path')).toHaveValue('/api/v1');
-    
+
     // Reset to default
     await helpers.updateConfiguration('api-path', '/test');
   });

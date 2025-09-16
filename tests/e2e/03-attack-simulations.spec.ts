@@ -12,12 +12,12 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
 
   test('should detect and block SQL injection attack', async ({ page }) => {
     await helpers.clickTestButton('Test SQL Injection');
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
     expect(response.threat).toBe('SQL Injection');
     expect(response.payload).toContain("1' OR '1'='1");
-    
+
     // Note: Current implementation only detects SQL injection in path, not query params
     // This is a known limitation that should be fixed in the plugin
     if (response.blocked) {
@@ -31,11 +31,11 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
 
   test('should detect and block XSS attack', async ({ page }) => {
     await helpers.clickTestButton('Test XSS Attack');
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
     expect(response.threat).toBe('XSS Attack');
-    
+
     // Should be blocked
     expect(response.blocked).toBe(true);
     expect(response.status).toBe(403);
@@ -43,12 +43,12 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
 
   test('should detect and block path traversal attack', async ({ page }) => {
     await helpers.clickTestButton('Test Path Traversal');
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
     expect(response.threat).toBe('Path Traversal');
     expect(response.payload).toContain('../../../etc/passwd');
-    
+
     // Should be blocked
     expect(response.blocked).toBe(true);
     expect(response.status).toBe(403);
@@ -56,16 +56,16 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
 
   test('should handle DDoS simulation and trigger rate limiting', async ({ page }) => {
     await page.getByRole('button', { name: 'Simulate DDoS' }).click();
-    
+
     // Wait for DDoS simulation to complete
     await page.waitForTimeout(5000);
     await helpers.waitForResponse();
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
     expect(response.threat).toBe('DDoS Attack');
     expect(response.totalRequests).toBe(50);
-    
+
     // Should have some blocked requests due to rate limiting
     expect(response.rateLimitTriggered).toBe(true);
     expect(response.blocked).toBeGreaterThan(0);
@@ -73,11 +73,11 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
 
   test('should detect malformed headers', async ({ page }) => {
     await helpers.clickTestButton('Test Bad Headers');
-    
+
     const response = await helpers.getResponseData();
     expect(response).toBeTruthy();
     expect(response.threat).toBe('Suspicious Headers');
-    
+
     // May or may not be blocked depending on configuration
     if (response.blocked) {
       expect(response.status).toBe(403);
@@ -87,10 +87,10 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
   test('should update blocked count after attacks', async ({ page }) => {
     // Get initial blocked count
     const initialBlocked = await helpers.getStatValue('blocked-count');
-    
+
     // Send attack
     await helpers.clickTestButton('Test SQL Injection');
-    
+
     // Check blocked count increased
     await page.waitForTimeout(500);
     const newBlocked = await helpers.getStatValue('blocked-count');
@@ -122,7 +122,7 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
 
   test('should display attack payload in response', async ({ page }) => {
     await helpers.clickTestButton('Test SQL Injection');
-    
+
     const response = await helpers.getResponseData();
     expect(response.payload).toBeDefined();
     expect(response.payload).toContain("1' OR '1'='1");
@@ -133,9 +133,9 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
     await helpers.clickTestButton('Send Normal Request');
     let response = await helpers.getResponseData();
     expect(response.status).toBe(200);
-    
+
     await page.waitForTimeout(500);
-    
+
     // Attack request
     await helpers.clickTestButton('Test SQL Injection');
     response = await helpers.getResponseData();
@@ -150,11 +150,11 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
     await page.waitForTimeout(500);
     await helpers.clickTestButton('Test Path Traversal');
     await page.waitForTimeout(500);
-    
+
     // Check statistics
     const totalRequests = await helpers.getStatValue('total-requests');
     expect(parseInt(totalRequests)).toBeGreaterThanOrEqual(3);
-    
+
     const blockedCount = await helpers.getStatValue('blocked-count');
     expect(parseInt(blockedCount)).toBeGreaterThanOrEqual(3);
   });
@@ -163,11 +163,11 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
     // Send normal request
     await helpers.clickTestButton('Send Normal Request');
     await page.waitForTimeout(500);
-    
+
     // Send attack (should be blocked)
     await helpers.clickTestButton('Test SQL Injection');
     await page.waitForTimeout(500);
-    
+
     // Success rate should be less than 100%
     const successRate = await helpers.getStatValue('success-rate');
     const rate = parseInt(successRate.replace('%', ''));
@@ -182,10 +182,10 @@ test.describe('Kong Guard AI Dashboard - Attack Simulations', () => {
       helpers.clickTestButton('Test XSS Attack'),
       helpers.clickTestButton('Test Path Traversal')
     ];
-    
+
     await Promise.all(attackPromises);
     await page.waitForTimeout(2000);
-    
+
     // Check all were processed
     const totalRequests = await helpers.getStatValue('total-requests');
     expect(parseInt(totalRequests)).toBeGreaterThanOrEqual(3);

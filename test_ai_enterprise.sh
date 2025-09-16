@@ -30,7 +30,7 @@ check_ai_service() {
         provider=$(echo "$response" | grep -o '"ai_provider":"[^"]*"' | cut -d'"' -f4)
         echo -e "${GREEN}✓ AI Service is running${NC}"
         echo -e "${BLUE}  Provider: ${MAGENTA}$provider${NC}"
-        
+
         # Check which API key is configured
         stats=$(curl -s "$AI_SERVICE_URL/stats" 2>/dev/null)
         echo -e "${BLUE}  Status: Active${NC}"
@@ -50,14 +50,14 @@ test_ai_request() {
     local url="$3"
     local data="$4"
     local expected_result="$5"
-    
+
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}Test:${NC} $test_name"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    
+
     # First, show what AI thinks about this request
     echo -e "${CYAN}AI Pre-Analysis:${NC}"
-    
+
     # Create AI analysis request
     if [ "$method" = "GET" ]; then
         ai_request='{
@@ -102,12 +102,12 @@ test_ai_request() {
             }
         }'
     fi
-    
+
     # Get AI analysis
     ai_response=$(curl -s -X POST -H "Content-Type: application/json" \
         -d "$ai_request" \
         "$AI_SERVICE_URL/analyze" 2>/dev/null)
-    
+
     if [ $? -eq 0 ]; then
         threat_score=$(echo "$ai_response" | grep -o '"threat_score":[0-9.]*' | cut -d':' -f2)
         threat_type=$(echo "$ai_response" | grep -o '"threat_type":"[^"]*"' | cut -d'"' -f4)
@@ -115,7 +115,7 @@ test_ai_request() {
         reasoning=$(echo "$ai_response" | grep -o '"reasoning":"[^"]*"' | cut -d'"' -f4)
         action=$(echo "$ai_response" | grep -o '"recommended_action":"[^"]*"' | cut -d'"' -f4)
         ai_model=$(echo "$ai_response" | grep -o '"ai_model":"[^"]*"' | cut -d'"' -f4)
-        
+
         echo -e "  ${MAGENTA}AI Model:${NC} $ai_model"
         echo -e "  ${MAGENTA}Threat Score:${NC} $threat_score"
         echo -e "  ${MAGENTA}Threat Type:${NC} $threat_type"
@@ -125,9 +125,9 @@ test_ai_request() {
     else
         echo -e "  ${YELLOW}AI analysis unavailable${NC}"
     fi
-    
+
     echo ""
-    
+
     # Now test through Kong
     echo -e "${CYAN}Kong Gateway Test:${NC}"
     if [ "$method" = "GET" ]; then
@@ -138,10 +138,10 @@ test_ai_request() {
         echo "Body: $data"
         response=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d "$data" -m 5 "$KONG_URL$url" 2>/dev/null)
     fi
-    
+
     http_code=$(echo "$response" | tail -n 1)
     body=$(echo "$response" | head -n -1)
-    
+
     # Parse response
     if [ "$http_code" = "403" ]; then
         echo -e "${RED}✗ BLOCKED${NC} (HTTP $http_code)"
@@ -149,7 +149,7 @@ test_ai_request() {
         incident_id=$(echo "$body" | grep -o '"incident_id":"[^"]*"' | cut -d'"' -f4 || echo "N/A")
         echo -e "Threat Type: ${RED}$threat_type${NC}"
         echo "Incident ID: $incident_id"
-        
+
         # Check if AI was used
         if echo "$body" | grep -q "ai_powered"; then
             echo -e "${GREEN}✓ AI-Powered Detection${NC}"
@@ -161,7 +161,7 @@ test_ai_request() {
     else
         echo -e "${RED}✗ ERROR${NC} (HTTP $http_code)"
     fi
-    
+
     echo ""
 }
 
@@ -249,7 +249,7 @@ if [ $? -eq 0 ]; then
     total_threats=$(echo "$stats" | grep -o '"total_threats":[0-9]*' | cut -d':' -f2)
     blocked_ips=$(echo "$stats" | grep -o '"blocked_ips":[0-9]*' | cut -d':' -f2)
     ai_provider=$(echo "$stats" | grep -o '"ai_provider":"[^"]*"' | cut -d'"' -f4)
-    
+
     echo -e "${CYAN}AI Provider:${NC} ${MAGENTA}$ai_provider${NC}"
     echo -e "${CYAN}Total Threats Detected:${NC} $total_threats"
     echo -e "${CYAN}IPs Blocked:${NC} $blocked_ips"

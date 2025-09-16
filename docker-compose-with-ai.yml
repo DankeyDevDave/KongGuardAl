@@ -63,12 +63,12 @@ services:
     environment:
       # Choose your AI provider: openai, groq, gemini, ollama
       AI_PROVIDER: ${AI_PROVIDER:-gemini}
-      
+
       # API Keys - Set the one you're using
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      
+
       # For Ollama (local LLM)
       OLLAMA_URL: http://ollama:11434
     healthcheck:
@@ -127,7 +127,7 @@ services:
       KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
       KONG_PLUGINS: "kong-guard-ai"
       KONG_LOG_LEVEL: debug
-      
+
       # AI Configuration for Plugin
       AI_SERVICE_URL: http://ai-service:8000
       AI_PROVIDER: ${AI_PROVIDER:-gemini}

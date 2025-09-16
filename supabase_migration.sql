@@ -101,7 +101,7 @@ CREATE POLICY "Enable all operations for authenticated users" ON performance_met
 
 -- Views for common queries
 CREATE OR REPLACE VIEW attack_summary AS
-SELECT 
+SELECT
     ar.run_id,
     ar.start_time,
     ar.end_time,
@@ -130,7 +130,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         am.tier,
         COUNT(*)::BIGINT as total_requests,
         COUNT(CASE WHEN am.blocked = true THEN 1 END)::BIGINT as attacks_blocked,

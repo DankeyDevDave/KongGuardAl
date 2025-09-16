@@ -12,7 +12,7 @@ data:
     # Kong Production Configuration for Kubernetes
     prefix = /var/lib/kong/
     log_level = info
-    
+
     # Database Settings
     database = postgres
     pg_host = postgres
@@ -20,20 +20,20 @@ data:
     pg_user = kong
     pg_database = kong
     pg_ssl = off
-    
+
     # Network Settings
     proxy_listen = 0.0.0.0:8000, 0.0.0.0:8443 ssl http2
     admin_listen = 0.0.0.0:8001
-    
+
     # Plugin Configuration
     plugins = bundled,kong-guard-ai
     lua_package_path = /usr/local/share/lua/5.1/?.lua;;
-    
+
     # Performance Tuning
     nginx_worker_processes = auto
     nginx_worker_connections = 4096
     upstream_keepalive_pool_size = 512
-    
+
     # Memory Management
     mem_cache_size = 128m
     lua_shared_dict_cache_size = 64m
@@ -42,17 +42,17 @@ data:
     lua_shared_dict_kong_guard_ai_ip_blacklist = 16m
     lua_shared_dict_kong_guard_ai_counters = 16m
     lua_shared_dict_kong_guard_ai_ai_cache = 32m
-    
+
     # Security
     headers = off
     server_tokens = off
     real_ip_header = X-Forwarded-For
     real_ip_recursive = on
     trusted_ips = 198.51.100.0/8,233.252.0.0/12,203.0.113.0/16
-    
+
     # Clustering
     cluster_listen = 0.0.0.0:8005
-    
+
     # Status and Health
     status_listen = 0.0.0.0:8100
 
@@ -61,29 +61,29 @@ data:
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
-    
+
     rule_files:
       - "/etc/prometheus/alerts.yml"
-    
+
     alerting:
       alertmanagers:
         - static_configs:
             - targets:
               - alertmanager:9093
-    
+
     scrape_configs:
       - job_name: 'kong-gateway'
         static_configs:
           - targets: ['kong-gateway:8001']
         metrics_path: '/metrics'
         scrape_interval: 15s
-        
+
       - job_name: 'kong-guard-ai'
         static_configs:
           - targets: ['kong-gateway:8100']
         metrics_path: '/kong-guard-ai/metrics'
         scrape_interval: 30s
-        
+
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:
           - role: pod
@@ -103,39 +103,39 @@ data:
         codec => "json"
         tags => ["kong", "kong-guard-ai"]
       }
-      
+
       beats {
         port => 5044
       }
     }
-    
+
     filter {
       if "kong-guard-ai" in [tags] {
         if [message] =~ /THREAT_DETECTED/ {
           mutate {
             add_tag => ["threat", "security"]
           }
-          
+
           grok {
-            match => { 
-              "message" => "THREAT_DETECTED.*threat_level=(?<threat_level>\d+\.\d+).*ip=(?<client_ip>\d+\.\d+\.\d+\.\d+)" 
+            match => {
+              "message" => "THREAT_DETECTED.*threat_level=(?<threat_level>\d+\.\d+).*ip=(?<client_ip>\d+\.\d+\.\d+\.\d+)"
             }
           }
-          
+
           if [threat_level] {
             mutate {
               convert => { "threat_level" => "float" }
             }
           }
         }
-        
+
         if [message] =~ /ENFORCEMENT_ACTION/ {
           mutate {
             add_tag => ["enforcement", "action"]
           }
         }
       }
-      
+
       # GeoIP enrichment
       if [client_ip] {
         geoip {
@@ -143,19 +143,19 @@ data:
           target => "geoip"
         }
       }
-      
+
       # Add timestamp
       date {
         match => [ "timestamp", "ISO8601" ]
       }
     }
-    
+
     output {
       elasticsearch {
         hosts => ["elasticsearch:9200"]
         index => "kong-guard-ai-%{+YYYY.MM.dd}"
       }
-      
+
       if "threat" in [tags] and [threat_level] and [threat_level] >= 8.0 {
         stdout {
           codec => rubydebug

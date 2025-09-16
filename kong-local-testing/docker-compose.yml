@@ -81,26 +81,26 @@ services:
       KONG_PG_USER: kong
       KONG_PG_PASSWORD: kong123
       KONG_PG_DATABASE: kong
-      
+
       # Network
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
       KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
       KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002, 0.0.0.0:8445 ssl
-      
+
       # Admin GUI
       KONG_ADMIN_GUI_URL: http://localhost:8002
       KONG_ADMIN_GUI_PATH: /
-      
+
       # Logging
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_LOG_LEVEL: debug
-      
+
       # Plugins
       KONG_PLUGINS: bundled
-      
+
       # Performance
       KONG_NGINX_WORKER_PROCESSES: auto
       KONG_MEM_CACHE_SIZE: 128m

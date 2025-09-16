@@ -1,0 +1,85 @@
+title = "Kong Guard AI Gitleaks Config"
+
+[extend]
+# Extend the default rules with custom Kong Guard AI specific rules
+useDefault = true
+
+[[rules]]
+description = "Kong Guard AI API Key"
+id = "kong-guard-ai-key"
+regex = '''(?i)(kong[_-]?guard[_-]?ai[_-]?key|kg[_-]?api[_-]?key).{0,20}[:=]\s*['\"]?([a-z0-9]{32,})'''
+tags = ["api", "kong-guard-ai"]
+
+[[rules]]
+description = "Anthropic API Key"
+id = "anthropic-api-key"
+regex = '''(?i)(anthropic[_-]?api[_-]?key).{0,20}[:=]\s*['\"]?(sk-ant-[a-zA-Z0-9\-_]{48,})'''
+tags = ["api", "anthropic"]
+
+[[rules]]
+description = "OpenAI API Key"
+id = "openai-api-key"
+regex = '''(?i)(openai[_-]?api[_-]?key).{0,20}[:=]\s*['\"]?(sk-[a-zA-Z0-9]{48})'''
+tags = ["api", "openai"]
+
+[[rules]]
+description = "Google API Key"
+id = "google-api-key"
+regex = '''(?i)(google[_-]?api[_-]?key|gemini[_-]?key).{0,20}[:=]\s*['\"]?(AIza[0-9A-Za-z\\-_]{35})'''
+tags = ["api", "google"]
+
+[[rules]]
+description = "Supabase Key"
+id = "supabase-key"
+regex = '''(?i)(supabase[_-]?(anon[_-]?)?key).{0,20}[:=]\s*['\"]?(eyJ[A-Za-z0-9_/+=]{100,})'''
+tags = ["api", "supabase"]
+
+[[rules]]
+description = "Supabase URL"
+id = "supabase-url"
+regex = '''(?i)(supabase[_-]?url).{0,20}[:=]\s*['\"]?(https://[a-z]{20}\.supabase\.co)'''
+tags = ["api", "supabase"]
+
+[[rules]]
+description = "Redis Connection String"
+id = "redis-connection"
+regex = '''redis://[^:]*:[^@]*@[^/]*'''
+tags = ["database", "redis"]
+
+[[rules]]
+description = "PostgreSQL Connection String"
+id = "postgresql-connection"
+regex = '''postgresql://[^:]*:[^@]*@[^/]*'''
+tags = ["database", "postgres"]
+
+[[rules]]
+description = "Kong Admin Token"
+id = "kong-admin-token"
+regex = '''(?i)(kong[_-]?admin[_-]?token).{0,20}[:=]\s*['\"]?([a-zA-Z0-9]{32,})'''
+tags = ["api", "kong"]
+
+# Allowlist for test files and documentation
+[allowlist]
+description = "Allowlist for test files and examples"
+paths = [
+    '''^\.env\.example$''',
+    '''^tests/''',
+    '''^spec/''',
+    '''^docs/''',
+    '''^README\.md$''',
+    '''^CHANGELOG\.md$'''
+]
+
+[[allowlist]]
+description = "Allow example and placeholder values"
+regexes = [
+    '''your[_-]?api[_-]?key[_-]?here''',
+    '''example[_-]?key''',
+    '''placeholder''',
+    '''dummy[_-]?token''',
+    '''test[_-]?secret''',
+    '''sk-ant-example''',
+    '''sk-example''',
+    '''AIza-example''',
+    '''eyJ-example'''
+]

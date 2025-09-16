@@ -56,7 +56,7 @@ test_result() {
     local passed="$2"
     local message="$3"
     local severity="${4:-error}"
-    
+
     if [ "$passed" = "true" ]; then
         ((TESTS_PASSED++))
         log_success "$test_name"
@@ -89,15 +89,15 @@ cleanup_temp_dir() {
 # Test declarative configuration format
 test_declarative_format() {
     log_header "Testing Declarative Configuration Format"
-    
+
     # Check if declarative config file exists
     if [ ! -f "$DECLARATIVE_CONFIG_PATH" ]; then
         test_result "Declarative Config File" false "File not found: $DECLARATIVE_CONFIG_PATH" "error"
         return 1
     fi
-    
+
     test_result "Declarative Config File" true "Found at $DECLARATIVE_CONFIG_PATH"
-    
+
     # Validate YAML syntax
     if command -v yq >/dev/null 2>&1; then
         if yq eval '.' "$DECLARATIVE_CONFIG_PATH" >/dev/null 2>&1; then
@@ -109,11 +109,11 @@ test_declarative_format() {
     else
         log_warning "yq not available, skipping YAML syntax validation"
     fi
-    
+
     # Check for required Konnect fields
     local format_version=""
     local transform=""
-    
+
     if command -v yq >/dev/null 2>&1; then
         format_version=$(yq eval '._format_version' "$DECLARATIVE_CONFIG_PATH" 2>/dev/null)
         transform=$(yq eval '._transform' "$DECLARATIVE_CONFIG_PATH" 2>/dev/null)
@@ -122,19 +122,19 @@ test_declarative_format() {
         format_version=$(grep "_format_version" "$DECLARATIVE_CONFIG_PATH" | head -1 | cut -d'"' -f2 2>/dev/null || echo "null")
         transform=$(grep "_transform" "$DECLARATIVE_CONFIG_PATH" | head -1 | awk '{print $2}' 2>/dev/null || echo "null")
     fi
-    
+
     if [ "$format_version" != "null" ] && [ -n "$format_version" ]; then
         test_result "Konnect Format Version" true "Found _format_version: $format_version"
     else
         test_result "Konnect Format Version" false "Missing _format_version field" "konnect"
     fi
-    
+
     if [ "$transform" != "null" ] && [ -n "$transform" ]; then
         test_result "Konnect Transform Field" true "Found _transform: $transform"
     else
         test_result "Konnect Transform Field" false "Missing _transform field" "konnect"
     fi
-    
+
     # Validate format version compatibility
     if [ "$format_version" != "null" ] && [ -n "$format_version" ]; then
         case "$format_version" in
@@ -151,12 +151,12 @@ test_declarative_format() {
 # Test plugin configuration in declarative format
 test_plugin_declarative_config() {
     log_header "Testing Plugin Configuration in Declarative Format"
-    
+
     if [ ! -f "$DECLARATIVE_CONFIG_PATH" ]; then
         test_result "Plugin Config Setup" false "Declarative config file not available"
         return 1
     fi
-    
+
     # Check if kong-guard-ai plugin is configured
     if grep -q "$PLUGIN_NAME" "$DECLARATIVE_CONFIG_PATH"; then
         test_result "Plugin in Declarative Config" true "Plugin found in configuration"
@@ -164,17 +164,17 @@ test_plugin_declarative_config() {
         test_result "Plugin in Declarative Config" false "Plugin not found in declarative configuration" "warning"
         return 1
     fi
-    
+
     # Extract plugin configuration to temporary file
     if command -v yq >/dev/null 2>&1; then
         yq eval '.services[].plugins[] | select(.name == "'$PLUGIN_NAME'")' "$DECLARATIVE_CONFIG_PATH" > "$TEMP_DIR/plugin_config.yml" 2>/dev/null
-        
+
         if [ -s "$TEMP_DIR/plugin_config.yml" ]; then
             test_result "Plugin Config Extraction" true "Successfully extracted plugin configuration"
         else
             # Try checking global plugins
             yq eval '.plugins[] | select(.name == "'$PLUGIN_NAME'")' "$DECLARATIVE_CONFIG_PATH" > "$TEMP_DIR/plugin_config.yml" 2>/dev/null
-            
+
             if [ -s "$TEMP_DIR/plugin_config.yml" ]; then
                 test_result "Plugin Config Extraction" true "Found plugin in global configuration"
             else
@@ -191,24 +191,24 @@ test_plugin_declarative_config() {
             return 1
         fi
     fi
-    
+
     # Validate required configuration fields
     local has_dry_run=false
     local has_log_level=false
     local has_threat_detection=false
-    
+
     if grep -q "dry_run" "$TEMP_DIR/plugin_config.yml"; then
         has_dry_run=true
     fi
-    
+
     if grep -q "log_level" "$TEMP_DIR/plugin_config.yml"; then
         has_log_level=true
     fi
-    
+
     if grep -q "threat_detection" "$TEMP_DIR/plugin_config.yml"; then
         has_threat_detection=true
     fi
-    
+
     test_result "Plugin Config Fields" "$has_dry_run" "dry_run field present: $has_dry_run"
     test_result "Plugin Log Level" "$has_log_level" "log_level field present: $has_log_level"
     test_result "Plugin Threat Detection" "$has_threat_detection" "threat_detection config present: $has_threat_detection"
@@ -217,42 +217,42 @@ test_plugin_declarative_config() {
 # Test Konnect-specific constraints
 test_konnect_constraints() {
     log_header "Testing Konnect-Specific Constraints"
-    
+
     # Check for unsupported plugins (common issues)
     local unsupported_patterns=("file-log" "syslog" "loggly")
     local unsupported_found=false
-    
+
     for pattern in "${unsupported_patterns[@]}"; do
         if grep -q "$pattern" "$DECLARATIVE_CONFIG_PATH" 2>/dev/null; then
             test_result "Unsupported Plugin Check ($pattern)" false "Found potentially unsupported plugin: $pattern" "konnect"
             unsupported_found=true
         fi
     done
-    
+
     if [ "$unsupported_found" = "false" ]; then
         test_result "Unsupported Plugin Check" true "No obviously unsupported plugins found"
     fi
-    
+
     # Check for custom entities that might not be supported
     local custom_entities=("upstreams" "certificates" "ca_certificates")
     local custom_found=false
-    
+
     for entity in "${custom_entities[@]}"; do
         if grep -q "^${entity}:" "$DECLARATIVE_CONFIG_PATH" 2>/dev/null; then
             log_info "Found custom entity: $entity (verify Konnect support)"
             custom_found=true
         fi
     done
-    
+
     test_result "Custom Entities Check" true "Custom entities check completed"
-    
+
     # Check for localhost references (common issue in Konnect)
     if grep -i "localhost\|127.0.0.1" "$DECLARATIVE_CONFIG_PATH" >/dev/null 2>&1; then
         test_result "Localhost References" false "Found localhost references - may need updating for Konnect" "konnect"
     else
         test_result "Localhost References" true "No localhost references found"
     fi
-    
+
     # Check for HTTP URLs (should be HTTPS in production)
     local http_urls=$(grep -o 'http://[^"]*' "$DECLARATIVE_CONFIG_PATH" 2>/dev/null | wc -l)
     if [ "$http_urls" -gt 0 ]; then
@@ -265,24 +265,24 @@ test_konnect_constraints() {
 # Test configuration size limits
 test_configuration_size() {
     log_header "Testing Configuration Size Limits"
-    
+
     local config_size=$(stat -f%z "$DECLARATIVE_CONFIG_PATH" 2>/dev/null || stat -c%s "$DECLARATIVE_CONFIG_PATH" 2>/dev/null || echo "0")
     local size_mb=$((config_size / 1024 / 1024))
-    
+
     log_info "Configuration file size: ${config_size} bytes (${size_mb} MB)"
-    
+
     # Konnect has configuration size limits
     if [ "$config_size" -lt 10485760 ]; then  # 10MB
         test_result "Configuration Size" true "Size within Konnect limits"
     else
         test_result "Configuration Size" false "Configuration may be too large for Konnect (>10MB)" "konnect"
     fi
-    
+
     # Count entities
     local service_count=0
     local route_count=0
     local plugin_count=0
-    
+
     if command -v yq >/dev/null 2>&1; then
         service_count=$(yq eval '.services | length' "$DECLARATIVE_CONFIG_PATH" 2>/dev/null || echo "0")
         route_count=$(yq eval '.routes | length' "$DECLARATIVE_CONFIG_PATH" 2>/dev/null || echo "0")
@@ -292,9 +292,9 @@ test_configuration_size() {
         route_count=$(grep -c "routes:" "$DECLARATIVE_CONFIG_PATH" 2>/dev/null || echo "0")
         plugin_count=$(grep -c "- name: $PLUGIN_NAME" "$DECLARATIVE_CONFIG_PATH" 2>/dev/null || echo "0")
     fi
-    
+
     log_info "Entity counts - Services: $service_count, Routes: $route_count, Plugins: $plugin_count"
-    
+
     # Basic entity count validation
     if [ "$service_count" -lt 1000 ] && [ "$route_count" -lt 10000 ]; then
         test_result "Entity Count Limits" true "Entity counts within reasonable limits"
@@ -306,7 +306,7 @@ test_configuration_size() {
 # Test schema compatibility with Kong versions
 test_schema_compatibility() {
     log_header "Testing Schema Compatibility"
-    
+
     # Create a test configuration for validation
     local test_config='{
         "_format_version": "3.0",
@@ -349,23 +349,23 @@ test_schema_compatibility() {
             }
         ]
     }'
-    
+
     echo "$test_config" > "$TEMP_DIR/test_konnect_config.json"
-    
+
     # Validate against Kong if available
     if curl -s --connect-timeout 5 "$KONG_ADMIN_URL/status" >/dev/null 2>&1; then
         local validation_response=$(curl -s -X POST "$KONG_ADMIN_URL/config" \
             -H "Content-Type: application/json" \
             -d "$test_config" \
             -w "%{http_code}" -o "$TEMP_DIR/validation_result.json" 2>/dev/null || echo "000")
-        
+
         if [ "$validation_response" = "200" ] || [ "$validation_response" = "201" ]; then
             test_result "Kong Schema Validation" true "Test configuration validates against Kong"
         else
             local error_msg=$(cat "$TEMP_DIR/validation_result.json" 2>/dev/null | jq -r '.message // "Unknown error"' 2>/dev/null || echo "Validation failed")
             test_result "Kong Schema Validation" false "$error_msg"
         fi
-        
+
         # Clean up test configuration
         curl -s -X DELETE "$KONG_ADMIN_URL/services/test-service-konnect" >/dev/null 2>&1
     else
@@ -376,7 +376,7 @@ test_schema_compatibility() {
 # Test environment-specific configurations
 test_environment_configurations() {
     log_header "Testing Environment-Specific Configurations"
-    
+
     # Check for environment variables references
     if grep -E '\$\{[^}]+\}|\$[A-Z_]+' "$DECLARATIVE_CONFIG_PATH" >/dev/null 2>&1; then
         test_result "Environment Variables" true "Found environment variable references"
@@ -385,35 +385,35 @@ test_environment_configurations() {
         test_result "Environment Variables" true "No environment variables found (hardcoded values)"
         log_warning "Consider using environment variables for secrets and endpoints"
     fi
-    
+
     # Check for secrets management
     local secret_patterns=("password" "token" "key" "secret")
     local secrets_hardcoded=false
-    
+
     for pattern in "${secret_patterns[@]}"; do
         if grep -i "$pattern.*:" "$DECLARATIVE_CONFIG_PATH" | grep -v "\${" >/dev/null 2>&1; then
             secrets_hardcoded=true
             break
         fi
     done
-    
+
     if [ "$secrets_hardcoded" = "true" ]; then
         test_result "Secrets Management" false "Hardcoded secrets found - use environment variables or vault" "konnect"
     else
         test_result "Secrets Management" true "No hardcoded secrets detected"
     fi
-    
+
     # Check for development-specific configurations
     local dev_patterns=("localhost" "dev-" "test-" "debug.*true")
     local dev_config_found=false
-    
+
     for pattern in "${dev_patterns[@]}"; do
         if grep -i "$pattern" "$DECLARATIVE_CONFIG_PATH" >/dev/null 2>&1; then
             dev_config_found=true
             break
         fi
     done
-    
+
     if [ "$dev_config_found" = "true" ]; then
         test_result "Development Configuration" false "Development configurations found - review for production" "warning"
     else
@@ -424,7 +424,7 @@ test_environment_configurations() {
 # Generate Konnect deployment guide
 generate_deployment_guide() {
     local guide_file="konnect_deployment_guide.md"
-    
+
     cat > "$guide_file" << EOF
 # Kong Guard AI - Konnect Deployment Guide
 
@@ -519,11 +519,11 @@ plugins:
       # Recommended Konnect settings
       dry_run: false  # Enable after testing
       log_level: "info"
-      
+
       # Notification endpoints should use HTTPS
       notifications:
         webhook_url: "\$WEBHOOK_URL"  # Use environment variable
-        
+
       # AI Gateway settings for Konnect
       ai_gateway:
         enabled: false  # Enable if AI Gateway is available
@@ -585,7 +585,7 @@ EOF
 # Generate test report
 generate_test_report() {
     local report_file="konnect_compatibility_report_$(date +%Y%m%d_%H%M%S).md"
-    
+
     cat > "$report_file" << EOF
 # Kong Guard AI - Konnect Compatibility Test Report
 
@@ -689,17 +689,17 @@ main() {
     log_header "Kong Guard AI - Konnect Compatibility Validation"
     echo "Validating configuration for Kong Konnect deployment..."
     echo ""
-    
+
     # Setup
     setup_temp_dir
     trap cleanup_temp_dir EXIT
-    
+
     # Reset counters
     TESTS_PASSED=0
     TESTS_FAILED=0
     FAILED_TESTS=()
     KONNECT_ISSUES=()
-    
+
     # Run tests
     test_declarative_format
     test_plugin_declarative_config
@@ -707,11 +707,11 @@ main() {
     test_configuration_size
     test_schema_compatibility
     test_environment_configurations
-    
+
     # Generate reports
     local report_file=$(generate_test_report)
     local guide_file=$(generate_deployment_guide)
-    
+
     # Final summary
     echo ""
     log_header "Validation Complete"
@@ -723,7 +723,7 @@ main() {
     echo "Reports Generated:"
     echo "  - Compatibility: $report_file"
     echo "  - Deployment Guide: $guide_file"
-    
+
     if [ ${#KONNECT_ISSUES[@]} -eq 0 ] && [ $TESTS_FAILED -eq 0 ]; then
         log_success "🎉 Configuration is ready for Konnect deployment!"
         exit 0

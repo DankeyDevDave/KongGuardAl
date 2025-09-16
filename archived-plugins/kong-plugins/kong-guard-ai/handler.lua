@@ -19,62 +19,62 @@ end
 -- Initialize worker-level resources
 function KongGuardAIHandler:init_worker()
   KongGuardAIHandler.super.init_worker(self)
-  
+
   -- Initialize shared memory dictionaries for threat tracking
   local shared_dict = ngx.shared.kong_guard_ai_data
   if not shared_dict then
     ngx.log(ngx.ERR, "[kong-guard-ai] Shared dictionary 'kong_guard_ai_data' not found")
   end
-  
+
   -- Initialize threat counters
   local threat_counters = ngx.shared.kong_guard_ai_counters
   if not threat_counters then
     ngx.log(ngx.ERR, "[kong-guard-ai] Shared dictionary 'kong_guard_ai_counters' not found")
   end
-  
+
   ngx.log(ngx.INFO, "[kong-guard-ai] Plugin initialized in worker")
 end
 
 -- Access phase - main threat detection logic
 function KongGuardAIHandler:access(config)
   KongGuardAIHandler.super.access(self)
-  
+
   local start_time = ngx.now()
-  
+
   -- Skip processing if dry_run is disabled and plugin is not enabled
   if not config.threat_detection.enabled then
     return
   end
-  
+
   -- Get request data
   local request_data = self:get_request_data()
-  
+
   -- Perform threat detection
   local threat_detected, threat_info = self:detect_threats(config, request_data)
-  
+
   if threat_detected then
     -- Log the threat
     self:log_threat(config, threat_info, request_data)
-    
+
     -- Execute response actions (if not in dry_run mode)
     if not config.dry_run and config.response_actions.enabled then
       self:execute_response_actions(config, threat_info, request_data)
     else
       ngx.log(ngx.WARN, "[kong-guard-ai] DRY RUN: Would execute response actions for threat: " .. threat_info.type)
     end
-    
+
     -- Send notifications
     if config.notifications and config.response_actions.notification_enabled then
       self:send_notification(config, threat_info, request_data)
     end
   end
-  
+
   -- Track performance
   local processing_time = (ngx.now() - start_time) * 1000
   if processing_time > config.performance.max_processing_time then
     ngx.log(ngx.WARN, "[kong-guard-ai] Processing time exceeded limit: " .. processing_time .. "ms")
   end
-  
+
   -- Store processing metrics
   self:update_metrics(processing_time, threat_detected)
 end
@@ -82,11 +82,11 @@ end
 -- Log phase - for post-request analysis
 function KongGuardAIHandler:log(config)
   KongGuardAIHandler.super.log(self)
-  
+
   if not config.logging.enabled then
     return
   end
-  
+
   -- Log request/response data for analysis
   local log_data = {
     timestamp = ngx.time(),
@@ -97,7 +97,7 @@ function KongGuardAIHandler:log(config)
     response_time = ngx.var.request_time,
     upstream_response_time = ngx.var.upstream_response_time
   }
-  
+
   if config.logging.structured_logging then
     ngx.log(ngx.INFO, "[kong-guard-ai] " .. cjson.encode(log_data))
   end
@@ -120,7 +120,7 @@ end
 -- Main threat detection logic
 function KongGuardAIHandler:detect_threats(config, request_data)
   local rules = config.threat_detection.rules
-  
+
   -- Check blocked IPs
   if self:check_blocked_ips(rules.blocked_ips, request_data.remote_addr) then
     return true, {
@@ -130,7 +130,7 @@ function KongGuardAIHandler:detect_threats(config, request_data)
       description = "Request from blocked IP address"
     }
   end
-  
+
   -- Check blocked user agents
   if self:check_blocked_user_agents(rules.blocked_user_agents, request_data.user_agent) then
     return true, {
@@ -140,7 +140,7 @@ function KongGuardAIHandler:detect_threats(config, request_data)
       description = "Request from blocked user agent"
     }
   end
-  
+
   -- Check suspicious patterns in URI
   if self:check_suspicious_patterns(rules.suspicious_patterns, request_data.uri) then
     return true, {
@@ -150,7 +150,7 @@ function KongGuardAIHandler:detect_threats(config, request_data)
       description = "Suspicious pattern detected in request URI"
     }
   end
-  
+
   -- Check rate limiting
   if self:check_rate_limit(rules.rate_limit_threshold, request_data.remote_addr) then
     return true, {
@@ -160,7 +160,7 @@ function KongGuardAIHandler:detect_threats(config, request_data)
       description = "Rate limit threshold exceeded"
     }
   end
-  
+
   -- Check payload size
   if request_data.body_size > rules.max_payload_size then
     return true, {
@@ -170,7 +170,7 @@ function KongGuardAIHandler:detect_threats(config, request_data)
       description = "Request payload exceeds maximum allowed size"
     }
   end
-  
+
   return false, nil
 end
 
@@ -210,11 +210,11 @@ function KongGuardAIHandler:check_rate_limit(threshold, client_ip)
   if not counters then
     return false
   end
-  
+
   local key = "rate_limit:" .. client_ip
   local current_time = ngx.time()
   local window_start = current_time - 60  -- 1 minute window
-  
+
   -- Clean old entries and count current requests
   local count = 0
   for i = window_start, current_time do
@@ -222,18 +222,18 @@ function KongGuardAIHandler:check_rate_limit(threshold, client_ip)
     local minute_count = counters:get(minute_key) or 0
     count = count + minute_count
   end
-  
+
   -- Increment current minute counter
   local current_minute_key = key .. ":" .. current_time
   counters:incr(current_minute_key, 1, 0, 61)  -- Expire after 61 seconds
-  
+
   return count >= threshold
 end
 
 -- Execute response actions when threats are detected
 function KongGuardAIHandler:execute_response_actions(config, threat_info, request_data)
   local actions = config.response_actions
-  
+
   if actions.immediate_block and threat_info.severity == "high" then
     ngx.status = 403
     ngx.say(cjson.encode({
@@ -243,7 +243,7 @@ function KongGuardAIHandler:execute_response_actions(config, threat_info, reques
     }))
     ngx.exit(403)
   end
-  
+
   -- Additional response actions would be implemented here
   -- such as temporary IP blocking, rate limit adjustments, etc.
 end
@@ -261,7 +261,7 @@ function KongGuardAIHandler:log_threat(config, threat_info, request_data)
     description = threat_info.description,
     request_id = request_data.request_id
   }
-  
+
   ngx.log(ngx.WARN, "[kong-guard-ai] THREAT DETECTED: " .. cjson.encode(log_entry))
 end
 
@@ -280,7 +280,7 @@ function KongGuardAIHandler:update_metrics(processing_time, threat_detected)
     if threat_detected then
       shared_dict:incr("threats_detected", 1, 0)
     end
-    
+
     -- Update average processing time
     local total_time = shared_dict:get("total_processing_time") or 0
     local total_requests = shared_dict:get("total_requests") or 1

@@ -11,7 +11,7 @@ scrape_configs:
         labels:
           service: 'cloud-ai'
           tier: 'cloud'
-          
+
   - job_name: 'kong-guard-ai-ollama'
     metrics_path: '/metrics'
     static_configs:
@@ -19,21 +19,21 @@ scrape_configs:
         labels:
           service: 'ollama-ai'
           tier: 'local'
-          
+
   # Kong Gateway Metrics (if enabled)
   - job_name: 'kong'
     static_configs:
       - targets: ['kong:8001']
         labels:
           service: 'kong-gateway'
-          
+
   # Redis Metrics (if Redis exporter is added)
   - job_name: 'redis'
     static_configs:
       - targets: ['redis:6379']
         labels:
           service: 'redis-cache'
-          
+
   # Self monitoring
   - job_name: 'prometheus'
     static_configs:

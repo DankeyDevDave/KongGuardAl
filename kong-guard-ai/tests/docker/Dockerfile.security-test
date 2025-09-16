@@ -217,10 +217,10 @@ from urllib.parse import quote
 def test_sql_injection(base_url, payloads_file):
     """Test SQL injection vulnerabilities"""
     results = []
-    
+
     with open(payloads_file, 'r') as f:
         payloads = [line.strip() for line in f if line.strip()]
-    
+
     test_paths = [
         '/api/users',
         '/search',
@@ -229,15 +229,15 @@ def test_sql_injection(base_url, payloads_file):
         '/user.php',
         '/product.php'
     ]
-    
+
     for path in test_paths:
         for payload in payloads:
             # Test in URL parameters
             test_url = f"{base_url}{path}?id={quote(payload)}"
-            
+
             try:
                 response = requests.get(test_url, timeout=10)
-                
+
                 result = {
                     'url': test_url,
                     'payload': payload,
@@ -246,9 +246,9 @@ def test_sql_injection(base_url, payloads_file):
                     'response_time': response.elapsed.total_seconds(),
                     'response_length': len(response.text)
                 }
-                
+
                 results.append(result)
-                
+
                 # Check for error messages that might indicate vulnerability
                 error_indicators = [
                     'sql syntax',
@@ -257,39 +257,39 @@ def test_sql_injection(base_url, payloads_file):
                     'microsoft ole db',
                     'sqlserver'
                 ]
-                
+
                 for indicator in error_indicators:
                     if indicator.lower() in response.text.lower():
                         result['potential_vulnerability'] = True
                         break
-                
+
                 time.sleep(0.1)  # Rate limiting
-                
+
             except Exception as e:
                 results.append({
                     'url': test_url,
                     'payload': payload,
                     'error': str(e)
                 })
-    
+
     return results
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python3 test_sql_injection.py <base_url>")
         sys.exit(1)
-    
+
     base_url = sys.argv[1].rstrip('/')
     results = test_sql_injection(base_url, '/payloads/sql_injection.txt')
-    
+
     blocked_count = sum(1 for r in results if r.get('blocked', False))
     total_count = len(results)
-    
+
     print(f"SQL Injection Test Results:")
     print(f"Total requests: {total_count}")
     print(f"Blocked requests: {blocked_count}")
     print(f"Block rate: {(blocked_count/total_count)*100:.2f}%")
-    
+
     # Save detailed results
     import json
     with open('/results/sql_injection_results.json', 'w') as f:
@@ -306,10 +306,10 @@ from urllib.parse import quote
 def test_xss(base_url, payloads_file):
     """Test XSS vulnerabilities"""
     results = []
-    
+
     with open(payloads_file, 'r') as f:
         payloads = [line.strip() for line in f if line.strip()]
-    
+
     test_paths = [
         '/search',
         '/comment',
@@ -317,15 +317,15 @@ def test_xss(base_url, payloads_file):
         '/profile',
         '/message'
     ]
-    
+
     for path in test_paths:
         for payload in payloads:
             # Test in URL parameters
             test_url = f"{base_url}{path}?q={quote(payload)}"
-            
+
             try:
                 response = requests.get(test_url, timeout=10)
-                
+
                 result = {
                     'url': test_url,
                     'payload': payload,
@@ -335,35 +335,35 @@ def test_xss(base_url, payloads_file):
                     'response_length': len(response.text),
                     'payload_reflected': payload in response.text
                 }
-                
+
                 results.append(result)
                 time.sleep(0.1)  # Rate limiting
-                
+
             except Exception as e:
                 results.append({
                     'url': test_url,
                     'payload': payload,
                     'error': str(e)
                 })
-    
+
     return results
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python3 test_xss.py <base_url>")
         sys.exit(1)
-    
+
     base_url = sys.argv[1].rstrip('/')
     results = test_xss(base_url, '/payloads/xss_vectors.txt')
-    
+
     blocked_count = sum(1 for r in results if r.get('blocked', False))
     total_count = len(results)
-    
+
     print(f"XSS Test Results:")
     print(f"Total requests: {total_count}")
     print(f"Blocked requests: {blocked_count}")
     print(f"Block rate: {(blocked_count/total_count)*100:.2f}%")
-    
+
     # Save detailed results
     import json
     with open('/results/xss_results.json', 'w') as f:

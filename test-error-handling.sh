@@ -33,44 +33,44 @@ echo ""
 prepare_claude_assist_demo() {
     echo -e "${BLUE}🤖 Analyzing errors and preparing diagnostics...${NC}"
     echo ""
-    
+
     echo -e "${YELLOW}📊 Collecting diagnostic information:${NC}"
-    
+
     printf "  ├─ Reading error log"
     sleep 0.5
     printf " ✓\n"
-    
+
     printf "  ├─ Checking container status"
     sleep 0.5
     printf " ✓\n"
-    
+
     printf "  └─ Collecting container logs\n"
-    
+
     local containers=("kong-gateway" "kong-database" "kong-redis" "demo-api")
     for container in "${containers[@]}"; do
         printf "     Checking %s" "$container"
         sleep 0.3
         printf " ✓\n"
     done
-    
+
     echo ""
     echo -e "${GREEN}✅ Diagnostics collected and saved${NC}"
     echo ""
-    
+
     echo -e "${BLUE}🤔 Would you like AI assistance to fix these issues? (demo - press Enter)${NC}"
     read -r
-    
+
     echo ""
     echo -e "${GREEN}🚀 Initiating Claude AI assistance...${NC}"
     echo ""
-    
+
     echo -e "${BLUE}📋 Claude will analyze:${NC}"
     echo "  • Error logs and diagnostics"
     echo "  • Container health status"
     echo "  • Service configuration issues"
     echo "  • Potential fixes and solutions"
     echo ""
-    
+
     echo -e "${YELLOW}🧠 Processing with Claude AI...${NC}"
     echo "  ├─ Sending diagnostic data"
     sleep 0.5
@@ -79,14 +79,14 @@ prepare_claude_assist_demo() {
     echo "  └─ Generating solutions"
     sleep 0.5
     echo ""
-    
+
     echo -e "${GREEN}🎯 Launching Claude with collected diagnostics...${NC}"
     echo ""
     echo "────────────────────────────────────────────────"
     echo ""
     echo "[Demo Mode: Claude would be called here with the diagnostics]"
     echo ""
-    
+
     # Show sample errors that would be sent
     echo -e "${BLUE}Sample prompt that would be sent to Claude:${NC}"
     echo ""

@@ -14,22 +14,22 @@
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.05); opacity: 0.8; }
         }
-        
+
         @keyframes threatFlow {
             0% { transform: translateX(-100%); opacity: 0; }
             50% { opacity: 1; }
             100% { transform: translateX(100%); opacity: 0; }
         }
-        
+
         @keyframes aiThinking {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         .pulse { animation: pulse 2s infinite; }
         .threat-flow { animation: threatFlow 3s infinite; }
         .ai-thinking { animation: aiThinking 2s linear infinite; }
-        
+
         .threat-particle {
             position: absolute;
             width: 4px;
@@ -38,7 +38,7 @@
             border-radius: 50%;
             animation: threatFlow 2s linear infinite;
         }
-        
+
         .safe-particle {
             position: absolute;
             width: 4px;
@@ -47,19 +47,19 @@
             border-radius: 50%;
             animation: threatFlow 2s linear infinite;
         }
-        
+
         .gradient-border {
             background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
             background-size: 400% 400%;
             animation: gradient 15s ease infinite;
         }
-        
+
         @keyframes gradient {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        
+
         .threat-high { background: linear-gradient(135deg, #ff4444, #cc0000); }
         .threat-medium { background: linear-gradient(135deg, #ffaa00, #ff6600); }
         .threat-low { background: linear-gradient(135deg, #44ff44, #00cc00); }
@@ -94,15 +94,15 @@
             useEffect(() => {
                 // Connect to WebSocket
                 ws = new WebSocket('ws://localhost:8000/ws');
-                
+
                 ws.onopen = () => {
                     setConnected(true);
                     console.log('Connected to Kong Guard AI');
                 };
-                
+
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-                    
+
                     if (data.type === 'connection') {
                         setMetrics(data.metrics);
                         if (data.history) {
@@ -117,11 +117,11 @@
                         setTimeout(() => setAiThinking(null), 2000);
                     }
                 };
-                
+
                 ws.onclose = () => {
                     setConnected(false);
                 };
-                
+
                 return () => {
                     if (ws) ws.close();
                 };
@@ -245,7 +245,7 @@
                                 🧠 AI Analysis Engine
                                 {aiThinking && <span className="ml-4 ai-thinking">⚙️</span>}
                             </h2>
-                            
+
                             {aiThinking && (
                                 <div className="bg-gray-700 rounded-lg p-4 mb-4 pulse">
                                     <div className="text-yellow-400 font-bold">{aiThinking.status}</div>
@@ -309,10 +309,10 @@
         }
 
         function EventCard({ event, index }) {
-            const threatLevel = event.threat_score > 0.8 ? 'high' : 
-                              event.threat_score > 0.5 ? 'medium' : 
+            const threatLevel = event.threat_score > 0.8 ? 'high' :
+                              event.threat_score > 0.5 ? 'medium' :
                               event.threat_score > 0.2 ? 'low' : 'none';
-            
+
             const bgColors = {
                 high: 'bg-red-900',
                 medium: 'bg-orange-900',
@@ -341,7 +341,7 @@
 
         function ThreatDistribution({ threatMap }) {
             const total = Object.values(threatMap).reduce((a, b) => a + b, 0);
-            
+
             return (
                 <div className="space-y-2">
                     <div className="text-sm text-gray-400 mb-2">Threat Distribution</div>
@@ -349,7 +349,7 @@
                         <div key={type} className="flex items-center gap-2">
                             <div className="w-24 text-sm">{type}</div>
                             <div className="flex-1 bg-gray-700 rounded-full h-6 relative">
-                                <div 
+                                <div
                                     className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
                                     style={{ width: `${(count / Math.max(total, 1)) * 100}%` }}
                                 />
@@ -384,7 +384,7 @@
                             <div className="text-xs">Decision</div>
                         </div>
                     </div>
-                    
+
                     {/* Animated particles */}
                     {events.slice(0, 5).map((event, i) => (
                         <div

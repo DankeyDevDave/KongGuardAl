@@ -11,7 +11,7 @@ local _M = {}
 -- Notification types
 local NOTIFICATION_TYPES = {
     THREAT_DETECTED = "threat_detected",
-    RESPONSE_EXECUTED = "response_executed", 
+    RESPONSE_EXECUTED = "response_executed",
     SYSTEM_STATUS = "system_status",
     CONFIG_CHANGE = "config_change"
 }
@@ -25,16 +25,16 @@ local notification_cache = {}
 ---
 function _M.init_worker(conf)
     kong.log.info("[Kong Guard AI Notifier] Initializing notification system")
-    
+
     -- Initialize notification rate limiting
     notification_cache.sent_notifications = {}
     notification_cache.rate_limits = {}
-    
+
     -- Test notification endpoints if configured
     if conf.enable_notifications then
         _M.test_notification_endpoints(conf)
     end
-    
+
     kong.log.info("[Kong Guard AI Notifier] Notification system initialized")
 end
 
@@ -48,25 +48,25 @@ function _M.send_threat_notification(threat_result, response_action, conf)
     if not conf.enable_notifications then
         return
     end
-    
+
     -- Check if threat level meets notification threshold
     if threat_result.threat_level < conf.notification_threshold then
         kong.log.debug("[Kong Guard AI Notifier] Threat level below notification threshold")
         return
     end
-    
+
     -- Check notification rate limiting
     if _M.is_rate_limited("threat_notification", conf) then
         kong.log.debug("[Kong Guard AI Notifier] Threat notification rate limited")
         return
     end
-    
+
     -- Prepare notification payload
     local notification = _M.build_threat_notification(threat_result, response_action, conf)
-    
+
     -- Send to all configured channels (async)
     _M.send_to_all_channels(notification, conf)
-    
+
     -- Update rate limiting
     _M.update_rate_limit("threat_notification")
 end
@@ -80,14 +80,14 @@ function _M.send_incident_log(incident_log, conf)
     if not conf.external_logging_enabled then
         return
     end
-    
+
     kong.log.debug("[Kong Guard AI Notifier] Sending incident log to external systems")
-    
+
     -- Send to external log endpoint
     if conf.log_endpoint then
         _M.send_to_log_endpoint(incident_log, conf)
     end
-    
+
     -- Could also send to other log aggregation systems
     -- (Elasticsearch, Splunk, Datadog, etc.)
 end
@@ -105,7 +105,7 @@ function _M.build_threat_notification(threat_result, response_action, conf)
         timestamp = ngx.time(),
         iso_timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ", ngx.time()),
         severity = _M.map_threat_level_to_severity(threat_result.threat_level),
-        
+
         -- Threat details
         threat = {
             type = threat_result.threat_type,
@@ -113,14 +113,14 @@ function _M.build_threat_notification(threat_result, response_action, conf)
             confidence = threat_result.confidence,
             details = threat_result.details
         },
-        
+
         -- Response details
         response = {
             action = response_action.action_type,
             success = response_action.success,
             details = response_action.details
         },
-        
+
         -- System context
         system = {
             kong_node_id = kong.node.get_id(),
@@ -128,7 +128,7 @@ function _M.build_threat_notification(threat_result, response_action, conf)
             dry_run_mode = conf.dry_run_mode
         }
     }
-    
+
     return notification
 end
 
@@ -142,12 +142,12 @@ function _M.send_to_all_channels(notification, conf)
     if conf.slack_webhook_url then
         _M.send_slack_notification(notification, conf)
     end
-    
+
     -- Send to email
     if conf.email_smtp_server and #conf.email_to > 0 then
         _M.send_email_notification(notification, conf)
     end
-    
+
     -- Send to webhooks
     if #conf.webhook_urls > 0 then
         for _, webhook_url in ipairs(conf.webhook_urls) do
@@ -163,7 +163,7 @@ end
 ---
 function _M.send_slack_notification(notification, conf)
     local slack_message = _M.format_slack_message(notification)
-    
+
     local payload = {
         text = "🚨 Kong Guard AI - Threat Detected",
         attachments = {
@@ -177,7 +177,7 @@ function _M.send_slack_notification(notification, conf)
             }
         }
     }
-    
+
     _M.send_async_http_request(conf.slack_webhook_url, "POST", payload, {
         ["Content-Type"] = "application/json"
     })
@@ -192,10 +192,10 @@ function _M.send_email_notification(notification, conf)
     -- Email sending would require SMTP client implementation
     -- For now, log the email that would be sent
     local email_content = _M.format_email_message(notification, conf)
-    
-    kong.log.info("[Kong Guard AI Notifier] Email notification (SMTP not implemented): " .. 
+
+    kong.log.info("[Kong Guard AI Notifier] Email notification (SMTP not implemented): " ..
                   json.encode(email_content))
-    
+
     -- In production, implement SMTP client here
     -- Could use external email service API (SendGrid, AWS SES, etc.)
 end
@@ -208,7 +208,7 @@ end
 ---
 function _M.send_webhook_notification(notification, webhook_url, conf)
     kong.log.debug("[Kong Guard AI Notifier] Sending webhook notification to: " .. webhook_url)
-    
+
     _M.send_async_http_request(webhook_url, "POST", notification, {
         ["Content-Type"] = "application/json",
         ["User-Agent"] = "Kong-Guard-AI/0.1.0"
@@ -222,7 +222,7 @@ end
 ---
 function _M.send_to_log_endpoint(incident_log, conf)
     kong.log.debug("[Kong Guard AI Notifier] Sending to log endpoint: " .. conf.log_endpoint)
-    
+
     _M.send_async_http_request(conf.log_endpoint, "POST", incident_log, {
         ["Content-Type"] = "application/json",
         ["User-Agent"] = "Kong-Guard-AI/0.1.0"
@@ -242,31 +242,31 @@ function _M.send_async_http_request(url, method, body, headers)
         if premature then
             return
         end
-        
+
         local httpc = http.new()
         httpc:set_timeout(5000) -- 5 second timeout
-        
+
         local json_body = json.encode(body)
-        
+
         local res, err = httpc:request_uri(url, {
             method = method,
             headers = headers,
             body = json_body,
             ssl_verify = false
         })
-        
+
         if not res then
             kong.log.error("[Kong Guard AI Notifier] HTTP request failed: " .. (err or "unknown error"))
         elseif res.status >= 200 and res.status < 300 then
             kong.log.debug("[Kong Guard AI Notifier] HTTP request successful to: " .. url)
         else
-            kong.log.warn("[Kong Guard AI Notifier] HTTP request failed with status " .. 
+            kong.log.warn("[Kong Guard AI Notifier] HTTP request failed with status " ..
                          res.status .. " to: " .. url)
         end
-        
+
         httpc:close()
     end)
-    
+
     if not ok then
         kong.log.error("[Kong Guard AI Notifier] Failed to schedule async HTTP request: " .. (err or "unknown"))
     end
@@ -305,7 +305,7 @@ function _M.format_slack_message(notification)
             short = false
         }
     }
-    
+
     -- Add threat details if available
     if notification.threat.details.source_ip then
         table.insert(fields, {
@@ -314,15 +314,15 @@ function _M.format_slack_message(notification)
             short = true
         })
     end
-    
+
     if notification.threat.details.blocked_ip then
         table.insert(fields, {
-            title = "Blocked IP", 
+            title = "Blocked IP",
             value = notification.threat.details.blocked_ip,
             short = true
         })
     end
-    
+
     -- Add dry run indicator
     if notification.system.dry_run_mode then
         table.insert(fields, {
@@ -331,7 +331,7 @@ function _M.format_slack_message(notification)
             short = true
         })
     end
-    
+
     return {
         fields = fields
     }
@@ -344,10 +344,10 @@ end
 -- @return Table containing email content
 ---
 function _M.format_email_message(notification, conf)
-    local subject = string.format("[Kong Guard AI] %s Threat Detected - %s", 
-                                 notification.severity:upper(), 
+    local subject = string.format("[Kong Guard AI] %s Threat Detected - %s",
+                                 notification.severity:upper(),
                                  notification.threat.type)
-    
+
     local body = string.format([[
 Kong Guard AI Threat Detection Alert
 
@@ -370,7 +370,7 @@ For more details, check the Kong Gateway logs.
 
 --
 Kong Guard AI Autonomous Threat Response
-]], 
+]],
         notification.threat.type,
         notification.threat.level,
         notification.threat.confidence,
@@ -381,7 +381,7 @@ Kong Guard AI Autonomous Threat Response
         notification.system.plugin_version,
         notification.system.dry_run_mode and "DRY RUN" or "ACTIVE"
     )
-    
+
     return {
         from = conf.email_from,
         to = conf.email_to,
@@ -396,7 +396,7 @@ end
 ---
 function _M.test_notification_endpoints(conf)
     kong.log.debug("[Kong Guard AI Notifier] Testing notification endpoints")
-    
+
     local test_notification = {
         type = NOTIFICATION_TYPES.SYSTEM_STATUS,
         timestamp = ngx.time(),
@@ -404,7 +404,7 @@ function _M.test_notification_endpoints(conf)
         message = "Kong Guard AI notification system initialized",
         test = true
     }
-    
+
     -- Test Slack webhook
     if conf.slack_webhook_url then
         local test_slack = {
@@ -418,12 +418,12 @@ function _M.test_notification_endpoints(conf)
                 }
             }
         }
-        
+
         _M.send_async_http_request(conf.slack_webhook_url, "POST", test_slack, {
             ["Content-Type"] = "application/json"
         })
     end
-    
+
     -- Test webhooks
     for _, webhook_url in ipairs(conf.webhook_urls) do
         _M.send_async_http_request(webhook_url, "POST", test_notification, {
@@ -443,13 +443,13 @@ function _M.is_rate_limited(notification_type, conf)
     local current_time = ngx.time()
     local rate_limit_window = 300 -- 5 minutes
     local max_notifications = 10 -- Max 10 notifications per 5 minutes per type
-    
+
     if not notification_cache.rate_limits[notification_type] then
         notification_cache.rate_limits[notification_type] = {}
     end
-    
+
     local rate_data = notification_cache.rate_limits[notification_type]
-    
+
     -- Clean old entries
     local cleaned_entries = {}
     for _, timestamp in ipairs(rate_data) do
@@ -457,9 +457,9 @@ function _M.is_rate_limited(notification_type, conf)
             table.insert(cleaned_entries, timestamp)
         end
     end
-    
+
     notification_cache.rate_limits[notification_type] = cleaned_entries
-    
+
     -- Check if rate limit exceeded
     return #cleaned_entries >= max_notifications
 end
@@ -472,7 +472,7 @@ function _M.update_rate_limit(notification_type)
     if not notification_cache.rate_limits[notification_type] then
         notification_cache.rate_limits[notification_type] = {}
     end
-    
+
     table.insert(notification_cache.rate_limits[notification_type], ngx.time())
 end
 
@@ -503,12 +503,12 @@ end
 function _M.get_slack_color(severity)
     local colors = {
         critical = "danger",
-        high = "warning", 
+        high = "warning",
         medium = "#ff9500",
         low = "good",
         info = "#36a64f"
     }
-    
+
     return colors[severity] or "#36a64f"
 end
 
@@ -522,16 +522,16 @@ function _M.get_notification_metrics()
         rate_limited = 0,
         by_type = {}
     }
-    
+
     if notification_cache.sent_notifications then
         metrics.total_sent = #notification_cache.sent_notifications
     end
-    
+
     -- Count rate limited notifications
     for notification_type, rate_data in pairs(notification_cache.rate_limits) do
         metrics.by_type[notification_type] = #rate_data
     end
-    
+
     return metrics
 end
 
@@ -541,7 +541,7 @@ end
 function _M.cleanup_notification_cache()
     local current_time = ngx.time()
     local cleanup_threshold = current_time - 3600 -- 1 hour
-    
+
     -- Clean sent notifications
     if notification_cache.sent_notifications then
         local cleaned_notifications = {}
@@ -552,7 +552,7 @@ function _M.cleanup_notification_cache()
         end
         notification_cache.sent_notifications = cleaned_notifications
     end
-    
+
     -- Clean rate limit data
     for notification_type, rate_data in pairs(notification_cache.rate_limits) do
         local cleaned_entries = {}
@@ -563,7 +563,7 @@ function _M.cleanup_notification_cache()
         end
         notification_cache.rate_limits[notification_type] = cleaned_entries
     end
-    
+
     kong.log.debug("[Kong Guard AI Notifier] Notification cache cleanup completed")
 end
 

@@ -30,29 +30,29 @@ end
 
 -- Utility logging function
 local function log_integration_event(level, message, details)
-    kong.log[level]("[kong-guard-ai:config_integration] " .. message .. 
+    kong.log[level]("[kong-guard-ai:config_integration] " .. message ..
                     (details and (" | Details: " .. cjson.encode(details)) or ""))
 end
 
 -- Initialize the configuration system
 function config_integration.initialize(plugin_config, options)
     options = options or {}
-    
+
     log_integration_event("info", "Initializing configuration integration", {
         plugin_config_present = plugin_config ~= nil,
         options = options
     })
-    
+
     -- Configure error handling
     if options.error_config then
         config_errors.configure(options.error_config)
     end
-    
+
     -- Configure caching
     if options.cache_config then
         config_loader.configure_caching(options.cache_config)
     end
-    
+
     -- Set up loading strategies with fallbacks
     local loading_options = {
         primary_strategy = options.primary_strategy or "plugin_config",
@@ -62,10 +62,10 @@ function config_integration.initialize(plugin_config, options)
         plugin_id = options.plugin_id,
         env_prefix = options.env_prefix
     }
-    
+
     -- Attempt to load configuration
     local config, errors = config_loader.initialize(plugin_config, loading_options)
-    
+
     if not config then
         -- Handle initialization failure
         local error_obj = config_errors.handle_loading_error(
@@ -74,13 +74,13 @@ function config_integration.initialize(plugin_config, options)
             table.concat(errors or {}, "; "),
             { loading_options = loading_options }
         )
-        
+
         -- Attempt error recovery
         local recovery_success, recovery_result = config_errors.execute_recovery(
             error_obj,
             { fallback_config = options.fallback_config }
         )
-        
+
         if recovery_success and recovery_result.config then
             config = recovery_result.config
             log_integration_event("warn", "Configuration initialized with error recovery", {
@@ -95,17 +95,17 @@ function config_integration.initialize(plugin_config, options)
             return false, errors
         end
     end
-    
+
     -- Mark as initialized
     initialized = true
     current_config_version = current_config_version + 1
     track_performance("config_loads")
-    
+
     log_integration_event("info", "Configuration integration initialized successfully", {
         version = current_config_version,
         config_keys = config and table.getn(config) or 0
     })
-    
+
     return true, config
 end
 
@@ -115,30 +115,30 @@ function config_integration.get_config(cache_key)
         log_integration_event("warn", "Configuration integration not initialized, returning defaults")
         return config_parser.get_defaults()
     end
-    
+
     -- Try to get cached configuration first
     local cached_config = config_parser.get_cached_config(cache_key)
     if cached_config then
         track_performance("cache_hits")
         return cached_config
     end
-    
+
     track_performance("cache_misses")
-    
+
     -- Get current configuration from loader
     local current_config = config_loader.get_current_config()
     if not current_config then
         log_integration_event("warn", "No current configuration available, using defaults")
         return config_parser.get_defaults()
     end
-    
+
     -- Validate current configuration health
     local valid, validation_errors = config_parser.validate_config(current_config)
     if not valid then
         log_integration_event("error", "Current configuration validation failed", {
             errors = validation_errors
         })
-        
+
         -- Handle validation failure
         local error_obj = config_errors.handle_validation_error(
             "current_config",
@@ -146,13 +146,13 @@ function config_integration.get_config(cache_key)
             "valid configuration",
             { validation_errors = validation_errors }
         )
-        
+
         -- Attempt recovery
         local recovery_success, recovery_result = config_errors.execute_recovery(
             error_obj,
             { fallback_config = config_parser.get_defaults() }
         )
-        
+
         if recovery_success and recovery_result.config then
             current_config = recovery_result.config
             log_integration_event("warn", "Using recovered configuration", {
@@ -162,10 +162,10 @@ function config_integration.get_config(cache_key)
             log_integration_event("error", "Configuration recovery failed, using defaults")
             current_config = config_parser.get_defaults()
         end
-        
+
         track_performance("config_errors")
     end
-    
+
     track_performance("config_validations")
     return current_config
 end
@@ -173,18 +173,18 @@ end
 -- Validate configuration update before applying
 function config_integration.validate_update(new_config, current_config)
     log_integration_event("debug", "Validating configuration update")
-    
+
     -- Parse and validate new configuration
     local parsed_config, parse_errors = config_parser.parse_config(new_config)
     if not parsed_config then
         return false, parse_errors
     end
-    
+
     -- Check for critical changes that might break the system
     if current_config then
         local changes = config_parser.diff_configs(current_config, parsed_config)
         local critical_changes = {}
-        
+
         -- Define critical configuration keys that require special handling
         local critical_keys = {
             "max_processing_time_ms",
@@ -192,7 +192,7 @@ function config_integration.validate_update(new_config, current_config)
             "admin_api_enabled",
             "ai_gateway_enabled"
         }
-        
+
         for _, key in ipairs(critical_keys) do
             if changes[key] then
                 table.insert(critical_changes, {
@@ -201,14 +201,14 @@ function config_integration.validate_update(new_config, current_config)
                 })
             end
         end
-        
+
         if #critical_changes > 0 then
             log_integration_event("warn", "Critical configuration changes detected", {
                 changes = critical_changes
             })
         end
     end
-    
+
     track_performance("config_validations")
     return true, nil
 end
@@ -216,44 +216,44 @@ end
 -- Hot-reload configuration
 function config_integration.hot_reload(new_config, options)
     options = options or {}
-    
+
     log_integration_event("info", "Performing configuration hot-reload")
-    
+
     -- Validate the update first
     local current_config = config_loader.get_current_config()
     local valid_update, validation_errors = config_integration.validate_update(new_config, current_config)
-    
+
     if not valid_update then
         log_integration_event("error", "Hot-reload validation failed", {
             errors = validation_errors
         })
         return false, validation_errors
     end
-    
+
     -- Perform the hot-reload
     local success, errors = config_loader.hot_reload(
         options.strategy or "plugin_config",
         { plugin_config = new_config }
     )
-    
+
     if success then
         current_config_version = current_config_version + 1
         track_performance("hot_reloads")
-        
+
         log_integration_event("info", "Configuration hot-reload successful", {
             version = current_config_version
         })
-        
+
         -- Clear cache to force refresh
         config_parser.clear_cache()
-        
+
         return true, nil
     else
         track_performance("config_errors")
         log_integration_event("error", "Configuration hot-reload failed", {
             errors = errors
         })
-        
+
         return false, errors
     end
 end
@@ -265,22 +265,22 @@ function config_integration.get_status()
         version = current_config_version,
         performance_metrics = performance_metrics
     }
-    
+
     if initialized then
         -- Get loader metadata
         status.loader_metadata = config_loader.get_config_metadata()
-        
+
         -- Get health information
         status.loader_health = config_loader.health_check()
         status.error_health = config_errors.health_check()
-        
+
         -- Get recent errors
         status.recent_errors = config_errors.get_recent_errors(5)
-        
+
         -- Get error statistics
         status.error_stats = config_errors.get_error_stats()
     end
-    
+
     return status
 end
 
@@ -288,17 +288,17 @@ end
 function config_integration.export_config(format, options)
     format = format or "json"
     options = options or {}
-    
+
     local current_config = config_loader.get_current_config()
     if not current_config then
         return nil, "No configuration loaded"
     end
-    
+
     local exported, err = config_parser.export_config(current_config, format)
     if not exported then
         return nil, err
     end
-    
+
     -- Add metadata if requested
     if options.include_metadata then
         local metadata = {
@@ -306,27 +306,27 @@ function config_integration.export_config(format, options)
             config_version = current_config_version,
             config_data = exported
         }
-        
+
         if format == "json" then
             exported = cjson.encode(metadata)
         end
     end
-    
+
     return exported, nil
 end
 
 -- Reset configuration system (for testing/recovery)
 function config_integration.reset()
     log_integration_event("info", "Resetting configuration integration")
-    
+
     initialized = false
     current_config_version = 0
-    
+
     -- Reset sub-modules
     config_loader.reset()
     config_parser.clear_cache()
     config_errors.clear_error_history()
-    
+
     -- Reset performance metrics
     for key, _ in pairs(performance_metrics) do
         performance_metrics[key] = 0
@@ -339,9 +339,9 @@ function config_integration.handle_config_error(error_type, error_details, recov
         error_type = error_type,
         error_details = error_details
     })
-    
+
     local error_obj
-    
+
     if error_type == "validation" then
         error_obj = config_errors.handle_validation_error(
             error_details.field,
@@ -378,15 +378,15 @@ function config_integration.handle_config_error(error_type, error_details, recov
             error_details
         )
     end
-    
+
     -- Execute recovery strategy
     local recovery_success, recovery_result = config_errors.execute_recovery(
         error_obj,
         recovery_context or {}
     )
-    
+
     track_performance("config_errors")
-    
+
     return recovery_success, recovery_result, error_obj
 end
 
@@ -404,12 +404,12 @@ function config_integration.diff_with_current(new_config)
     if not current_config then
         return nil, "No current configuration to compare with"
     end
-    
+
     local parsed_new, errors = config_parser.parse_config(new_config)
     if not parsed_new then
         return nil, errors
     end
-    
+
     return config_parser.diff_configs(current_config, parsed_new), nil
 end
 
@@ -421,7 +421,7 @@ function config_integration.validate_against_schema(config_data)
         log_integration_event("warn", "Schema module not available for validation")
         return true, nil
     end
-    
+
     -- This would integrate with Kong's schema validation if needed
     -- For now, we rely on our custom validation
     return config_parser.validate_config(config_data)
@@ -434,18 +434,18 @@ function config_integration.health_check()
         issues = {},
         components = {}
     }
-    
+
     -- Check initialization status
     if not initialized then
         health.status = "unhealthy"
         table.insert(health.issues, "Configuration integration not initialized")
         return health
     end
-    
+
     -- Check sub-component health
     health.components.loader = config_loader.health_check()
     health.components.error_handler = config_errors.health_check()
-    
+
     -- Check for component issues
     for component_name, component_health in pairs(health.components) do
         if component_health.status == "unhealthy" then
@@ -455,7 +455,7 @@ function config_integration.health_check()
             health.status = "warning"
         end
     end
-    
+
     return health
 end
 

@@ -7,11 +7,11 @@ echo "🚀 Setting up GitHub Actions Runner: proxmox-runner-201"
 ssh root@203.0.113.200 "pct exec 201 -- bash -c '
     # Create runner user if not exists
     id -u runner >/dev/null 2>&1 || useradd -m -s /bin/bash runner
-    
+
     # Create runner directory
     mkdir -p /home/runner/actions-runner
     chown runner:runner /home/runner/actions-runner
-    
+
     # Install required packages
     apt-get update
     apt-get install -y curl wget tar docker.io nodejs npm

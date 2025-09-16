@@ -3,16 +3,18 @@
 Complete end-to-end test of Kong Guard AI real-time dashboard
 """
 import asyncio
-import websockets
 import json
-import httpx
 import time
+
+import httpx
+import websockets
+
 
 async def test_complete_functionality():
     """Test all attack types and verify dashboard receives real-time updates"""
     print("🚀 Kong Guard AI - Complete Real-Time Dashboard Test")
     print("=" * 60)
-    
+
     attacks = [
         {
             "name": "SQL Injection",
@@ -27,8 +29,8 @@ async def test_complete_functionality():
                 "header_count": 5,
                 "hour_of_day": 14,
                 "query": "id=1' OR '1'='1; DROP TABLE users;--",
-                "body": ""
-            }
+                "body": "",
+            },
         },
         {
             "name": "XSS Attack",
@@ -43,8 +45,8 @@ async def test_complete_functionality():
                 "header_count": 5,
                 "hour_of_day": 14,
                 "query": "",
-                "body": '{"comment":"<script>alert(document.cookie)</script>"}'
-            }
+                "body": '{"comment":"<script>alert(document.cookie)</script>"}',
+            },
         },
         {
             "name": "Path Traversal",
@@ -59,8 +61,8 @@ async def test_complete_functionality():
                 "header_count": 4,
                 "hour_of_day": 14,
                 "query": "file=../../../../etc/passwd",
-                "body": ""
-            }
+                "body": "",
+            },
         },
         {
             "name": "Normal Request",
@@ -75,18 +77,18 @@ async def test_complete_functionality():
                 "header_count": 10,
                 "hour_of_day": 14,
                 "query": "category=electronics&page=1",
-                "body": ""
-            }
-        }
+                "body": "",
+            },
+        },
     ]
-    
+
     try:
         uri = "ws://localhost:18002/ws"
         received_analyses = []
-        
+
         async with websockets.connect(uri) as websocket:
             print("✅ WebSocket connected to Kong Guard AI")
-            
+
             async def message_handler():
                 try:
                     while True:
@@ -94,15 +96,17 @@ async def test_complete_functionality():
                         data = json.loads(message)
                         if data.get("type") == "threat_analysis":
                             analysis = data["data"]
-                            received_analyses.append({
-                                "threat_type": analysis.get("threat_type", "unknown"),
-                                "threat_score": analysis.get("threat_score", 0),
-                                "method": analysis.get("method", "N/A"),
-                                "path": analysis.get("path", "N/A"),
-                                "confidence": analysis.get("confidence", 0),
-                                "action": analysis.get("recommended_action", "unknown")
-                            })
-                            print(f"📊 Real-time analysis received:")
+                            received_analyses.append(
+                                {
+                                    "threat_type": analysis.get("threat_type", "unknown"),
+                                    "threat_score": analysis.get("threat_score", 0),
+                                    "method": analysis.get("method", "N/A"),
+                                    "path": analysis.get("path", "N/A"),
+                                    "confidence": analysis.get("confidence", 0),
+                                    "action": analysis.get("recommended_action", "unknown"),
+                                }
+                            )
+                            print("📊 Real-time analysis received:")
                             print(f"    Threat: {analysis['threat_type']} (Score: {analysis['threat_score']:.2f})")
                             print(f"    Request: {analysis['method']} {analysis['path']}")
                             print(f"    Action: {analysis['recommended_action']}")
@@ -110,21 +114,21 @@ async def test_complete_functionality():
                             print(f"🔗 {data['message']}")
                 except websockets.exceptions.ConnectionClosed:
                     pass
-            
+
             # Start message handler
             handler_task = asyncio.create_task(message_handler())
-            
+
             # Wait for connection to establish
             await asyncio.sleep(1)
-            
+
             print("\n🔥 Testing various attack patterns...")
             print("-" * 40)
-            
+
             # Send each attack
             async with httpx.AsyncClient(timeout=30.0) as client:
                 for i, attack in enumerate(attacks):
                     print(f"\n🎯 Test {i+1}: {attack['name']}")
-                    
+
                     start_time = time.time()
                     response = await client.post(
                         "http://localhost:18002/analyze",
@@ -133,27 +137,27 @@ async def test_complete_functionality():
                             "context": {
                                 "previous_requests": 10 if attack["name"] != "Normal Request" else 2,
                                 "failed_attempts": 5 if attack["name"] != "Normal Request" else 0,
-                                "anomaly_score": 0.8 if attack["name"] != "Normal Request" else 0.1
-                            }
-                        }
+                                "anomaly_score": 0.8 if attack["name"] != "Normal Request" else 0.1,
+                            },
+                        },
                     )
                     processing_time = time.time() - start_time
-                    
+
                     if response.status_code == 200:
                         result = response.json()
                         print(f"✅ API Response: {result['threat_type']} (Score: {result['threat_score']:.2f})")
                         print(f"⏱️  Processing: {processing_time*1000:.0f}ms")
                     else:
                         print(f"❌ Request failed: {response.status_code}")
-                    
+
                     # Wait for WebSocket message
                     await asyncio.sleep(2)
-            
+
             print("\n📋 Final Results:")
             print("=" * 40)
             print(f"Total attacks sent: {len(attacks)}")
             print(f"Real-time updates received: {len(received_analyses)}")
-            
+
             if len(received_analyses) == len(attacks):
                 print("✅ ALL REAL-TIME UPDATES RECEIVED!")
                 print("\nDetailed Results:")
@@ -165,22 +169,23 @@ async def test_complete_functionality():
                     print(f"     Confidence: {analysis['confidence']:.1%}")
             else:
                 print(f"❌ Missing updates: Expected {len(attacks)}, got {len(received_analyses)}")
-            
+
             # Clean up
             handler_task.cancel()
             try:
                 await handler_task
             except asyncio.CancelledError:
                 pass
-                
+
             print("\n🎉 Test completed successfully!")
             print("🖥️  Dashboard should now show all real-time updates at:")
             print("   http://localhost:8080 (visualization)")
             print("   http://localhost:18002/dashboard (AI service)")
-            
+
     except Exception as e:
         print(f"❌ Test failed: {e}")
         raise
+
 
 if __name__ == "__main__":
     asyncio.run(test_complete_functionality())

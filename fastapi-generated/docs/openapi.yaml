@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: |
     Autonomous API Threat Response Agent for Kong Gateway
-    
+
     This API provides comprehensive threat detection, analysis, and automated remediation
     capabilities for Kong Gateway deployments. It includes real-time threat monitoring,
     AI-powered analysis, incident management, and performance optimization.
@@ -53,7 +53,7 @@ paths:
                 $ref: '#/components/schemas/PluginConfiguration'
         '401':
           $ref: '#/components/responses/Unauthorized'
-    
+
     put:
       summary: Update configuration
       operationId: updateConfiguration
@@ -76,7 +76,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-    
+
     patch:
       summary: Partially update configuration
       operationId: patchConfiguration
@@ -1154,28 +1154,28 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    
+
     Unauthorized:
       description: Authentication required
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    
+
     Forbidden:
       description: Insufficient permissions
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    
+
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    
+
     RateLimited:
       description: Rate limit exceeded
       content:
@@ -1198,12 +1198,12 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    
+
     ApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
-    
+
     OAuth2:
       type: oauth2
       flows:

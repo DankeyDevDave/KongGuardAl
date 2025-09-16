@@ -2,10 +2,10 @@ openapi: 3.0.3
 info:
   title: Kong Guard AI Plugin API
   description: |
-    Kong Guard AI is an enterprise-grade security plugin for Kong Gateway that provides 
-    AI-powered threat detection, automated response capabilities, and comprehensive 
+    Kong Guard AI is an enterprise-grade security plugin for Kong Gateway that provides
+    AI-powered threat detection, automated response capabilities, and comprehensive
     security monitoring for API gateways.
-    
+
     This API specification covers all endpoints and configuration options available
     for managing Kong Guard AI in production environments.
   version: 1.0.0
@@ -207,7 +207,7 @@ paths:
                   # HELP kong_guard_ai_requests_total Total number of requests processed
                   # TYPE kong_guard_ai_requests_total counter
                   kong_guard_ai_requests_total{status="processed"} 12345
-                  
+
                   # HELP kong_guard_ai_threats_detected_total Total number of threats detected
                   # TYPE kong_guard_ai_threats_detected_total counter
                   kong_guard_ai_threats_detected_total{threat_type="sql_injection"} 42

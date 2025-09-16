@@ -10,14 +10,14 @@ scrape_configs:
       - targets: ['localhost:18002']
         labels:
           service: 'cloud-ai'
-          
+
   - job_name: 'kong-guard-ai-local'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['localhost:18003']
         labels:
           service: 'local-ollama'
-          
+
   # Self monitoring
   - job_name: 'prometheus'
     static_configs:

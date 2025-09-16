@@ -28,7 +28,7 @@ pg_password = kong
 # Core threat detection cache (existing)
 lua_shared_dict kong_guard_ai_cache 64m
 
-# Counter management system (existing) 
+# Counter management system (existing)
 lua_shared_dict kong_guard_ai_counters 32m
 lua_shared_dict kong_guard_ai_data 16m
 
@@ -37,7 +37,7 @@ lua_shared_dict kong_guard_ai_data 16m
 lua_shared_dict kong_guard_ai_rate_limits 128m
 lua_shared_dict kong_guard_ai_burst_detection 64m
 
-# PHASE 6: Analytics Dashboard Memory Zones  
+# PHASE 6: Analytics Dashboard Memory Zones
 # Real-time analytics and threat intelligence
 lua_shared_dict kong_guard_ai_analytics 256m
 lua_shared_dict kong_guard_ai_threat_intel 128m
@@ -86,7 +86,7 @@ headers = X-Frame-Options: DENY, X-Content-Type-Options: nosniff
 
 # API Keys for AI and Threat Intelligence services
 # export OPENAI_API_KEY="your_openai_api_key_here"
-# export ANTHROPIC_API_KEY="your_anthropic_api_key_here" 
+# export ANTHROPIC_API_KEY="your_anthropic_api_key_here"
 # export THREAT_INTEL_API_KEY="your_threat_intel_api_key_here"
 
 # External service endpoints
@@ -127,7 +127,7 @@ headers = X-Frame-Options: DENY, X-Content-Type-Options: nosniff
 # === Memory Usage Guidelines ===
 # Recommended minimum system requirements:
 # - RAM: 4GB+ (8GB+ for high-traffic environments)
-# - CPU: 4+ cores 
+# - CPU: 4+ cores
 # - Storage: 20GB+ for logs and analytics data
 #
 # Shared memory zone sizing guidelines:
@@ -146,6 +146,6 @@ headers = X-Frame-Options: DENY, X-Content-Type-Options: nosniff
 # log_level = debug
 
 # Production settings (secure)
-# lua_code_cache = on   # Always enable in production  
+# lua_code_cache = on   # Always enable in production
 # log_level = warn
 # admin_listen = 127.0.0.1:8001  # Restrict admin API access

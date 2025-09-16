@@ -37,7 +37,7 @@ return {
                             description = "Requests per minute threshold for DDoS detection"
                         }
                     },
-                    
+
                     -- Operating Mode
                     {
                         dry_run = {
@@ -47,7 +47,7 @@ return {
                             description = "Enable dry-run mode (log only, no enforcement)"
                         }
                     },
-                    
+
                     -- ML Configuration
                     {
                         enable_ml_detection = {
@@ -65,7 +65,7 @@ return {
                             description = "Anomaly score threshold for ML detection"
                         }
                     },
-                    
+
                     -- AI Gateway Integration (optional)
                     {
                         enable_ai_gateway = {
@@ -103,7 +103,7 @@ return {
                             description = "AI model temperature for consistent decisions"
                         }
                     },
-                    
+
                     -- Notification Configuration
                     {
                         enable_notifications = {
@@ -129,7 +129,7 @@ return {
                             description = "Notification channels to use"
                         }
                     },
-                    
+
                     -- Learning & Feedback
                     {
                         enable_learning = {
@@ -153,7 +153,7 @@ return {
                             description = "Endpoint for operator feedback"
                         }
                     },
-                    
+
                     -- Response Actions
                     {
                         auto_block_duration = {
@@ -176,7 +176,7 @@ return {
                             description = "Number of requests allowed during rate limit period"
                         }
                     },
-                    
+
                     -- Admin API Integration
                     {
                         enable_admin_api = {
@@ -192,7 +192,7 @@ return {
                             description = "Kong Admin API URL"
                         }
                     },
-                    
+
                     -- Logging & Monitoring
                     {
                         log_level = {
@@ -230,7 +230,7 @@ return {
                             description = "Enable metrics collection"
                         }
                     },
-                    
+
                     -- Pattern Detection Rules
                     {
                         sql_injection_patterns = {
@@ -258,7 +258,7 @@ return {
                             description = "XSS detection patterns"
                         }
                     },
-                    
+
                     -- Geographic & IP Configuration
                     {
                         blocked_countries = {

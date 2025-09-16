@@ -3,7 +3,7 @@ info:
   title: Kong Guard AI - Ollama Local AI Service API
   description: |
     Local AI service for Kong Guard AI using Ollama for privacy-focused threat detection.
-    
+
     This service provides local AI-powered threat analysis without sending data to external
     cloud services, ensuring complete data privacy and compliance with strict data policies.
   version: 1.0.0

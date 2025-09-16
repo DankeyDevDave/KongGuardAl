@@ -38,9 +38,9 @@ log_error() {
 # Check prerequisites
 check_prerequisites() {
     log_header "Checking Prerequisites"
-    
+
     local failed=0
-    
+
     # Check Docker
     if ! command -v docker > /dev/null 2>&1; then
         log_error "Docker is not installed"
@@ -53,7 +53,7 @@ check_prerequisites() {
             log_success "Docker is ready"
         fi
     fi
-    
+
     # Check Docker Compose
     if ! command -v docker-compose > /dev/null 2>&1 && ! docker compose version > /dev/null 2>&1; then
         log_error "Docker Compose is not available"
@@ -61,7 +61,7 @@ check_prerequisites() {
     else
         log_success "Docker Compose is ready"
     fi
-    
+
     # Check compose file
     if [ ! -f "docker-compose.yml" ]; then
         log_error "docker-compose.yml not found"
@@ -69,7 +69,7 @@ check_prerequisites() {
     else
         log_success "docker-compose.yml found"
     fi
-    
+
     # Check plugin files
     if [ ! -d "plugins" ]; then
         log_error "plugins directory not found"
@@ -80,14 +80,14 @@ check_prerequisites() {
     else
         log_success "Kong Guard AI plugin files found"
     fi
-    
+
     return $failed
 }
 
 # Stop existing containers
 cleanup_existing() {
     log_header "Cleaning Up Existing Containers"
-    
+
     # Stop and remove containers
     if docker-compose ps -q 2>/dev/null | grep -q .; then
         log_info "Stopping existing containers..."
@@ -96,7 +96,7 @@ cleanup_existing() {
     else
         log_info "No existing containers to stop"
     fi
-    
+
     # Remove any dangling kong containers
     local kong_containers=$(docker ps -a --filter "name=kong" --format "{{.ID}}" || true)
     if [ -n "$kong_containers" ]; then
@@ -108,9 +108,9 @@ cleanup_existing() {
 # Start the stack
 start_stack() {
     log_header "Starting Docker Stack"
-    
+
     log_info "Starting services in the background..."
-    
+
     # Start with verbose output
     if docker-compose up -d --build; then
         log_success "Docker stack started successfully"
@@ -124,20 +124,20 @@ start_stack() {
 # Wait for services to be healthy
 wait_for_services() {
     log_header "Waiting for Services to be Healthy"
-    
+
     local max_wait=180  # 3 minutes
     local wait_count=0
     local check_interval=5
-    
+
     local services=("kong-database" "kong-gateway" "demo-api" "redis")
-    
+
     for service in "${services[@]}"; do
         log_info "Waiting for $service to be healthy..."
-        
+
         wait_count=0
         while [ $wait_count -lt $max_wait ]; do
             local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "unknown")
-            
+
             case "$health_status" in
                 "healthy")
                     log_success "$service is healthy"
@@ -154,29 +154,29 @@ wait_for_services() {
                     fi
                     ;;
             esac
-            
+
             sleep $check_interval
             ((wait_count += check_interval))
         done
-        
+
         if [ $wait_count -ge $max_wait ]; then
             log_error "Timeout waiting for $service to be healthy"
             return 1
         fi
     done
-    
+
     return 0
 }
 
 # Test Kong connectivity
 test_kong_connectivity() {
     log_header "Testing Kong Connectivity"
-    
+
     local kong_admin="http://localhost:8001"
     local kong_proxy="http://localhost:8000"
     local max_retries=12
     local retry_count=0
-    
+
     # Test Admin API
     log_info "Testing Kong Admin API..."
     while [ $retry_count -lt $max_retries ]; do
@@ -194,7 +194,7 @@ test_kong_connectivity() {
             fi
         fi
     done
-    
+
     # Test Proxy
     retry_count=0
     log_info "Testing Kong Proxy..."
@@ -213,21 +213,21 @@ test_kong_connectivity() {
             fi
         fi
     done
-    
+
     return 0
 }
 
 # Test plugin loading
 test_plugin_loading() {
     log_header "Testing Plugin Loading"
-    
+
     local kong_admin="http://localhost:8001"
-    
+
     # Check if plugin is available
     log_info "Checking if kong-guard-ai plugin is available..."
-    
+
     local available_plugins=$(curl -s "$kong_admin/plugins/available" 2>/dev/null)
-    
+
     if echo "$available_plugins" | jq -r '.available_plugins[]?' 2>/dev/null | grep -q "kong-guard-ai"; then
         log_success "kong-guard-ai plugin is available"
     else
@@ -236,68 +236,68 @@ test_plugin_loading() {
         echo "$available_plugins" | jq -r '.available_plugins[]?' 2>/dev/null | head -10
         return 1
     fi
-    
+
     # Check plugin schema
     log_info "Checking plugin schema..."
     local schema_response=$(curl -s "$kong_admin/plugins/schema/kong-guard-ai" 2>/dev/null)
-    
+
     if [ -n "$schema_response" ] && [ "$schema_response" != "null" ]; then
         log_success "Plugin schema is accessible"
     else
         log_error "Plugin schema is not accessible"
         return 1
     fi
-    
+
     return 0
 }
 
 # Create test service and enable plugin
 test_plugin_enablement() {
     log_header "Testing Plugin Enablement"
-    
+
     local kong_admin="http://localhost:8001"
-    
+
     # Create test service
     log_info "Creating test service..."
     local service_data='{
         "name": "startup-test-service",
         "url": "http://demo-api:80"
     }'
-    
+
     local service_response=$(curl -s -X POST "$kong_admin/services" \
         -H "Content-Type: application/json" \
         -d "$service_data" 2>/dev/null)
-    
+
     local service_id=$(echo "$service_response" | jq -r '.id' 2>/dev/null)
-    
+
     if [ -z "$service_id" ] || [ "$service_id" = "null" ]; then
         log_error "Failed to create test service"
         echo "Response: $service_response"
         return 1
     fi
-    
+
     log_success "Test service created with ID: $service_id"
-    
+
     # Create test route
     log_info "Creating test route..."
     local route_data='{
         "paths": ["/startup-test"],
         "methods": ["GET", "POST"]
     }'
-    
+
     local route_response=$(curl -s -X POST "$kong_admin/services/$service_id/routes" \
         -H "Content-Type: application/json" \
         -d "$route_data" 2>/dev/null)
-    
+
     local route_id=$(echo "$route_response" | jq -r '.id' 2>/dev/null)
-    
+
     if [ -z "$route_id" ] || [ "$route_id" = "null" ]; then
         log_error "Failed to create test route"
         return 1
     fi
-    
+
     log_success "Test route created with ID: $route_id"
-    
+
     # Enable plugin on service
     log_info "Enabling kong-guard-ai plugin on test service..."
     local plugin_data='{
@@ -309,48 +309,48 @@ test_plugin_enablement() {
             "rate_limit_threshold": 10
         }
     }'
-    
+
     local plugin_response=$(curl -s -X POST "$kong_admin/services/$service_id/plugins" \
         -H "Content-Type: application/json" \
         -d "$plugin_data" 2>/dev/null)
-    
+
     local plugin_id=$(echo "$plugin_response" | jq -r '.id' 2>/dev/null)
-    
+
     if [ -z "$plugin_id" ] || [ "$plugin_id" = "null" ]; then
         log_error "Failed to enable plugin on service"
         echo "Response: $plugin_response"
         return 1
     fi
-    
+
     log_success "Plugin enabled with ID: $plugin_id"
-    
+
     # Test request through Kong
     log_info "Testing request through Kong with plugin..."
     local test_response=$(curl -s -w "%{http_code}" "http://localhost:8000/startup-test/get" -o /dev/null 2>/dev/null)
-    
+
     if [ "$test_response" = "200" ]; then
         log_success "Test request successful (HTTP $test_response)"
     else
         log_warning "Test request returned HTTP $test_response"
     fi
-    
+
     # Store IDs for cleanup
     echo "$service_id" > /tmp/startup-test-service-id
     echo "$route_id" > /tmp/startup-test-route-id
     echo "$plugin_id" > /tmp/startup-test-plugin-id
-    
+
     return 0
 }
 
 # Check Kong logs for plugin activity
 check_plugin_logs() {
     log_header "Checking Plugin Logs"
-    
+
     log_info "Checking Kong logs for plugin activity..."
-    
+
     # Get recent Kong logs
     local kong_logs=$(docker logs kong-gateway --tail 50 2>&1 | grep -i "kong-guard-ai\|guard.*ai" || true)
-    
+
     if [ -n "$kong_logs" ]; then
         log_success "Plugin activity found in logs:"
         echo "$kong_logs" | head -10
@@ -364,9 +364,9 @@ check_plugin_logs() {
 # Cleanup test resources
 cleanup_test_resources() {
     log_header "Cleaning Up Test Resources"
-    
+
     local kong_admin="http://localhost:8001"
-    
+
     # Remove plugin
     if [ -f /tmp/startup-test-plugin-id ]; then
         local plugin_id=$(cat /tmp/startup-test-plugin-id)
@@ -374,7 +374,7 @@ cleanup_test_resources() {
         rm -f /tmp/startup-test-plugin-id
         log_info "Test plugin removed"
     fi
-    
+
     # Remove route
     if [ -f /tmp/startup-test-route-id ]; then
         local route_id=$(cat /tmp/startup-test-route-id)
@@ -382,7 +382,7 @@ cleanup_test_resources() {
         rm -f /tmp/startup-test-route-id
         log_info "Test route removed"
     fi
-    
+
     # Remove service
     if [ -f /tmp/startup-test-service-id ]; then
         local service_id=$(cat /tmp/startup-test-service-id)
@@ -390,16 +390,16 @@ cleanup_test_resources() {
         rm -f /tmp/startup-test-service-id
         log_info "Test service removed"
     fi
-    
+
     log_success "Test resources cleaned up"
 }
 
 # Generate startup report
 generate_startup_report() {
     log_header "Generating Startup Report"
-    
+
     local report_file="startup-test-report-$(date +%Y%m%d-%H%M%S).md"
-    
+
     cat > "$report_file" << EOF
 # Kong Guard AI Startup Test Report
 
@@ -467,14 +467,14 @@ EOF
 # Main startup test function
 main() {
     local start_time=$(date +%s)
-    
+
     log_header "Kong Guard AI Startup Test"
     echo -e "${CYAN}Testing complete Docker stack startup and plugin integration...${NC}"
     echo
-    
+
     local failed_tests=0
     local total_tests=0
-    
+
     # Prerequisites
     ((total_tests++))
     if ! check_prerequisites; then
@@ -482,10 +482,10 @@ main() {
         log_error "Prerequisites failed, aborting startup test"
         exit 1
     fi
-    
+
     # Cleanup existing
     cleanup_existing
-    
+
     # Start stack
     ((total_tests++))
     if ! start_stack; then
@@ -493,49 +493,49 @@ main() {
         log_error "Failed to start Docker stack"
         exit 1
     fi
-    
+
     # Wait for services
     ((total_tests++))
     if ! wait_for_services; then
         ((failed_tests++))
         log_error "Services failed to become healthy"
     fi
-    
+
     # Test connectivity
     ((total_tests++))
     if ! test_kong_connectivity; then
         ((failed_tests++))
     fi
-    
+
     # Test plugin loading
     ((total_tests++))
     if ! test_plugin_loading; then
         ((failed_tests++))
     fi
-    
+
     # Test plugin enablement
     ((total_tests++))
     if ! test_plugin_enablement; then
         ((failed_tests++))
     fi
-    
+
     # Check logs
     check_plugin_logs
-    
+
     # Generate report
     local report_file=$(generate_startup_report)
-    
+
     # Cleanup test resources
     cleanup_test_resources
-    
+
     # Final summary
     log_header "Startup Test Summary"
-    
+
     echo -e "${BOLD}Total Tests:${NC} $total_tests"
     echo -e "${BOLD}Passed:${NC} $((total_tests - failed_tests))"
     echo -e "${BOLD}Failed:${NC} $failed_tests"
     echo
-    
+
     if [ $failed_tests -eq 0 ]; then
         log_success "🎉 All startup tests passed!"
         log_info "Kong Guard AI is ready for development"
@@ -546,12 +546,12 @@ main() {
         log_error "❌ Startup tests failed"
         log_info "Check the report for troubleshooting steps"
     fi
-    
+
     echo
     log_info "📄 Detailed report: $report_file"
     log_info "🌐 Kong Admin API: http://localhost:8001"
     log_info "🚀 Kong Proxy: http://localhost:8000"
-    
+
     exit $failed_tests
 }
 

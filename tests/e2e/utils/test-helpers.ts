@@ -6,11 +6,11 @@ export class DashboardHelpers {
   async waitForServicesOnline() {
     // Wait for all services to be checked
     await this.page.waitForTimeout(2000);
-    
+
     // Check if services are online
     const kongStatus = await this.page.locator('#kong-status').getAttribute('class');
     const adminStatus = await this.page.locator('#admin-status').getAttribute('class');
-    
+
     if (!kongStatus?.includes('online') || !adminStatus?.includes('online')) {
       console.warn('Some services are not online, waiting...');
       await this.page.waitForTimeout(5000);
