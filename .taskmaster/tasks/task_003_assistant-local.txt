@@ -40,4 +40,3 @@ Configure NGINX to emit logs in JSON or another structured format, ensuring all 
 ### Description: Ensure that all instrumentation logic, including lookups and allocations, keeps request overhead below 10ms.
 ### Details:
 Profile and optimize code paths for metadata capture, counter updates, and log emission. Use efficient data structures and minimize allocations.
-

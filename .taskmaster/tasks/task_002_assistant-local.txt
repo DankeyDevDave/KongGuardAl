@@ -40,4 +40,3 @@ Review each field for best-practice defaults (e.g., empty lists, conservative ra
 ### Description: Validate that the configuration schema and parsing logic work seamlessly with both Kong Admin API and Konnect declarative workflows.
 ### Details:
 Test configuration application via both Admin API and Konnect. Confirm that input validation, defaults, and dry_run gating function identically in both environments.
-

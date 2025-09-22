@@ -40,4 +40,3 @@ Assign API keys to authorized Consumers. Restrict endpoint access to requests pr
 ### Description: Enforce fine-grained access controls and log all access attempts to the endpoint for auditing.
 ### Details:
 Integrate with Kong's ACL plugin if needed. Record access attempts, including timestamp, Consumer, and result, for security auditing.
-

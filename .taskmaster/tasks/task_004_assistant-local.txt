@@ -40,4 +40,3 @@ Design the incident object schema and ensure that every blocked request triggers
 ### Description: Regularly assess and validate the accuracy and performance of blacklist, denylist, and regex rules to minimize false positives/negatives and maintain high detection fidelity.
 ### Details:
 Implement a process to review incident records and detection rules, tuning them for optimal coverage and efficiency. Use historical data and test scenarios to identify broken or inefficient rules.
-

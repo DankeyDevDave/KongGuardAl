@@ -1,18 +1,22 @@
 #!/usr/bin/env lua
 
--- TAXII Module Unit Tests Runner
--- This script runs all unit tests for the TAXII threat intelligence modules
+-- Kong Guard AI Module Unit Tests Runner
+-- This script runs all unit tests for the extracted modules including TAXII and AI
 
 local function run_tests()
     print("=================================")
-    print("TAXII Module Unit Tests")
+    print("Kong Guard AI Module Unit Tests")
     print("=================================")
 
     local test_files = {
+        -- TAXII Module Tests
         "spec/kong-guard-ai/unit/taxii_client_spec.lua",
         "spec/kong-guard-ai/unit/stix_normalizer_spec.lua",
         "spec/kong-guard-ai/unit/taxii_cache_spec.lua",
-        "spec/kong-guard-ai/unit/taxii_scheduler_spec.lua"
+        "spec/kong-guard-ai/unit/taxii_scheduler_spec.lua",
+        -- AI Module Tests
+        "spec/kong-guard-ai/unit/ai/ai_service_spec.lua",
+        "spec/kong-guard-ai/unit/ai/threat_detector_spec.lua"
     }
 
     local total_tests = 0
@@ -49,7 +53,32 @@ end
 
 -- Module test information
 local function print_test_info()
-    print("\nTAXII Module Test Coverage:")
+    print("\nKong Guard AI Module Test Coverage:")
+    print("\n📡 AI Modules:")
+    print("├── AIService")
+    print("│   ├── Initialization & configuration")
+    print("│   ├── AI service communication")
+    print("│   ├── Request data optimization")
+    print("│   ├── Response parsing & validation")
+    print("│   ├── Caching & performance")
+    print("│   ├── Header filtering (privacy)")
+    print("│   ├── Metrics tracking")
+    print("│   ├── Anomaly score calculation")
+    print("│   └── Health checking")
+    print("│")
+    print("├── ThreatDetector")
+    print("│   ├── Pattern-based detection (SQL, XSS, etc.)")
+    print("│   ├── AI integration & threat scoring")
+    print("│   ├── TAXII threat intelligence")
+    print("│   ├── Mesh metadata analysis")
+    print("│   ├── Confidence scoring & learning")
+    print("│   ├── False positive tracking")
+    print("│   ├── Pattern history & analytics")
+    print("│   ├── Cache management")
+    print("│   ├── Learning data export/import")
+    print("│   └── Statistics & cleanup")
+    print("")
+    print("🔍 TAXII Module Test Coverage:")
     print("├── TaxiiClient")
     print("│   ├── Initialization & configuration")
     print("│   ├── Server configuration validation")
@@ -106,6 +135,10 @@ local function print_busted_instructions()
     print("   luarocks install busted")
     print("")
     print("2. Run individual test files:")
+    print("   # AI Module Tests")
+    print("   busted spec/kong-guard-ai/unit/ai/ai_service_spec.lua")
+    print("   busted spec/kong-guard-ai/unit/ai/threat_detector_spec.lua")
+    print("   # TAXII Module Tests")
     print("   busted spec/kong-guard-ai/unit/taxii_client_spec.lua")
     print("   busted spec/kong-guard-ai/unit/stix_normalizer_spec.lua")
     print("   busted spec/kong-guard-ai/unit/taxii_cache_spec.lua")

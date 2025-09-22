@@ -40,4 +40,3 @@ Enable dynamic updates to Kong Gateway routes/services using the Admin API or de
 ### Description: Verify the final state of services/routes after remediation actions using the Kong Admin API to ensure consistency and correctness.
 ### Details:
 Query the Admin API to confirm that configuration changes, reroutes, and rollbacks have been applied as intended. Implement automated checks to detect configuration drift or incomplete rollbacks.
-

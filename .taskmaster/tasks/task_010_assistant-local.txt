@@ -40,4 +40,3 @@ Ensure all packaging scripts and Dockerfiles are tested and produce reproducible
 ### Description: Review, update, and expand the automated test suite to cover feedback loop logic, remediation confirmation/undo, and all documented workflows.
 ### Details:
 Tests should simulate real operator feedback scenarios, including edge cases for reverting actions and updating thresholds. Ensure coverage for all documented features.
-

@@ -40,4 +40,3 @@ Implement basic logging in handler.lua (e.g., in init_worker and access phases).
 ### Description: Test the full stack by sending requests via curl to the demo upstream through Kong, confirming plugin execution and log output.
 ### Details:
 Use curl to send requests to Kong's proxy endpoint. Check that the plugin processes requests and produces expected logs, confirming correct mounting and execution.
-

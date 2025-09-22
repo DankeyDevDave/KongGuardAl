@@ -40,4 +40,3 @@ Track recent notifications, suppress duplicates within a configurable window, an
 ### Description: Provide configuration options for notification targets and workflow behaviors, and validate end-to-end notification and persistence flows.
 ### Details:
 Expose configuration for enabling/disabling channels, setting backoff parameters, and toggling persistence. Ensure workflows respect all settings.
-

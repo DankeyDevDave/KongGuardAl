@@ -40,4 +40,3 @@ Track action state to prevent duplicate application. Implement retry logic with 
 ### Description: Record detailed audit logs for all remediation actions, including entity, action type, parameters, status, and timestamps.
 ### Details:
 Log every attempted and completed remediation action with sufficient metadata for traceability and compliance. Store logs in a persistent and queryable format.
-
