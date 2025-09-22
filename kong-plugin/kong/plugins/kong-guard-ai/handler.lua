@@ -6,6 +6,13 @@ local http = require "resty.http"
 local performance_utils = require "kong.plugins.kong-guard-ai.modules.utils.performance_utils"
 local module_loader = require "kong.plugins.kong-guard-ai.modules.utils.module_loader"
 
+-- Import AI modules
+local ai_service = require "kong.plugins.kong-guard-ai.modules.ai.ai_service"
+local threat_detector = require "kong.plugins.kong-guard-ai.modules.ai.threat_detector"
+
+-- Import threat detection modules
+local threat_orchestrator = require "kong.plugins.kong-guard-ai.modules.threat.threat_orchestrator"
+
 -- Feature cache (kept in main handler for now)
 local _feature_cache = {}
 
@@ -48,6 +55,10 @@ function KongGuardAIHandler:init_worker()
         compliance_reporter.init_worker()
         kong.log.info("Compliance reporter initialized with scheduled reporting")
     end
+
+    -- Initialize AI modules
+    self.ai_service_client = nil  -- Will be initialized per-request as needed
+    self.threat_detector_instance = nil  -- Will be initialized per-request as needed
 
     kong.log.info("Kong Guard AI Enterprise v2.0: Worker initialized with AI capabilities and compliance features")
 end
@@ -1808,106 +1819,20 @@ function KongGuardAIHandler:extract_features_optimized(request, client_ip, confi
 end
 
 -- Optimized threat detection with early returns
+-- Now using extracted threat_detector module
 function KongGuardAIHandler:detect_threat_optimized(features, config)
-    local threat_score = 0
-    local threat_type = "none"
-    local threat_details = get_pooled_table()
-
-    -- Fast pattern-based detection
-    threat_score, threat_type = self:detect_patterns_optimized(features, config)
-
-    -- AI-based detection (lazy loaded)
-    if config.enable_ai_gateway and threat_score < 0.8 then
-        local ai_score, ai_type, ai_details = self:detect_ai_optimized(features, config)
-        if ai_score > threat_score then
-            threat_score = ai_score
-            threat_type = ai_type
-            threat_details.ai_powered = true
-            threat_details.ai_details = ai_details
-        end
+    -- Initialize threat detector instance if needed
+    if not self.threat_detector_instance then
+        self.threat_detector_instance = threat_detector.new(config)
     end
 
-    -- TAXII detection (lazy loaded)
-    if config.enable_taxii_ingestion then
-        local taxii_score, taxii_type, taxii_details = self:check_taxii_optimized(features, config)
-        if taxii_score > threat_score then
-            threat_score = taxii_score
-            threat_type = taxii_type
-            threat_details.taxii = taxii_details
-        end
-    end
-
-    -- Mesh-based detection
-    if features.mesh then
-        local mesh_score = features.mesh.mesh_score or 0
-        if mesh_score > threat_score then
-            threat_score = mesh_score
-            threat_type = "mesh_anomaly"
-            threat_details.mesh = features.mesh
-        end
-    end
-
-    return threat_score, threat_type, threat_details
+    -- Use the extracted threat detector module
+    return self.threat_detector_instance:detect_threat_optimized(features, config)
 end
 
--- Optimized pattern detection
-function KongGuardAIHandler:detect_patterns_optimized(features, config)
-    local score = 0
-    local threat_type = "none"
+-- Pattern detection now handled by threat_detector module
 
-    -- Fast string matching with pre-compiled patterns
-    local input = string.lower((features.path or "") .. " " .. (kong.request.get_raw_query() or ""))
-
-    -- SQL injection patterns
-    if string.match(input, "union%s+select") or string.match(input, "drop%s+table") then
-        score = THREAT_TYPES.sql_injection
-        threat_type = "sql_injection"
-    -- XSS patterns
-    elseif string.match(input, "<script") or string.match(input, "javascript:") then
-        score = THREAT_TYPES.xss
-        threat_type = "xss"
-    -- Path traversal
-    elseif string.match(input, "%.%./") then
-        score = THREAT_TYPES.path_traversal
-        threat_type = "path_traversal"
-    -- DDoS patterns
-    elseif features.requests_per_minute > config.ddos_rpm_threshold then
-        score = 0.8
-        threat_type = "ddos"
-    end
-
-    return score, threat_type
-end
-
--- Optimized AI detection
-function KongGuardAIHandler:detect_ai_optimized(features, config)
-    local ai_service_url = os.getenv("AI_SERVICE_URL") or config.ai_service_url
-    if not ai_service_url then return 0, "none", {} end
-
-    local httpc = http.new()
-    httpc:set_timeout(200)  -- Reduced timeout for performance
-
-    local request_data = {
-        method = features.method,
-        path = features.path,
-        client_ip = features.client_ip,
-        user_agent = features.user_agent,
-        requests_per_minute = features.requests_per_minute
-    }
-
-    local res, err = httpc:request_uri(ai_service_url .. "/analyze", {
-        method = "POST",
-        body = cjson.encode(request_data),
-        headers = {["Content-Type"] = "application/json"}
-    })
-
-    if res and res.status == 200 then
-        local ai_analysis = cjson.decode(res.body)
-        return ai_analysis.threat_score or 0, ai_analysis.threat_type or "none", ai_analysis
-    end
-
-    return 0, "none", {}
-end
+-- AI detection now handled by ai_service module
 
 -- Optimized TAXII checking
 function KongGuardAIHandler:check_taxii_optimized(features, config)
