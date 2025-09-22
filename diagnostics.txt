@@ -9,19 +9,19 @@ Docker container status:
 konga                    Created
 kong-gateway             Created
 kong-migrations          Created
-kong-guard-grafana       Up Less than a second (health: starting)
-konga-prepare            Up Less than a second
-kong-database            Created
-kong-guard-dashboard     Up 30 seconds (health: starting)
-mock-attacker            Up 30 seconds (healthy)
-kong-redis               Created
-konga-database           Up 30 seconds (healthy)
-kong-guard-ai-cloud      Up 30 seconds (healthy)
-kong-guard-ai-ollama     Up 30 seconds (healthy)
-kong-guard-prometheus    Up 30 seconds (healthy)
-demo-api                 Up 30 seconds (health: starting)
-psg_redis_commander      Up 2 hours (healthy)
-psg_redis                Up 2 hours (healthy)
+konga-prepare            Created
+kong-guard-grafana       Created
+kong-database            Up 1 second (health: starting)
+kong-redis               Up 1 second (health: starting)
+kong-guard-dashboard     Up 1 second (health: starting)
+mock-attacker            Up 1 second (health: starting)
+konga-database           Up 1 second (health: starting)
+kong-guard-ai-ollama     Up 1 second (health: starting)
+kong-guard-prometheus    Up 1 second (health: starting)
+kong-guard-ai-cloud      Up 1 second (health: starting)
+demo-api                 Up 1 second (health: starting)
+psg_redis_commander      Up 40 hours (healthy)
+psg_redis                Up 40 hours (healthy)
 
 Recent Docker logs:
 
@@ -29,10 +29,33 @@ Recent Docker logs:
 
 --- kong-database logs ---
 
---- kong-redis logs ---
+PostgreSQL Database directory appears to contain a database; Skipping initialization
 
+2025-09-18 01:50:11.900 UTC [1] LOG:  starting PostgreSQL 13.22 (Debian 13.22-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2025-09-18 01:50:11.902 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-09-18 01:50:11.902 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2025-09-18 01:50:11.911 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2025-09-18 01:50:11.920 UTC [27] LOG:  database system was shut down at 2025-09-18 01:50:06 UTC
+2025-09-18 01:50:11.929 UTC [1] LOG:  database system is ready to accept connections
+--- kong-redis logs ---
+1:C 18 Sep 2025 01:50:11.818 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 18 Sep 2025 01:50:11.818 * Redis version=7.4.5, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 18 Sep 2025 01:50:11.818 * Configuration loaded
+1:M 18 Sep 2025 01:50:11.818 * monotonic clock: POSIX clock_gettime
+1:M 18 Sep 2025 01:50:11.819 * Running mode=standalone, port=6379.
+1:M 18 Sep 2025 01:50:11.820 * Server initialized
+1:M 18 Sep 2025 01:50:11.839 * Reading RDB base file on AOF loading...
+1:M 18 Sep 2025 01:50:11.839 * Loading RDB produced by version 7.4.5
+1:M 18 Sep 2025 01:50:11.839 * RDB age 2473773 seconds
+1:M 18 Sep 2025 01:50:11.839 * RDB memory usage when created 0.93 Mb
+1:M 18 Sep 2025 01:50:11.839 * RDB is base AOF
+1:M 18 Sep 2025 01:50:11.840 * Done loading RDB, keys loaded: 0, keys expired: 0.
+1:M 18 Sep 2025 01:50:11.841 * DB loaded from base file appendonly.aof.1.base.rdb: 0.003 seconds
+1:M 18 Sep 2025 01:50:11.842 * DB loaded from append only file: 0.011 seconds
+1:M 18 Sep 2025 01:50:11.842 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+1:M 18 Sep 2025 01:50:11.842 * Ready to accept connections tcp
 --- demo-api logs ---
-[2025-09-16 08:14:49 +0000] [1] [INFO] Starting gunicorn 19.9.0
-[2025-09-16 08:14:49 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
-[2025-09-16 08:14:49 +0000] [1] [INFO] Using worker: gevent
-[2025-09-16 08:14:49 +0000] [9] [INFO] Booting worker with pid: 9
+[2025-09-18 01:50:12 +0000] [1] [INFO] Starting gunicorn 19.9.0
+[2025-09-18 01:50:12 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2025-09-18 01:50:12 +0000] [1] [INFO] Using worker: gevent
+[2025-09-18 01:50:12 +0000] [9] [INFO] Booting worker with pid: 9

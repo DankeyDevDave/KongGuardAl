@@ -1,0 +1,43 @@
+# Task ID: 2
+# Title: Implement Configuration Schema and Dry-Run Mode
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Define schema.lua fields (ip_blacklist, method_denylist, rate_limit, burst_threshold, dry_run, admin_api, notification_targets). Parse config and gate actions behind dry_run.
+# Details:
+Ensure declarative Admin API/Konnect compatibility and input validation. Expose sane defaults. All enforcement paths must check dry_run first before initiating any remediation.
+
+# Test Strategy:
+Apply a config with dry_run: true and rules set; trigger detection and confirm only logs occur. Flip to dry_run: false and verify enforcement is executed.
+
+# Subtasks:
+## 1. Define Configuration Schema Fields in schema.lua [done]
+### Dependencies: None
+### Description: Specify all required fields in schema.lua: ip_blacklist, method_denylist, rate_limit, burst_threshold, dry_run, admin_api, and notification_targets, ensuring type, default values, and documentation are present.
+### Details:
+Use declarative schema definitions compatible with Kong's plugin system. Ensure each field has input validation and sensible defaults. Document each field for clarity and future maintenance.
+
+## 2. Implement Configuration Parsing and Validation Logic [done]
+### Dependencies: 2.1
+### Description: Develop logic to parse incoming configuration, validate against schema.lua, and handle errors gracefully.
+### Details:
+Integrate input validation routines to reject invalid configurations. Ensure compatibility with both declarative Admin API and Konnect workflows. Log validation errors with sufficient detail for troubleshooting.
+
+## 3. Integrate Dry-Run Mode Enforcement Gate [done]
+### Dependencies: 2.2
+### Description: Ensure all enforcement and remediation paths check the dry_run flag before executing any action, gating real enforcement behind this setting.
+### Details:
+Refactor enforcement logic so that when dry_run is true, actions are logged but not executed. When false, full enforcement proceeds. Maintain clear separation between detection and remediation.
+
+## 4. Expose and Document Sane Defaults for All Fields [done]
+### Dependencies: 2.1
+### Description: Set and document reasonable default values for all configuration fields to ensure safe and predictable plugin behavior out-of-the-box.
+### Details:
+Review each field for best-practice defaults (e.g., empty lists, conservative rate limits). Update schema.lua and documentation to reflect these defaults. Ensure defaults are compatible with Admin API/Konnect.
+
+## 5. Ensure Declarative Admin API and Konnect Compatibility [done]
+### Dependencies: 2.2, 2.4
+### Description: Validate that the configuration schema and parsing logic work seamlessly with both Kong Admin API and Konnect declarative workflows.
+### Details:
+Test configuration application via both Admin API and Konnect. Confirm that input validation, defaults, and dry_run gating function identically in both environments.
+

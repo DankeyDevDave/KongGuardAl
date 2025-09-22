@@ -1,0 +1,43 @@
+# Task ID: 5
+# Title: Threshold and Anomaly Detection
+# Status: done
+# Dependencies: 4
+# Priority: medium
+# Description: Detect bursts, per-IP rate spikes, error-rate spikes, and anomalous payload sizes using sliding windows computed in the log phase.
+# Details:
+Implement moving average/EMA in ngx.shared.dict with configurable thresholds and 1m/5m windows. Avoid global locks and keep computations lightweight.
+
+# Test Strategy:
+Replay burst traffic and induce 5xx responses in a mock upstream; verify incidents are created and overhead remains minimal.
+
+# Subtasks:
+## 1. Design Sliding Window Data Structures in ngx.shared.dict [done]
+### Dependencies: None
+### Description: Define and implement efficient data structures in ngx.shared.dict to maintain per-metric and per-IP sliding windows for 1m and 5m intervals, supporting moving average and EMA calculations.
+### Details:
+Ensure the design supports concurrent updates without global locks and is optimized for minimal memory and CPU overhead.
+
+## 2. Implement Configurable Threshold Evaluation Logic [done]
+### Dependencies: 5.1
+### Description: Develop logic to compare computed metrics (rate, error rate, payload size) against configurable thresholds for each sliding window, supporting both static and dynamic (e.g., Z-score) thresholds.
+### Details:
+Allow thresholds to be set per metric and window, and support both absolute and statistical (e.g., standard deviation-based) thresholds.
+
+## 3. Detect and Classify Anomalies in Log Phase [done]
+### Dependencies: 5.2
+### Description: Integrate anomaly detection logic into the log phase to identify bursts, per-IP rate spikes, error-rate spikes, and anomalous payload sizes in real time.
+### Details:
+Apply moving average/EMA and threshold logic to incoming log data, tagging and classifying anomalies by type and severity.
+
+## 4. Emit and Store Incident Records for Detected Anomalies [done]
+### Dependencies: 5.3
+### Description: Generate structured incident records when anomalies are detected, including type, scope, evidence, and threshold context, and store them for downstream processing or alerting.
+### Details:
+Ensure incident records are lightweight, deduplicated within window, and compatible with existing logging/alerting pipelines.
+
+## 5. Optimize and Validate Performance Under Load [done]
+### Dependencies: 5.4
+### Description: Profile and optimize the implementation to ensure all computations remain lightweight, avoid global locks, and maintain low overhead during high traffic.
+### Details:
+Benchmark CPU, memory, and latency impact under simulated burst and error traffic; tune data structures and logic as needed.
+

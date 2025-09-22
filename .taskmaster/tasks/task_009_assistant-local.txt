@@ -1,0 +1,43 @@
+# Task ID: 9
+# Title: Status and Incident Reporting Endpoint
+# Status: done
+# Dependencies: 6
+# Priority: low
+# Description: Expose a read-only status/incident endpoint via a dedicated Kong Service/Route secured with key-auth.
+# Details:
+Return current plugin status, configuration snapshot, and the last N incidents from shared dict or Redis. Ensure appropriate access controls.
+
+# Test Strategy:
+Trigger incidents, then GET the endpoint. Verify JSON contains correct fields and that unauthorized requests are rejected.
+
+# Subtasks:
+## 1. Design Status/Incident Endpoint Schema [done]
+### Dependencies: None
+### Description: Define the JSON structure for the endpoint response, including plugin status, configuration snapshot, and last N incidents.
+### Details:
+Specify required fields, data types, and validation rules for status, configuration, and incident records. Ensure compatibility with Kong conventions.
+
+## 2. Implement Data Retrieval Logic [done]
+### Dependencies: 9.1
+### Description: Develop logic to fetch current plugin status, configuration snapshot, and last N incidents from shared dict or Redis.
+### Details:
+Integrate with Kong's plugin context to access status and configuration. Query shared dict or Redis for incident history, handling pagination and error cases.
+
+## 3. Expose Endpoint via Kong Service/Route [done]
+### Dependencies: 9.2
+### Description: Create a dedicated Kong Service and Route for the status/incident endpoint.
+### Details:
+Configure Kong to route requests to the new endpoint. Ensure the route is read-only and does not allow modification of data.
+
+## 4. Secure Endpoint with Key Authentication [done]
+### Dependencies: 9.3
+### Description: Apply Kong's key-auth plugin to the endpoint and configure Consumers and credentials for access control.
+### Details:
+Assign API keys to authorized Consumers. Restrict endpoint access to requests presenting valid keys, following Kong best practices.
+
+## 5. Implement Access Control and Audit Logging [done]
+### Dependencies: 9.4
+### Description: Enforce fine-grained access controls and log all access attempts to the endpoint for auditing.
+### Details:
+Integrate with Kong's ACL plugin if needed. Record access attempts, including timestamp, Consumer, and result, for security auditing.
+

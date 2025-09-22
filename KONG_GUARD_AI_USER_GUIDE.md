@@ -1,367 +1,519 @@
-# Kong Guard AI + Claude-Flow User Guide
-## Getting Maximum Value from Your AI-Enhanced Security Platform
+# Kong Guard AI User Guide
+## Comprehensive Security Platform for Kong Gateway
 
-### 🎯 **What You Have Built**
+### 🎯 **Overview**
 
-You now have a production-ready Kong Gateway security plugin enhanced with Claude-Flow v2.0.0 Alpha that provides:
-- **<10ms latency** threat detection with 80+ attack patterns
-- **AI-powered coordination** for security incident response
-- **Neural threat prediction** with continuous learning
-- **Dynamic agent scaling** based on threat levels
-- **Cross-session memory** for threat intelligence
+Kong Guard AI transforms your Kong Gateway into an intelligent, multi-layered security platform that provides:
 
----
-
-## 🚀 **Quick Start: Your First Security Operation**
-
-### **1. Initialize Your Security Swarm**
-```bash
-/swarm-init hierarchical 6
-```
-*Creates a coordinated team of AI agents for security operations*
-
-### **2. Deploy Security Team**
-```bash
-/spawn-agents security,analyst,researcher 3
-```
-*Spawns specialized agents: threat detection, analysis, and research*
-
-### **3. Check Kong Guard AI Status**
-```bash
-/kong-security status
-```
-*Verifies your Kong Gateway security plugin is active and healthy*
+- **🔍 Real-time Threat Detection** - ML-powered anomaly detection with static rules and dynamic thresholds
+- **🤖 Autonomous Response** - Automatic blocking, rate limiting, and traffic rerouting
+- **🧠 Continuous Learning** - Operator feedback loop to adapt thresholds and reduce false positives
+- **🛡️ Multi-Protocol Protection** - HTTP/S, GraphQL, gRPC, and WebSocket security
+- **🌐 Threat Intelligence** - TAXII/STIX feed integration for real-time threat data
+- **🔒 Advanced Fingerprinting** - TLS (JA3/JA4) and service mesh metadata analysis
+- **📊 Comprehensive Monitoring** - Detailed metrics and alerting capabilities
 
 ---
 
-## 🛡️ **Daily Security Operations**
+## 🚀 **Quick Start**
 
-### **Morning Security Check**
+### **Basic Installation**
+
 ```bash
-# Quick health check
-/kong-security metrics
-/swarm-status
+# Clone the repository
+git clone https://github.com/yourusername/kong-guard-ai.git
+cd kong-guard-ai
 
-# Review overnight threats
-/memory-store "daily-check-$(date +%Y%m%d)" "Security status review" daily-ops
+# Start Kong with Guard AI plugin
+docker-compose -f docker-compose-simple.yml up -d
+
+# Test basic functionality
+curl "http://localhost:8000/demo/get?q='; DROP TABLE users;"  # Should be blocked
 ```
 
-### **Threat Investigation**
-```bash
-# When you detect suspicious activity
-/orchestrate "Investigate suspicious traffic from IP range 203.0.113.0/24"
+### **Essential Configuration**
 
-# Store findings
-/memory-store "threat-analysis-$(date +%s)" "SQL injection attempts blocked" incidents
-```
+```yaml
+plugins:
+- name: kong-guard-ai
+  config:
+    # Core settings
+    block_threshold: 0.8
+    rate_limit_threshold: 0.6
+    dry_run: false  # Set to true for testing
 
-### **Performance Optimization**
-```bash
-# Weekly performance review
-/performance-report 7d detailed
-
-# Train neural models with new threat data
-/neural-train prediction "weekly-threat-data"
+    # Enable key features
+    enable_ml_detection: true
+    enable_notifications: true
+    metrics_enabled: true
 ```
 
 ---
 
-## 🎯 **Specific Use Cases & Commands**
+## 🛡️ **Core Security Features**
 
-### **🚨 High-Severity Incident Response**
+### **1. Traditional Threat Detection**
 
-**Scenario**: Multiple failed login attempts detected
-```bash
-# 1. Spawn emergency response team
-/spawn-agents security,analyst,coordinator 3
-
-# 2. Coordinate incident response
-/orchestrate "Analyze and respond to brute force attack on /api/login endpoint"
-
-# 3. Check Kong metrics for attack patterns
-/kong-security threats
-
-# 4. Store incident details
-/memory-store "incident-bruteforce-$(date +%s)" "Blocked 500+ attempts from 10 IPs" security-incidents
-
-# 5. Train neural model with attack data
-/neural-train prediction "brute-force-patterns.json"
+**SQL Injection Protection**
+```yaml
+config:
+  sql_injection_patterns:
+    - "union%s+select"
+    - "drop%s+table"
+    - "insert%s+into"
+    - "select%s+from"
 ```
 
-### **🔍 Proactive Threat Hunting**
-
-**Scenario**: Looking for advanced persistent threats
-```bash
-# 1. Initialize research-focused swarm
-/swarm-init mesh 8
-
-# 2. Spawn threat hunting team
-/spawn-agents researcher,analyst,security 4
-
-# 3. Coordinate deep analysis
-/orchestrate "Hunt for APT indicators across 30-day traffic logs using ML pattern recognition"
-
-# 4. Review historical threat intelligence
-/memory-store "threat-hunt-$(date +%Y%m%d)" "Baseline analysis complete" threat-hunting
+**XSS Prevention**
+```yaml
+config:
+  xss_patterns:
+    - "<script"
+    - "javascript:"
+    - "onerror="
+    - "onload="
 ```
 
-### **⚡ Performance Tuning**
-
-**Scenario**: Kong Gateway latency increasing
-```bash
-# 1. Performance-focused swarm
-/spawn-agents optimizer,analyst 2
-
-# 2. Analyze bottlenecks
-/performance-report 24h detailed
-
-# 3. Coordinate optimization
-/orchestrate "Optimize Kong Guard AI plugin performance while maintaining <10ms latency requirement"
-
-# 4. Train optimization neural patterns
-/neural-train optimization "performance-metrics.json"
+**DDoS Protection**
+```yaml
+config:
+  ddos_rpm_threshold: 100
+  rate_limit_duration: 300
+  rate_limit_requests: 10
 ```
 
-### **🔐 Security Policy Updates**
+### **2. Machine Learning Detection**
 
-**Scenario**: New attack vectors discovered
+```yaml
+config:
+  enable_ml_detection: true
+  anomaly_threshold: 0.7
+  enable_learning: true
+  learning_rate: 0.001
+```
+
+**Features analyzed:**
+- Request patterns and timing
+- Payload characteristics
+- Header anomalies
+- Geographic and behavioral patterns
+
+### **3. AI Gateway Integration**
+
+```yaml
+config:
+  enable_ai_gateway: true
+  ai_service_url: "http://ai-service:8000"
+  ai_model: "claude-3-haiku"
+  ai_temperature: 0.1
+```
+
+Provides advanced threat analysis using large language models for complex attack pattern recognition.
+
+---
+
+## 🌐 **Advanced Protocol Protection**
+
+### **GraphQL Security**
+
+Protect GraphQL APIs from query complexity attacks:
+
+```yaml
+config:
+  enable_graphql_detection: true
+  graphql_max_depth: 12
+  graphql_max_complexity: 2000
+```
+
+**Features:**
+- Query depth limiting to prevent deeply nested queries
+- Complexity scoring to block resource-intensive operations
+- Automatic detection of GraphQL endpoints
+
+**Example blocked query:**
+```graphql
+query AttackQuery {
+  user {
+    posts {
+      comments {
+        replies {
+          # ... deeply nested structure
+        }
+      }
+    }
+  }
+}
+```
+
+### **gRPC Security**
+
+Secure gRPC services with method-level controls:
+
+```yaml
+config:
+  enable_grpc_detection: true
+  grpc_max_message_size: 4194304  # 4MB
+  grpc_blocked_methods:
+    - "admin.*"
+    - "*.DeleteUser"
+  grpc_rate_limit_per_method: 100
+```
+
+**Features:**
+- Method pattern blocking (wildcard support)
+- Message size limits
+- Per-method rate limiting
+- Automatic gRPC detection
+
+### **Request Normalization**
+
+Standardize requests before analysis to improve detection accuracy:
+
+```yaml
+config:
+  normalize_url: true
+  normalize_body: false
+  normalization_profile: "lenient"  # or "strict"
+```
+
+**URL Normalization:**
+- Decode percent-encoding
+- Normalize path separators
+- Remove redundant slashes
+- Case normalization
+
+**Body Normalization:**
+- JSON pretty-printing standardization
+- XML formatting normalization
+- Form data ordering
+
+---
+
+## 🔒 **Advanced Security Features**
+
+### **TLS Fingerprinting**
+
+Analyze TLS client behavior to detect malicious tools and bots:
+
+```yaml
+config:
+  enable_tls_fingerprints: true
+  tls_header_map:
+    ja3: "X-JA3"
+    ja4: "X-JA4"
+    tls_version: "X-TLS-Version"
+  tls_cache_ttl_seconds: 600
+  tls_score_weights:
+    match_blocklist: 0.7
+    ua_mismatch: 0.2
+    rare_fingerprint: 0.2
+```
+
+**Supported Headers:**
+- JA3/JA3S fingerprints
+- JA4/JA4S fingerprints
+- TLS version and cipher information
+- SNI (Server Name Indication)
+
+### **TAXII/STIX Threat Intelligence**
+
+Integrate real-time threat intelligence feeds:
+
+```yaml
+config:
+  enable_taxii_ingestion: true
+  taxii_version: "2.1"
+  taxii_poll_interval_seconds: 300
+  taxii_servers:
+    - url: "https://threat-intel.example.com/taxii2"
+      collections: ["indicators", "malware"]
+      auth_type: "bearer"
+      token: "your-api-token"
+```
+
+**Supported Indicators:**
+- IP addresses and CIDR blocks
+- Domain names (wildcards supported)
+- URLs and URL patterns
+- File hashes (MD5, SHA-1, SHA-256)
+- TLS fingerprints (JA3/JA4)
+
+### **Kubernetes/Service Mesh Integration**
+
+Analyze service mesh metadata for advanced threat detection:
+
+```yaml
+config:
+  enable_mesh_enricher: true
+  mesh_header_map:
+    namespace: "X-K8s-Namespace"
+    service: "X-K8s-Service"
+    mesh_source: "X-Mesh-Source"
+  mesh_risky_namespaces:
+    - "admin"
+    - "kube-system"
+  mesh_score_weights:
+    cross_namespace: 0.3
+    risky_namespace: 0.8
+    unusual_pair: 0.3
+```
+
+**Detects:**
+- Cross-namespace communication anomalies
+- Access to high-privilege namespaces
+- Unusual service communication patterns
+- Missing service mesh metadata
+
+---
+
+## 📊 **Monitoring and Alerting**
+
+### **Metrics Collection**
+
+```yaml
+config:
+  metrics_enabled: true
+  log_level: "info"
+  log_threats: true
+  log_decisions: true
+```
+
+**Available Metrics:**
+- Total requests processed
+- Threats detected by type
+- Blocking and rate limiting actions
+- AI analysis performance
+- Protocol-specific metrics (GraphQL, gRPC)
+- Mesh communication patterns
+
+### **Notifications**
+
+Configure alerts for security events:
+
+```yaml
+config:
+  enable_notifications: true
+  notification_channels: ["webhook", "slack"]
+  notification_url: "https://hooks.slack.com/your-webhook"
+```
+
+**Notification Types:**
+- High-severity threats blocked
+- Unusual traffic patterns detected
+- New threat intelligence indicators
+- System health alerts
+
+### **Grafana Integration**
+
+Monitor Kong Guard AI with Grafana dashboards:
+
 ```bash
-# 1. Policy update coordination
-/orchestrate "Update Kong Guard AI threat patterns for new CVE-2024-XXXX exploitation attempts"
+# Start monitoring stack
+docker-compose -f docker-compose-with-monitoring.yml up -d
 
-# 2. Test new patterns
-/kong-security config
+# Access Grafana
+open http://localhost:3000
+```
 
-# 3. Store policy decisions
-/memory-store "policy-update-$(date +%Y%m%d)" "Added patterns for CVE-2024-XXXX" policy-updates
+**Dashboard Panels:**
+- Threat detection rates
+- Request processing latency
+- AI analysis success rates
+- Geographic threat distribution
+- Service mesh communication flows
 
-# 4. Train with new threat signatures
-/neural-train prediction "new-cve-patterns.json"
+---
+
+## 🔧 **Configuration Reference**
+
+### **Threat Thresholds**
+
+```yaml
+config:
+  block_threshold: 0.8          # Block requests above this score
+  rate_limit_threshold: 0.6     # Rate limit suspicious requests
+  anomaly_threshold: 0.7        # ML anomaly detection sensitivity
+```
+
+### **Performance Tuning**
+
+```yaml
+config:
+  ai_service_timeout: 500       # AI analysis timeout (ms)
+  mesh_cache_ttl_seconds: 300   # Mesh metadata cache TTL
+  taxii_poll_interval_seconds: 300  # Threat intel refresh rate
+```
+
+### **Security Policies**
+
+```yaml
+config:
+  blocked_countries: ["XX", "YY"]  # ISO country codes
+  blocked_ips: ["192.168.1.100"]  # Specific IP addresses
+  whitelist_ips: ["10.0.0.0/8"]   # Trusted IP ranges
 ```
 
 ---
 
-## 🧠 **Advanced AI Coordination Patterns**
+## 🚨 **Incident Response**
 
-### **Multi-Phase Security Enhancement**
-```bash
-# Phase 1: Intelligence Gathering
-/orchestrate "Research latest API security threats and attack vectors"
+### **High-Severity Threats**
 
-# Phase 2: Pattern Development  
-/orchestrate "Develop Kong Guard AI detection patterns for identified threats"
+When Kong Guard AI detects critical threats:
 
-# Phase 3: Testing & Validation
-/orchestrate "Test new patterns against historical attack data"
+1. **Immediate Response:**
+   - Request blocked with 403 status
+   - Incident ID generated for tracking
+   - Notifications sent to configured channels
 
-# Phase 4: Deployment
-/orchestrate "Deploy validated patterns to production Kong Guard AI"
+2. **Investigation:**
+   ```bash
+   # Check recent threats
+   curl http://localhost:8001/kong-guard-ai/metrics
+
+   # Review specific incident
+   grep "incident_id:12345" /var/log/kong/error.log
+   ```
+
+3. **Mitigation:**
+   - Update threat intelligence feeds
+   - Adjust detection thresholds if needed
+   - Review and update blocking rules
+
+### **False Positive Handling**
+
+```yaml
+config:
+  enable_learning: true
+  feedback_endpoint: "/kong-guard-ai/feedback"
 ```
 
-### **Continuous Learning Pipeline**
+**Feedback API:**
 ```bash
-# Daily: Collect threat intelligence
-/memory-store "daily-intel-$(date +%Y%m%d)" "$(curl -s threat-intel-api)" threat-intelligence
-
-# Weekly: Retrain neural models
-/neural-train coordination "weekly-coordination-data"
-/neural-train prediction "weekly-threat-data" 
-
-# Monthly: Comprehensive analysis
-/performance-report 30d json > monthly-analysis.json
-/orchestrate "Analyze monthly security trends and recommend platform improvements"
-```
-
----
-
-## 📊 **Monitoring & Alerting Workflows**
-
-### **Real-Time Monitoring Setup**
-```bash
-# Initialize monitoring swarm
-/swarm-init star 4
-/spawn-agents monitor,analyst 2
-
-# Continuous threat monitoring
-/orchestrate "Monitor Kong Guard AI metrics for anomalies and auto-scale response based on threat levels"
-```
-
-### **Alert Response Automation**
-```bash
-# When high-severity alert triggered
-/spawn-agents security,coordinator 2
-/kong-security incidents
-/orchestrate "Respond to critical security alert: $(alert-details)"
-/memory-store "alert-response-$(date +%s)" "$(response-actions)" incident-responses
+# Mark detection as false positive
+curl -X POST http://localhost:8001/kong-guard-ai/feedback \
+  -H "Content-Type: application/json" \
+  -d '{"incident_id": "12345", "feedback": "false_positive"}'
 ```
 
 ---
 
-## 🔧 **Troubleshooting Common Scenarios**
+## 🔄 **Operational Procedures**
 
-### **Kong Plugin Not Responding**
+### **Daily Operations**
+
+**Morning Security Check:**
 ```bash
-# Diagnostic coordination
-/spawn-agents analyst,coordinator 2
-/orchestrate "Diagnose Kong Guard AI plugin connectivity and performance issues"
-/kong-security status
+# Check overnight activity
+curl http://localhost:8001/kong-guard-ai/metrics | jq .
+
+# Review threat intelligence updates
+curl http://localhost:8001/kong-guard-ai/taxii/status
 ```
 
-### **High False Positive Rate**
+**Threat Analysis:**
 ```bash
-# Pattern refinement
-/neural-train prediction "validated-traffic-patterns.json" 
-/orchestrate "Analyze false positives and refine Kong Guard AI detection algorithms"
-/memory-store "tuning-$(date +%Y%m%d)" "Reduced false positives by refining patterns" optimizations
+# View top threat sources
+curl http://localhost:8001/kong-guard-ai/threats/top-sources
+
+# Check mesh communication patterns
+curl http://localhost:8001/kong-guard-ai/mesh/pairs
 ```
 
-### **Performance Degradation**
+### **Maintenance Tasks**
+
+**Weekly:**
+- Review false positive feedback
+- Update threat intelligence configurations
+- Analyze performance metrics
+- Check for plugin updates
+
+**Monthly:**
+- Security posture assessment
+- Configuration optimization
+- Disaster recovery testing
+- Documentation updates
+
+---
+
+## 🛠️ **Troubleshooting**
+
+### **Common Issues**
+
+**No threats detected:**
+- Verify plugin is enabled on routes
+- Check threat thresholds (may be too high)
+- Ensure traffic is reaching Kong
+
+**High false positive rate:**
+- Review detection patterns
+- Adjust threshold values
+- Enable learning mode
+- Check for legitimate automation
+
+**Performance issues:**
+- Monitor AI service response times
+- Optimize caching settings
+- Review resource allocation
+
+### **Debug Mode**
+
+```yaml
+config:
+  log_level: "debug"
+  log_requests: true
+  dry_run: true  # Test without blocking
+```
+
+**Log Analysis:**
 ```bash
-# Performance recovery
-/performance-report 1h detailed
-/spawn-agents optimizer 2
-/orchestrate "Identify and resolve Kong Gateway performance bottlenecks"
+# Follow Kong logs
+tail -f /var/log/kong/error.log | grep kong-guard-ai
+
+# Check AI service logs
+docker logs ai-service
+
+# Monitor metrics
+watch -n 5 'curl -s http://localhost:8001/kong-guard-ai/metrics'
 ```
 
 ---
 
-## 💡 **Pro Tips for Maximum Value**
+## 📚 **Additional Resources**
 
-### **1. Memory Management Strategy**
-```bash
-# Organize memory by namespace for easy retrieval
-/memory-store "key" "value" incidents        # Security incidents
-/memory-store "key" "value" policy-updates   # Configuration changes  
-/memory-store "key" "value" optimizations    # Performance improvements
-/memory-store "key" "value" threat-intel     # Intelligence gathering
-```
+### **Documentation Links**
+- [Configuration Reference](docs/CONFIGURATION_REFERENCE.md)
+- [Migration Guide](docs/MIGRATION_GUIDE.md)
+- [TLS Fingerprinting](docs/TLS_FINGERPRINTING.md)
+- [TAXII/STIX Integration](TAXII_STIX_User_Guide.md)
+- [Mesh Enricher](docs/mesh-enricher.md)
+- [Examples and Recipes](docs/EXAMPLES.md)
 
-### **2. Neural Model Training Schedule**
-```bash
-# Daily: Quick coordination training
-/neural-train coordination --epochs 10
+### **Support**
+- GitHub Issues: Report bugs and feature requests
+- Security Issues: security@yourcompany.com
+- Community: Kong Community Forum
 
-# Weekly: Comprehensive prediction training  
-/neural-train prediction "weekly-data.json" --epochs 50
-
-# Monthly: Full optimization training
-/neural-train optimization "monthly-metrics.json" --epochs 100
-```
-
-### **3. Swarm Topology Selection**
-- **Hierarchical**: Best for incident response (clear command structure)
-- **Mesh**: Best for threat hunting (collaborative investigation)
-- **Star**: Best for monitoring (centralized coordination)
-- **Ring**: Best for policy updates (sequential validation)
-
-### **4. Agent Specialization**
-- **Security**: Threat detection and incident response
-- **Analyst**: Data analysis and pattern recognition
-- **Researcher**: Threat intelligence and trend analysis
-- **Coordinator**: Task orchestration and resource management
-- **Optimizer**: Performance tuning and efficiency
+### **Development**
+- Plugin Development Guide
+- API Reference
+- Testing Framework
+- Contributing Guidelines
 
 ---
 
-## 📈 **Success Metrics to Track**
+## 🔐 **Security Considerations**
 
-### **Security Effectiveness**
-```bash
-# Weekly security report
-/performance-report 7d summary
-/kong-security metrics
-/memory-store "weekly-metrics-$(date +%Y%m%d)" "$(security-summary)" metrics
-```
+### **Data Privacy**
+- Configure log sanitization for PII
+- Review data retention policies
+- Implement secure key management
+- Regular security audits
 
-### **Key Performance Indicators**
-- **Threat Detection Rate**: >95% of known attacks blocked
-- **False Positive Rate**: <2% legitimate traffic flagged
-- **Response Time**: <10ms latency maintained
-- **Neural Accuracy**: >80% threat prediction accuracy
-- **Agent Coordination**: <5s task handoff time
+### **Production Deployment**
+- Use TLS for all communications
+- Implement proper RBAC
+- Monitor for security updates
+- Maintain incident response procedures
 
-### **Operational Efficiency**
-```bash
-# Monthly efficiency analysis
-/orchestrate "Analyze operational efficiency: automation rates, manual intervention frequency, cost optimization"
-```
-
----
-
-## 🎯 **Real-World Scenarios**
-
-### **Scenario 1: E-commerce Site Under Attack**
-```bash
-/swarm-init hierarchical 8
-/spawn-agents security,analyst,coordinator 4
-/orchestrate "Defend e-commerce API against coordinated DDoS and scraping attacks while maintaining customer access"
-/kong-security threats
-/neural-train prediction "attack-vectors.json"
-```
-
-### **Scenario 2: API Rate Limiting Optimization**
-```bash
-/spawn-agents optimizer,analyst 2
-/orchestrate "Optimize Kong Guard AI rate limiting for mobile app traffic patterns while preventing abuse"
-/performance-report 24h detailed
-/memory-store "rate-limit-tuning" "Optimized for mobile patterns" optimizations
-```
-
-### **Scenario 3: Compliance Audit Preparation**
-```bash
-/spawn-agents researcher,analyst 2
-/orchestrate "Prepare security compliance documentation and evidence for SOC2/PCI audit"
-/memory-store "compliance-prep-$(date +%Y%m%d)" "Generated audit evidence" compliance
-```
-
----
-
-## 🔄 **Integration with Development Workflow**
-
-### **Pre-Deployment Security Check**
-```bash
-# Before production deployment
-/spawn-agents security,tester 2
-/orchestrate "Security test new API endpoints against Kong Guard AI threat patterns"
-/kong-security config
-```
-
-### **Post-Deployment Monitoring**
-```bash
-# After production deployment
-/orchestrate "Monitor new deployment for 24 hours with enhanced threat detection"
-/neural-train coordination "deployment-patterns.json"
-```
-
----
-
-## 📞 **Getting Help**
-
-### **Command Reference**
-```bash
-/claude-flow-help          # All available commands
-/claude-flow-help swarm    # Swarm management commands
-/claude-flow-help security # Security-specific commands
-```
-
-### **Troubleshooting**
-```bash
-/swarm-status detailed     # Check system health
-/performance-report 1h     # Recent performance analysis
-/kong-security status      # Plugin connectivity check
-```
-
----
-
-## 🏆 **Success Stories Template**
-
-Document your wins for team sharing:
-```bash
-/memory-store "success-$(date +%Y%m%d)" "Blocked advanced SQL injection attack saving $50K in potential data breach costs" success-stories
-```
-
----
-
-**🌊 Ready to defend your APIs with AI-enhanced security!**
-
-Your Kong Guard AI + Claude-Flow system is production-ready and optimized for maximum security value. Start with the quick start section and gradually explore advanced coordination patterns as your team becomes comfortable with the AI-enhanced workflows.
+This comprehensive guide covers all Kong Guard AI capabilities. For specific implementation details, refer to the linked documentation in each section.

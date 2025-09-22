@@ -1,0 +1,43 @@
+# Task ID: 3
+# Title: Add Access and Log Phase Instrumentation
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Capture request/response metadata (client_ip, method, path, headers subset, status, latency) and maintain counters in ngx.shared.dict. Emit structured logs.
+# Details:
+Hook into access and log phases. Store per-IP and global counters. Keep overhead under 10ms using efficient lookups and minimal allocations.
+
+# Test Strategy:
+Send traffic using wrk/hey through a route with the plugin enabled. Verify structured logs and counters update while measuring baseline latency.
+
+# Subtasks:
+## 1. Design Custom Log Format for Access and Log Phases [done]
+### Dependencies: None
+### Description: Define a custom log format to capture required request/response metadata including client_ip, method, path, selected headers, status, and latency using NGINX's log_format directive.
+### Details:
+Specify a log format that includes all necessary fields for instrumentation, leveraging built-in timing variables such as $request_time for latency. Ensure the format is compatible with structured logging and downstream analysis.
+
+## 2. Implement Access and Log Phase Hooks [done]
+### Dependencies: 3.1
+### Description: Integrate hooks into NGINX's access and log phases to capture metadata at appropriate points in the request lifecycle.
+### Details:
+Configure NGINX to execute custom logic during access and log phases, ensuring metadata is captured efficiently and with minimal overhead.
+
+## 3. Store Per-IP and Global Counters in ngx.shared.dict [done]
+### Dependencies: 3.2
+### Description: Maintain counters for requests, responses, and status codes both per-IP and globally using ngx.shared.dict for efficient lookups.
+### Details:
+Implement logic to increment and retrieve counters in ngx.shared.dict, optimizing for performance and avoiding global locks.
+
+## 4. Emit Structured Logs with Captured Metadata [done]
+### Dependencies: 3.3
+### Description: Output structured logs containing all captured metadata in a format suitable for downstream analysis and monitoring.
+### Details:
+Configure NGINX to emit logs in JSON or another structured format, ensuring all required fields are present and properly formatted.
+
+## 5. Optimize Instrumentation for Performance [done]
+### Dependencies: 3.4
+### Description: Ensure that all instrumentation logic, including lookups and allocations, keeps request overhead below 10ms.
+### Details:
+Profile and optimize code paths for metadata capture, counter updates, and log emission. Use efficient data structures and minimize allocations.
+

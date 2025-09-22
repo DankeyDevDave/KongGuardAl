@@ -51,7 +51,8 @@ except ImportError as e:
 
 # Import Intelligent Rate Limiter
 try:
-    from rate_limiter import IntelligentRateLimiter, ProviderType
+    from rate_limiter import IntelligentRateLimiter
+    from rate_limiter import ProviderType
 
     RATE_LIMITER_ENABLED = True
     logger.info("Intelligent Rate Limiter loaded successfully")
@@ -76,7 +77,7 @@ try:
 except ImportError as e:
     logger.warning(f"Intelligent cache not available: {e}")
     CACHE_ENABLED = False
-    IntelligentThreatCache = None
+    IntelligentThreatCache = None  # type: ignore
 
 app = FastAPI(
     title="Kong Guard AI - Threat Analysis Service",
@@ -260,7 +261,7 @@ if CACHE_ENABLED:
     asyncio.create_task(threat_cache.initialize())
     logger.info("Intelligent Threat Cache initialized")
 else:
-    threat_cache = None
+    threat_cache = None  # type: ignore
 
 
 # Warm cache with common attack patterns on startup

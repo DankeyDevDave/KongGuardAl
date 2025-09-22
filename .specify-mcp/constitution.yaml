@@ -1,0 +1,33 @@
+project:
+  name: KongGuardAI
+  type: single
+  description: AI-powered security plugin for Kong Gateway providing advanced threat
+    detection, compliance management, and privacy protection capabilities with multi-model
+    AI integration, TAXII/STIX threat intelligence, and comprehensive GDPR/CCPA compliance
+  version: 0.1.0
+workflow:
+  branch_prefix: feature
+  auto_commit: false
+  specs_directory: specs
+technical:
+  language: Lua/OpenResty
+  framework: Kong Gateway Plugin
+  testing: Playwright + pytest
+  build_tool: Docker + Kong
+principles:
+- Test-driven development (TDD)
+- Clear documentation for all features
+- Semantic versioning for releases
+- Code review for all changes
+quality:
+  test_coverage_minimum: 80
+  documentation_required: true
+  linting_enabled: true
+  type_checking: true
+team:
+  lead: TBD
+  reviewers: []
+metadata:
+  version: 1.0.0
+  created: '2025-09-22T21:15:20.693872'
+  last_modified: '2025-09-22T21:15:20.693872'

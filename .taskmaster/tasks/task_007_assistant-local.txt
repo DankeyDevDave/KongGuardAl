@@ -1,0 +1,43 @@
+# Task ID: 7
+# Title: Advanced Remediation: Route/Service Modification and Rollback
+# Status: done
+# Dependencies: 6
+# Priority: medium
+# Description: Modify Service/Route to reroute traffic and roll back recent configuration changes when correlated with mass 5xx events.
+# Details:
+Integrate with decK/Konnect or maintain local snapshots to revert. Provide correlation logic over the last N minutes and guardrails for safe rollback.
+
+# Test Strategy:
+Introduce a bad upstream to create errors, detect the spike, reroute traffic to a healthy upstream, then perform a rollback. Verify final state via Admin API.
+
+# Subtasks:
+## 1. Detect and Correlate Mass 5xx Events [done]
+### Dependencies: None
+### Description: Implement logic to monitor and correlate mass 5xx errors over the last N minutes, identifying affected routes/services and recent configuration changes.
+### Details:
+Develop a mechanism to analyze error logs and correlate spikes in 5xx responses with recent configuration changes. Ensure the logic can operate within a configurable time window and supports safe thresholds for triggering remediation.
+
+## 2. Integrate with decK/Konnect and Local Snapshot Management [done]
+### Dependencies: 7.1
+### Description: Set up integration with decK/Konnect for configuration management, or implement local snapshot storage to enable reliable rollback of service/route configurations.
+### Details:
+Configure decK to export and import Kong Gateway state files, or implement a local snapshot mechanism to capture and restore configurations. Ensure compatibility with both on-prem and Konnect-managed gateways.
+
+## 3. Automate Safe Rollback Procedures [done]
+### Dependencies: 7.2
+### Description: Develop automated rollback procedures with guardrails to revert recent configuration changes when correlated with mass 5xx events.
+### Details:
+Implement logic to identify the most recent safe configuration and automate the rollback process. Include guardrails such as validation checks, dry-run capabilities, and rollback abort conditions to prevent cascading failures.
+
+## 4. Modify Service/Route to Reroute Traffic [done]
+### Dependencies: 7.1
+### Description: Implement logic to dynamically modify service or route configurations to reroute traffic to healthy upstreams during incidents.
+### Details:
+Enable dynamic updates to Kong Gateway routes/services using the Admin API or declarative configuration. Ensure rerouting logic is atomic and reversible, and integrates with the rollback mechanism.
+
+## 5. Validation and State Verification via Admin API [done]
+### Dependencies: 7.3, 7.4
+### Description: Verify the final state of services/routes after remediation actions using the Kong Admin API to ensure consistency and correctness.
+### Details:
+Query the Admin API to confirm that configuration changes, reroutes, and rollbacks have been applied as intended. Implement automated checks to detect configuration drift or incomplete rollbacks.
+

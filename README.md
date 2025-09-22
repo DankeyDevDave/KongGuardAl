@@ -2,7 +2,7 @@
 ## Autonomous API Threat Response Agent for Kong Gateway
 
 [![Kong Version](https://img.shields.io/badge/Kong-3.8.0-blue)](https://konghq.com)
-[![Plugin Version](https://img.shields.io/badge/Plugin-1.0.0-green)](https://github.com/yourusername/kong-guard-ai)
+[![Plugin Version](https://img.shields.io/badge/Plugin-3.0.0-green)](https://github.com/yourusername/kong-guard-ai)
 [![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production_Ready-success)](https://github.com/yourusername/kong-guard-ai)
 
@@ -34,6 +34,7 @@ curl "http://localhost:8000/demo/get?q='; DROP TABLE users;"  # SQL injection (4
 
 ## 🎯 Key Features
 
+### Core Security
 - 🔍 **Real-time Threat Detection** - ML-powered anomaly detection with static rules and dynamic thresholds
 - 🤖 **Autonomous Response** - Automatic blocking, rate limiting, and traffic rerouting
 - 🧠 **Continuous Learning** - Operator feedback loop to adapt thresholds and reduce false positives
@@ -42,39 +43,147 @@ curl "http://localhost:8000/demo/get?q='; DROP TABLE users;"  # SQL injection (4
 - 🛡️ **Multi-Layer Protection** - Combines static rules, ML models, and optional AI Gateway
 - ⚡ **High Performance** - <10ms added latency, stateless design for horizontal scaling
 
-## 🏗️ Architecture
+### Protocol-Specific Protection
+- 🕸️ **GraphQL Security** - Query depth limiting and complexity analysis to prevent resource exhaustion
+- 🔗 **gRPC Protection** - Method-level rate limiting and message size validation for microservices
+- 🔐 **TLS Fingerprinting** - JA3/JA4 analysis to identify malicious clients and bots
+- 🌐 **Request Normalization** - URL and body canonicalization to prevent evasion techniques
+
+### Advanced Features
+- 🚀 **TAXII/STIX Integration** - Real-time threat intelligence feeds with automated indicator processing
+- ☸️ **Kubernetes/Mesh Enrichment** - Service mesh metadata extraction for microservices security
+- 📊 **Enterprise Monitoring** - Grafana dashboards, Prometheus metrics, and structured logging
+- 🎯 **Multi-Environment Support** - Development, staging, and production deployment strategies
+
+## 🌐 TAXII/STIX Threat Intelligence Integration
+
+Kong Guard AI now includes enterprise-grade threat intelligence capabilities through TAXII 2.x feed integration:
+
+### 🎯 Threat Intelligence Features
+
+- **🔄 Automated Feed Ingestion** - Real-time polling of TAXII 2.0/2.1 servers with configurable intervals
+- **📊 STIX Indicator Processing** - Comprehensive parsing and normalization of STIX threat indicators
+- **🎯 Multi-Vector Detection** - IP addresses, domains, URLs, file hashes, and TLS fingerprints
+- **🚀 High-Performance Lookups** - Millisecond-level indicator matching with versioned caching
+- **🔐 Enterprise Security** - Secure authentication, TLS verification, and input validation
+- **📈 Adaptive Scoring** - Configurable threat scoring weights with confidence integration
+
+### 🛡️ Supported Indicator Types
+
+| Type | Examples | Use Case |
+|------|----------|----------|
+| **IP Addresses** | `192.168.1.100`, `2001:db8::1`, `10.0.0.0/8` | Block known malicious IPs and networks |
+| **Domain Names** | `evil.com`, `*.malicious.org` | Prevent access to malicious domains |
+| **URLs** | `https://phishing.site/login` | Block specific malicious URLs |
+| **File Hashes** | MD5, SHA-1, SHA-256 | Identify known malware signatures |
+| **TLS Fingerprints** | JA3, JA4 | Detect malicious TLS client behaviors |
+
+### 📋 Quick TAXII Setup
+
+```yaml
+plugins:
+- name: kong-guard-ai
+  config:
+    # Enable TAXII threat intelligence
+    enable_taxii_ingestion: true
+    taxii_version: "2.1"
+    taxii_poll_interval_seconds: 300
+
+    # Configure threat intelligence servers
+    taxii_servers:
+    - url: "https://your-threat-intel.com/taxii2"
+      collections: ["indicators", "malware"]
+      auth_type: "bearer"
+      token: "your-api-token"
+
+    # Threat scoring weights
+    taxii_score_weights:
+      ip_blocklist: 0.9
+      domain_blocklist: 0.8
+      url_blocklist: 0.8
+```
+
+### 📚 Complete Documentation
+
+#### Core Guides
+- **[Kong Guard AI User Guide](KONG_GUARD_AI_USER_GUIDE.md)** - Complete user guide with quick start, configuration, and monitoring
+- **[Configuration Reference](docs/CONFIGURATION_REFERENCE.md)** - Comprehensive configuration options and defaults
+- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Safe upgrade paths between versions
+- **[Rollout Guide](docs/ROLLOUT_GUIDE.md)** - Production deployment strategies
+
+#### Feature Documentation
+- **[GraphQL Protection](docs/GRAPHQL_PROTECTION.md)** - Query depth and complexity analysis
+- **[gRPC Security](docs/GRPC_SECURITY.md)** - Method-level protection and performance controls
+- **[Request Normalization](docs/NORMALIZATION_GUIDE.md)** - URL and body canonicalization
+- **[TLS Fingerprinting](docs/TLS_FINGERPRINTING.md)** - JA3/JA4 analysis and client identification
+- **[TAXII/STIX Integration](TAXII_STIX_User_Guide.md)** - Threat intelligence feeds setup
+- **[Kubernetes/Mesh Enrichment](docs/mesh-enricher.md)** - Service mesh metadata extraction
+
+## 🏗️ Enhanced Architecture (v3.0)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Kong Guard AI Architecture                   │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         Kong Guard AI v3.0 Architecture                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
 
-    Client Request
+    Client Request (HTTP/GraphQL/gRPC/HTTP2)
          │
          ▼
-    Kong Gateway
+    ┌─────────────────┐
+    │  Kong Gateway   │
+    │  + TLS Analysis │──► JA3/JA4 Fingerprinting
+    └─────────────────┘
          │
-    ┌────┴────┐
-    │ Plugin  │
-    │ Access  │──────► Feature Extraction
-    │ Phase   │              │
-    └─────────┘              ▼
-         │            Threat Detection
-         │            ├── Static Rules (SQL, XSS, DDoS)
-         │            ├── ML Anomaly Detection
-         │            └── AI Gateway (Optional)
-         │                   │
-         ▼                   ▼
-    ┌─────────┐        Threat Score
-    │ Action  │              │
-    │ Engine  │◄─────────────┘
-    └────┬────┘
+    ┌────┴─────┐
+    │ Plugin   │
+    │ Access   │──────► Request Normalization
+    │ Phase    │       ├── URL Canonicalization
+    └──────────┘       └── Body Standardization
+         │                       │
+         ▼                       ▼
+    ┌─────────────────────────────────────────┐
+    │         Feature Extraction              │
+    │  ├── Protocol Detection                 │
+    │  ├── Mesh Metadata (K8s/Istio)        │
+    │  ├── GraphQL Parsing                   │
+    │  ├── gRPC Method Analysis              │
+    │  └── TAXII/STIX Indicator Lookup      │
+    └─────────────────────────────────────────┘
          │
-    ┌────┴───────────────┐
-    │                    │
-    ▼                    ▼
-  Block              Rate Limit
-  (403)              (429)
+         ▼
+    ┌─────────────────────────────────────────┐
+    │         Threat Detection                │
+    │  ├── Static Rules (SQL, XSS, DDoS)    │
+    │  ├── Protocol-Specific Analysis        │
+    │  │   ├── GraphQL Complexity/Depth     │
+    │  │   ├── gRPC Method Rate Limits      │
+    │  │   └── TLS Fingerprint Matching     │
+    │  ├── ML Anomaly Detection             │
+    │  ├── Threat Intelligence Matching     │
+    │  └── Mesh Behavior Analysis           │
+    └─────────────────────────────────────────┘
+         │
+         ▼
+    ┌─────────────────────────────────────────┐
+    │    Adaptive Threat Scoring              │
+    │  ├── Multi-dimensional Scoring         │
+    │  ├── Historical Context                │
+    │  ├── Confidence Weighting              │
+    │  └── Cross-service Correlation         │
+    └─────────────────────────────────────────┘
+         │
+         ▼
+    ┌─────────────────────────────────────────┐
+    │         Action Engine                   │
+    └─────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────┐
+    │                                      │
+    ▼                                      ▼
+┌─────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────────┐
+│  Block  │  │ Rate Limit  │  │   Monitor   │  │   Forward    │
+│  (403)  │  │   (429)     │  │   & Log     │  │ (with flags) │
+└─────────┘  └─────────────┘  └─────────────┘  └──────────────┘
 ```
 
 ## 📦 Installation
@@ -105,7 +214,7 @@ kong restart
 
 ## ⚙️ Configuration
 
-### Basic Configuration
+### Basic Configuration (v3.0)
 
 ```yaml
 _format_version: "3.0"
@@ -120,84 +229,153 @@ services:
     plugins:
       - name: kong-guard-ai
         config:
-          # Threat Detection
+          # Core Threat Detection
           block_threshold: 0.8        # Score above this = block
           rate_limit_threshold: 0.6   # Score above this = rate limit
-          ddos_rpm_threshold: 100      # Requests/min for DDoS detection
-          
+          ddos_rpm_threshold: 100     # Requests/min for DDoS detection
+
           # Operating Mode
-          dry_run: false               # Set true for testing
-          
+          dry_run: false              # Set true for testing
+
+          # Protocol-Specific Features (v3.0)
+          enable_graphql_detection: true
+          graphql_max_depth: 12
+          graphql_max_complexity: 2000
+
+          enable_grpc_detection: true
+          grpc_max_message_size: 4194304
+          grpc_default_rate_limit: 100
+
+          # Request Normalization (v3.0)
+          normalize_url: true
+          normalize_body: false       # Start conservative
+          normalization_profile: "lenient"
+
+          # TLS Fingerprinting (v3.0)
+          enable_tls_fingerprints: true
+          tls_header_map:
+            ja3: "X-JA3"
+            ja4: "X-JA4"
+
           # ML Configuration
-          enable_ml: true
+          enable_ml_detection: true
           anomaly_threshold: 0.7
-          
+
           # Notifications
           enable_notifications: true
           notification_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-          
-          # Learning
-          enable_learning: true
-          learning_rate: 0.001
 ```
 
-### Advanced Configuration
+### Advanced Configuration (v3.0)
 
 ```yaml
 plugins:
   - name: kong-guard-ai
     config:
-      # Detection Patterns
+      # Enhanced Protocol Detection
+      enable_graphql_detection: true
+      graphql_max_depth: 15
+      graphql_max_complexity: 3000
+      graphql_operation_limits:
+        query: { max_depth: 15, max_complexity: 3000 }
+        mutation: { max_depth: 10, max_complexity: 2000 }
+        subscription: { max_depth: 8, max_complexity: 1000 }
+
+      enable_grpc_detection: true
+      grpc_max_message_size: 4194304
+      grpc_method_rate_limits:
+        "user.UserService/GetUser": 1000
+        "admin.AdminService/*": 10
+
+      # Request Normalization
+      normalize_url: true
+      normalize_body: true
+      normalization_profile: "strict"
+      max_body_size_for_normalization: 1048576
+
+      # TLS Fingerprinting
+      enable_tls_fingerprints: true
+      tls_header_map:
+        ja3: "X-JA3"
+        ja4: "X-JA4"
+        ja3s: "X-JA3S"
+        ja4s: "X-JA4S"
+      tls_blocklist:
+        - "e7d705a3286e19ea42f587b344ee6865"  # Known malicious JA3
+      tls_allowlist:
+        - "a0e9f5d64349fb13191bc781f81f42e1"  # Known good JA3
+
+      # TAXII/STIX Threat Intelligence
+      enable_taxii_ingestion: true
+      taxii_servers:
+        - url: "https://threat-intel.example.com/taxii2"
+          collections: ["indicators", "malware"]
+          auth_type: "bearer"
+          token: "your-api-token"
+
+      # Kubernetes/Mesh Enrichment
+      enable_mesh_enricher: true
+      mesh_header_map:
+        source_service: "x-envoy-original-src-service"
+        dest_service: "x-envoy-destination-service"
+        namespace: "x-envoy-namespace"
+
+      # Traditional Detection Patterns
       sql_injection_patterns:
         - "union%s+select"
         - "drop%s+table"
         - "insert%s+into"
-        - "select%s+from"
-      
+
       xss_patterns:
         - "<script"
         - "javascript:"
         - "onerror="
-        - "onload="
-      
+
       # IP Management
       blocked_ips:
         - "203.0.113.100"
       whitelist_ips:
         - "10.0.0.0/8"
-      
+
       # Response Actions
       auto_block_duration: 3600     # Block for 1 hour
       rate_limit_duration: 300      # Rate limit for 5 minutes
       rate_limit_requests: 10       # Allow 10 requests during rate limit
-      
-      # Logging
-      log_level: "info"              # debug, info, warn, error
+
+      # Logging & Metrics
+      log_level: "info"
       metrics_enabled: true
 ```
 
 ## 🛡️ Threat Detection
 
-### Static Rules
+### Multi-Layer Detection (v3.0)
 
-The plugin includes built-in detection for common attack patterns:
-
+#### Static Pattern Detection
 - **SQL Injection** - Detects SQL keywords and syntax in parameters
 - **XSS Attacks** - Identifies JavaScript injection attempts
 - **DDoS Patterns** - Monitors request rates and patterns
 - **Credential Stuffing** - Detects rapid login attempts
 - **Path Traversal** - Blocks directory traversal attempts
 
-### ML-Based Detection
+#### Protocol-Specific Analysis
+- **GraphQL Security** - Query depth and complexity analysis to prevent resource exhaustion
+- **gRPC Protection** - Method-level rate limiting and message size validation
+- **Request Normalization** - URL and body canonicalization to prevent evasion
 
-Anomaly detection using Isolation Forest algorithm considers:
+#### Advanced Threat Intelligence
+- **TLS Fingerprinting** - JA3/JA4 analysis to identify malicious clients and bots
+- **TAXII/STIX Integration** - Real-time threat intelligence matching
+- **Kubernetes/Mesh Context** - Service mesh metadata for behavioral analysis
 
-- Request rate patterns
-- Payload size anomalies
-- Header count deviations
-- Time-based anomalies
-- Geographic anomalies
-- User agent entropy
+#### ML-Based Detection
+Anomaly detection using enhanced algorithms:
+- Request rate patterns and behavioral analysis
+- Payload size anomalies and content analysis
+- Header count deviations and protocol violations
+- Cross-service communication patterns
+- Temporal and geographic anomalies
+- Client fingerprint analysis
 
 ### Threat Scoring
 
@@ -207,6 +385,8 @@ Each request receives a threat score from 0.0 to 1.0:
 - `0.3 - 0.6` - Suspicious (monitoring)
 - `0.6 - 0.8` - High threat (rate limiting)
 - `0.8 - 1.0` - Critical threat (blocking)
+
+> **📖 TLS Fingerprinting Documentation**: For detailed setup instructions, deployment topologies, and advanced configuration of TLS fingerprinting features, see [docs/TLS_FINGERPRINTING.md](docs/TLS_FINGERPRINTING.md).
 
 ## 📊 Monitoring & Feedback
 
@@ -219,7 +399,7 @@ curl http://localhost:8001/kong-guard-ai/status
 Response:
 ```json
 {
-  "plugin_version": "1.0.0",
+  "plugin_version": "3.0.0",
   "operational": true,
   "metrics": {
     "threats_detected": 142,
@@ -253,14 +433,25 @@ curl http://localhost:8001/kong-guard-ai/incidents
 
 ## 🧪 Testing
 
-### Test Attack Patterns
+### Test Attack Patterns (v3.0)
 
 ```bash
-# SQL Injection
-curl "http://localhost:8000/api?id=1'; DROP TABLE users; --"
+# Traditional Attacks
+curl "http://localhost:8000/api?id=1'; DROP TABLE users; --"  # SQL Injection
+curl "http://localhost:8000/api?search=<script>alert('XSS')</script>"  # XSS
 
-# XSS Attack
-curl "http://localhost:8000/api?search=<script>alert('XSS')</script>"
+# GraphQL Attacks
+curl -X POST http://localhost:8000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "query { user { posts { comments { replies { user { posts { comments { replies { content } } } } } } } } }"}' # Deep nesting
+
+# gRPC Attack Simulation (using grpcurl)
+grpcurl -plaintext -d '{"data": "'$(python -c 'print("A"*10000000)')'"}' \
+  localhost:9090 service.Method  # Large payload
+
+# Protocol Evasion
+curl "http://localhost:8000/api?q=%27%20OR%201%3D1--"  # URL encoded SQL injection
+curl "http://localhost:8000/admin/../../../etc/passwd"  # Path traversal
 
 # DDoS Simulation
 for i in {1..200}; do

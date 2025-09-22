@@ -1,0 +1,43 @@
+# Task ID: 4
+# Title: Static Rule-Based Threat Detection
+# Status: done
+# Dependencies: 3
+# Priority: high
+# Description: Enforce IP blacklists, HTTP method denylist, and basic path regex filters in the access phase. Emit incident records.
+# Details:
+Use lookup tables for O(1) checks. Block early when matches occur. Structure incident objects with type, scope, evidence, and decision.
+
+# Test Strategy:
+Configure blacklists/denylists and send matching requests; expect 403/429. Verify incident records are logged with correct fields.
+
+# Subtasks:
+## 1. Design and Implement IP Blacklist Enforcement [done]
+### Dependencies: None
+### Description: Create a mechanism to check incoming requests against a predefined IP blacklist using lookup tables for O(1) access. Block requests early in the access phase if a match is found.
+### Details:
+Define the data structure for the IP blacklist and integrate it into the access phase logic. Ensure efficient lookup and immediate blocking of matching requests.
+
+## 2. Implement HTTP Method Denylist Filtering [done]
+### Dependencies: None
+### Description: Develop logic to deny requests using HTTP methods specified in a denylist, leveraging lookup tables for fast checks during the access phase.
+### Details:
+Specify the denylist of HTTP methods and integrate the check into the access phase. Block requests using denied methods before further processing.
+
+## 3. Apply Path Regex Filtering [done]
+### Dependencies: None
+### Description: Integrate basic regex-based path filters to block requests matching suspicious or forbidden URL patterns during the access phase.
+### Details:
+Define regex patterns for path filtering and implement efficient matching logic. Block requests that match any forbidden pattern and record the incident.
+
+## 4. Emit Structured Incident Records [done]
+### Dependencies: 4.1, 4.2, 4.3
+### Description: Develop a system to generate and store incident records for each blocked request, including type, scope, evidence, and decision fields.
+### Details:
+Design the incident object schema and ensure that every blocked request triggers the creation of a structured incident record with all required fields.
+
+## 5. Validate Rule Effectiveness and Coverage [done]
+### Dependencies: 4.4
+### Description: Regularly assess and validate the accuracy and performance of blacklist, denylist, and regex rules to minimize false positives/negatives and maintain high detection fidelity.
+### Details:
+Implement a process to review incident records and detection rules, tuning them for optimal coverage and efficiency. Use historical data and test scenarios to identify broken or inefficient rules.
+

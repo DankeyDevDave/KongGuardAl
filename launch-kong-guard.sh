@@ -23,19 +23,75 @@ CLAUDE_ASSIST=${CLAUDE_ASSIST:-true}
 OPEN_UI=${OPEN_UI:-true}
 MAX_RETRIES=30
 RETRY_DELAY=2
+PORT_SCAN_LIMIT=25
 
-# Service URLs
-KONG_ADMIN_URL="http://localhost:18001"
-KONG_PROXY_URL="http://localhost:18000"
-DEMO_API_URL="http://localhost:18085"
-REDIS_URL="localhost:16379"
-POSTGRES_URL="localhost:15432"
+# Port management configuration (label, env var, default host port)
+PORT_LABELS=(
+    "Kong database (PostgreSQL)"
+    "Redis cache"
+    "Kong proxy (HTTP)"
+    "Kong proxy (HTTPS)"
+    "Kong admin API (HTTP)"
+    "Kong admin API (HTTPS)"
+    "Demo API"
+    "Mock attacker service"
+    "Konga UI"
+    "Grafana dashboard"
+    "Prometheus metrics"
+    "Cloud AI service"
+    "Ollama AI service"
+    "Web dashboard"
+)
+
+PORT_ENV_VARS=(
+    "POSTGRES_EXTERNAL_PORT"
+    "REDIS_EXTERNAL_PORT"
+    "KONG_PROXY_EXTERNAL_PORT"
+    "KONG_PROXY_SSL_EXTERNAL_PORT"
+    "KONG_ADMIN_EXTERNAL_PORT"
+    "KONG_ADMIN_SSL_EXTERNAL_PORT"
+    "DEMO_API_PORT"
+    "MOCK_ATTACKER_PORT"
+    "KONGA_UI_PORT"
+    "GRAFANA_PORT"
+    "PROMETHEUS_PORT"
+    "AI_CLOUD_EXTERNAL_PORT"
+    "AI_OLLAMA_EXTERNAL_PORT"
+    "DASHBOARD_EXTERNAL_PORT"
+)
+
+PORT_DEFAULTS=(
+    "25432"
+    "26379"
+    "28080"
+    "28443"
+    "28081"
+    "28444"
+    "28085"
+    "28090"
+    "21337"
+    "33000"
+    "39090"
+    "28100"
+    "28101"
+    "28880"
+)
+
+PORT_CHANGES=()
+SELECTED_GRAFANA_PORT=${PORT_DEFAULTS[9]}
+
+# Service URLs (will be refreshed after port preparation)
+KONG_ADMIN_URL="http://localhost:${KONG_ADMIN_EXTERNAL_PORT:-28081}"
+KONG_PROXY_URL="http://localhost:${KONG_PROXY_EXTERNAL_PORT:-28080}"
+DEMO_API_URL="http://localhost:${DEMO_API_PORT:-28085}"
+REDIS_URL="localhost:${REDIS_EXTERNAL_PORT:-26379}"
+POSTGRES_URL="localhost:${POSTGRES_EXTERNAL_PORT:-25432}"
 
 # Konga UI URL
-KONGA_URL="http://localhost:1337"
+KONGA_URL="http://localhost:${KONGA_UI_PORT:-21337}"
 
 # Kong Manager URL (if installed)
-KONG_MANAGER_URL="http://localhost:18002"
+KONG_MANAGER_URL="http://localhost:${KONG_MANAGER_PORT:-28002}"
 
 # Function: Show usage
 show_usage() {
@@ -75,6 +131,170 @@ print_status() {
     local message=$2
     echo -e "${color}${message}${NC}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" >> "$LOG_FILE"
+}
+
+# Function: Check if a host port is already in use
+is_port_in_use() {
+    local port=$1
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -nP -iTCP:$port -sTCP:LISTEN >/dev/null 2>&1
+        return $?
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -an 2>/dev/null | grep -E "[:\.]$port[[:space:]]" | grep LISTEN >/dev/null 2>&1
+        return $?
+    fi
+    return 1
+}
+
+# Function: Describe the process occupying a port (best effort)
+port_owner() {
+    local port=$1
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -nP -iTCP:$port -sTCP:LISTEN 2>/dev/null | awk 'NR==2 {print $1 " (pid " $2 ")"}'
+    fi
+}
+
+# Function: Find the next available TCP port starting from a given port
+find_available_port() {
+    local candidate=$1
+    local attempts=0
+
+    while [ $attempts -lt $PORT_SCAN_LIMIT ]; do
+        if ! is_port_in_use "$candidate"; then
+            echo "$candidate"
+            return 0
+        fi
+        candidate=$((candidate + 1))
+        attempts=$((attempts + 1))
+    done
+
+    return 1
+}
+
+# Function: Read a value from the local .env file (if present)
+get_env_file_value() {
+    local var_name=$1
+    local env_file="$SCRIPT_DIR/.env"
+    if [ ! -f "$env_file" ]; then
+        return 1
+    fi
+
+    local line
+    line=$(grep -E "^${var_name}=" "$env_file" | tail -n 1 || true)
+    if [ -z "$line" ]; then
+        return 1
+    fi
+
+    local value=${line#*=}
+    value=${value%%#*}
+    value=${value%$'\r'}
+    value=$(echo "$value" | sed -e 's/^"//' -e 's/"$//' -e "s/'//g" | xargs)
+    if [ -n "$value" ]; then
+        echo "$value"
+        return 0
+    fi
+
+    return 1
+}
+
+REQUESTED_PORT_VALUE=""
+REQUESTED_PORT_SOURCE=""
+
+# Function: Determine desired port from env, .env, or default
+determine_requested_port() {
+    local env_var=$1
+    local default_value=$2
+
+    local env_value
+    env_value=$(printenv "$env_var" 2>/dev/null || true)
+    if [ -n "$env_value" ]; then
+        REQUESTED_PORT_VALUE=$env_value
+        REQUESTED_PORT_SOURCE="environment"
+        return
+    fi
+
+    local file_value
+    if file_value=$(get_env_file_value "$env_var"); then
+        REQUESTED_PORT_VALUE=$file_value
+        REQUESTED_PORT_SOURCE=".env"
+        return
+    fi
+
+    REQUESTED_PORT_VALUE=$default_value
+    REQUESTED_PORT_SOURCE="default"
+}
+
+# Function: Track the selected port for later use
+set_selected_port_variable() {
+    local env_var=$1
+    local value=$2
+    eval "SELECTED_${env_var}=$value"
+    if [ "$env_var" = "GRAFANA_PORT" ]; then
+        SELECTED_GRAFANA_PORT=$value
+    fi
+}
+
+PORT_SUMMARY=()
+
+# Function: Prepare a single port assignment
+prepare_port() {
+    local label=$1
+    local env_var=$2
+    local default_value=$3
+
+    determine_requested_port "$env_var" "$default_value"
+    local requested_port=$REQUESTED_PORT_VALUE
+    local source=$REQUESTED_PORT_SOURCE
+    local final_port=$requested_port
+
+    if is_port_in_use "$requested_port"; then
+        local owner="$(port_owner "$requested_port")"
+
+        if [ "$source" != "default" ]; then
+            print_status "$RED" "❌ $label port $requested_port is already in use${owner:+ by $owner}."
+            print_status "$YELLOW" "👉 Update $env_var to an available port before relaunching."
+            echo "$label port $requested_port unavailable" >> "$ERROR_LOG"
+            exit 1
+        fi
+
+        local alternative_port
+        alternative_port=$(find_available_port $((requested_port + 1))) || {
+            print_status "$RED" "❌ Unable to find a free port for $label near $requested_port."
+            echo "$label port search exhausted" >> "$ERROR_LOG"
+            exit 1
+        }
+
+        final_port=$alternative_port
+        PORT_CHANGES+=("$label: using $final_port (was $requested_port)")
+        print_status "$YELLOW" "⚠️  $label port $requested_port is busy${owner:+ (used by $owner)}. Using $final_port instead."
+    fi
+
+    export "$env_var"="$final_port"
+    set_selected_port_variable "$env_var" "$final_port"
+    PORT_SUMMARY+=("$label → $final_port")
+}
+
+# Function: Prepare all host ports
+prepare_ports() {
+    PORT_SUMMARY=()
+    PORT_CHANGES=()
+    local count=${#PORT_ENV_VARS[@]}
+    for ((idx=0; idx<count; idx++)); do
+        prepare_port "${PORT_LABELS[$idx]}" "${PORT_ENV_VARS[$idx]}" "${PORT_DEFAULTS[$idx]}"
+    done
+}
+
+# Function: Refresh service URLs after port selection
+update_service_urls() {
+    KONG_ADMIN_URL="http://localhost:${KONG_ADMIN_EXTERNAL_PORT}"
+    KONG_PROXY_URL="http://localhost:${KONG_PROXY_EXTERNAL_PORT}"
+    DEMO_API_URL="http://localhost:${DEMO_API_PORT}"
+    REDIS_URL="localhost:${REDIS_EXTERNAL_PORT}"
+    POSTGRES_URL="localhost:${POSTGRES_EXTERNAL_PORT}"
+    KONGA_URL="http://localhost:${KONGA_UI_PORT}"
+
+    local manager_port=${KONG_MANAGER_PORT:-${KONG_ADMIN_EXTERNAL_PORT}}
+    KONG_MANAGER_URL="http://localhost:${manager_port}"
 }
 
 # Function: Show spinner for long operations
@@ -192,12 +412,30 @@ start_services() {
     print_status "$YELLOW" "📦 Launching containers:"
     cd "$SCRIPT_DIR"
 
+    prepare_ports
+    update_service_urls
+
+    if [ ${#PORT_CHANGES[@]} -gt 0 ]; then
+        print_status "$YELLOW" "⚠️  Adjusted host ports to avoid conflicts:"
+        for change in "${PORT_CHANGES[@]}"; do
+            echo "   - $change"
+        done
+        echo ""
+    fi
+
+    print_status "$BLUE" "🧭 Host port map:"
+    for summary in "${PORT_SUMMARY[@]}"; do
+        echo "   - $summary"
+    done
+    echo ""
+
     # Start with visual feedback
     echo "  ├─ PostgreSQL database (Kong)"
     echo "  ├─ PostgreSQL database (Konga)"
     echo "  ├─ Redis cache"
     echo "  ├─ Kong Gateway"
     echo "  ├─ Konga UI"
+    echo "  ├─ Grafana dashboard (http://localhost:${SELECTED_GRAFANA_PORT})"
     echo "  ├─ Demo API service"
     echo "  └─ Mock attacker service"
     echo ""
@@ -370,15 +608,16 @@ show_status() {
     print_status "$BLUE" "\n📊 Service Status:"
     echo "-------------------"
 
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "kong|redis|demo|mock|konga" || true
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "kong|redis|demo|mock|konga|grafana" || true
 
     echo -e "\n🔗 Service URLs:"
     echo "  🌐 Konga UI: $KONGA_URL"
     echo "  📡 Kong Admin API: $KONG_ADMIN_URL"
     echo "  🔌 Kong Proxy: $KONG_PROXY_URL"
     echo "  🧪 Demo API: $DEMO_API_URL"
-    echo "  💾 Redis: redis://localhost:16379"
-    echo "  🗄️  PostgreSQL: postgresql://kong:kongpass@localhost:15432/kong"
+    echo "  💾 Redis: redis://localhost:${REDIS_EXTERNAL_PORT}"
+    echo "  🗄️  PostgreSQL: postgresql://kong:kongpass@localhost:${POSTGRES_EXTERNAL_PORT}/kong"
+    echo "  📊 Grafana: http://localhost:${SELECTED_GRAFANA_PORT}"
 
     # Check if Kong Manager is available
     if curl -s -o /dev/null -w "%{http_code}" "$KONG_MANAGER_URL" | grep -q "200\|302"; then
@@ -390,6 +629,7 @@ show_status() {
 open_ui() {
     if [ "$OPEN_UI" = true ]; then
         print_status "$BLUE" "🌐 Opening Konga UI in browser..."
+        print_status "$BLUE" "📊 Grafana dashboard available at http://localhost:${SELECTED_GRAFANA_PORT}"
 
         # Wait a moment for Konga to be fully ready
         sleep 2
@@ -479,6 +719,14 @@ run_health_checks() {
         all_healthy=false
     else
         print_status "$GREEN" "  ✅ Konga UI is healthy"
+    fi
+
+    if ! curl -s -o /dev/null "http://localhost:${SELECTED_GRAFANA_PORT}/api/health"; then
+        print_status "$YELLOW" "  ⚠️  Grafana health endpoint not reachable at http://localhost:${SELECTED_GRAFANA_PORT}/api/health"
+        echo "Grafana health check warning" >> "$ERROR_LOG"
+        all_healthy=false
+    else
+        print_status "$GREEN" "  ✅ Grafana is healthy"
     fi
 
     if [ "$all_healthy" = true ]; then
@@ -696,17 +944,23 @@ main() {
 
     print_status "$GREEN" "\n✅ Kong Guard AI stack is ready!"
     print_status "$BLUE" "\n🌐 Access Points:"
-    echo "  Konga UI:         http://localhost:1337"
-    echo "  Kong Admin API:   http://localhost:18001"
-    echo "  Kong Proxy:       http://localhost:18000"
+    echo "  Konga UI:         http://localhost:${KONGA_UI_PORT}"
+    echo "  Kong Admin API:   $KONG_ADMIN_URL"
+    echo "  Kong Proxy:       $KONG_PROXY_URL"
+    echo "  Grafana:          http://localhost:${SELECTED_GRAFANA_PORT}"
+    echo "  Demo API:         ${DEMO_API_URL}/status/200"
+    echo "  Web Dashboard:    http://localhost:${DASHBOARD_EXTERNAL_PORT}"
+    if [ ${#PORT_CHANGES[@]} -gt 0 ]; then
+        print_status "$YELLOW" "   ⚠️ One or more ports were auto-shifted to avoid conflicts."
+    fi
     echo ""
     print_status "$BLUE" "📚 Quick commands:"
     echo "  View logs:        docker compose logs -f"
     echo "  Stop services:    docker compose down"
-    echo "  Test endpoint:    curl http://localhost:18000/demo/status/200"
+    echo "  Test endpoint:    curl ${KONG_PROXY_URL}/demo/status/200"
     echo ""
     print_status "$YELLOW" "💡 First time using Konga?"
-    echo "  1. Open http://localhost:1337"
+    echo "  1. Open http://localhost:${KONGA_UI_PORT}"
     echo "  2. Create an admin account"
     echo "  3. Add connection: Name='Local Kong', Kong Admin URL='http://kong:8001'"
     echo ""

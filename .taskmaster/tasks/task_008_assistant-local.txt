@@ -1,0 +1,43 @@
+# Task ID: 8
+# Title: Notifications and Incident Export
+# Status: done
+# Dependencies: 6
+# Priority: medium
+# Description: Send structured incident notifications to Slack/Email/webhooks and optionally persist incidents to Postgres/Redis.
+# Details:
+Emit JSON payloads with threat summary, scope, action taken, and links to Kong entities. Implement exponential backoff and deduplication to avoid alert storms.
+
+# Test Strategy:
+Configure a mock webhook receiver and trigger incidents. Assert payload structure and deduplication behavior.
+
+# Subtasks:
+## 1. Design Notification Payload Structure [done]
+### Dependencies: None
+### Description: Define the JSON schema for incident notifications, ensuring inclusion of threat summary, scope, action taken, and links to Kong entities.
+### Details:
+Specify required and optional fields, data types, and validation rules for the notification payload to ensure consistency across all delivery channels.
+
+## 2. Implement Multi-Channel Notification Delivery [done]
+### Dependencies: 8.1
+### Description: Develop logic to send structured notifications to Slack, Email, and webhooks based on configuration.
+### Details:
+Integrate with external APIs for each channel, handle authentication, and ensure message formatting is appropriate for each target.
+
+## 3. Persist Incidents to Postgres and Redis [done]
+### Dependencies: 8.1
+### Description: Add optional persistence of incident notifications to Postgres and Redis for audit and retrieval purposes.
+### Details:
+Implement storage logic with configurable toggles, ensuring atomic writes and schema compatibility for both databases.
+
+## 4. Implement Exponential Backoff and Deduplication [done]
+### Dependencies: 8.2, 8.3
+### Description: Develop mechanisms to prevent alert storms by deduplicating notifications and applying exponential backoff on repeated incidents.
+### Details:
+Track recent notifications, suppress duplicates within a configurable window, and increase delay between repeated alerts for the same incident.
+
+## 5. Configure and Validate Notification Workflows [done]
+### Dependencies: 8.4
+### Description: Provide configuration options for notification targets and workflow behaviors, and validate end-to-end notification and persistence flows.
+### Details:
+Expose configuration for enabling/disabling channels, setting backoff parameters, and toggling persistence. Ensure workflows respect all settings.
+
