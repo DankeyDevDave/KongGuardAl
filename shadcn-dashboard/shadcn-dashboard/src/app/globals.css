@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --radius: 0.5rem;
+
+    /* Kong Guard AI brand colors */
+    --kong-silver: 0 0% 78%;
+    --kong-steel: 220 9% 70%;
+    --kong-critical: 0 55% 60%;
+    --kong-caution: 43 55% 60%;
+    --kong-normal: 140 35% 55%;
+    --kong-bg: 220 27% 6%;
+    --kong-surface: 220 20% 10%;
+
+    /* Sidebar variables */
+    --sidebar: hsl(0 0% 98%);
+    --sidebar-foreground: hsl(240 5.3% 26.1%);
+    --sidebar-primary: hsl(240 5.9% 10%);
+    --sidebar-primary-foreground: hsl(0 0% 98%);
+    --sidebar-accent: hsl(240 4.8% 95.9%);
+    --sidebar-accent-foreground: hsl(240 5.9% 10%);
+    --sidebar-border: hsl(220 13% 91%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+
+    /* Kong Guard AI dark theme overrides */
+    --background: var(--kong-bg);
+    --card: var(--kong-surface);
+    --border: 240 3.7% 20%;
+    --kong-silver: 0 0% 85%;
+    --kong-steel: 220 9% 75%;
+
+    /* Dark sidebar */
+    --sidebar: hsl(240 5.9% 10%);
+    --sidebar-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-primary: hsl(224.3 76.3% 48%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(240 3.7% 15.9%);
+    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-border: hsl(240 3.7% 15.9%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Kong Guard AI custom utilities */
+.text-kong-silver {
+  color: hsl(var(--kong-silver));
+}
+
+.text-kong-steel {
+  color: hsl(var(--kong-steel));
+}
+
+.text-kong-critical {
+  color: hsl(var(--kong-critical));
+}
+
+.text-kong-caution {
+  color: hsl(var(--kong-caution));
+}
+
+.text-kong-normal {
+  color: hsl(var(--kong-normal));
+}
+
+.bg-kong-surface {
+  background-color: hsl(var(--kong-surface));
+}
+
+.border-kong-silver {
+  border-color: hsl(var(--kong-silver) / 0.2);
+}
+
+.border-kong-critical {
+  border-color: hsl(var(--kong-critical) / 0.3);
+}
+
+.border-kong-steel {
+  border-color: hsl(var(--kong-steel) / 0.3);
+}
+
+.border-kong-normal {
+  border-color: hsl(var(--kong-normal) / 0.3);
+}
