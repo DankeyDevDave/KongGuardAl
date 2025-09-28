@@ -49,6 +49,36 @@ except ImportError as e:
     ML_ENABLED = False
     ModelManager = None
 
+# Import Intelligent Rate Limiter
+try:
+    from rate_limiter import IntelligentRateLimiter
+    from rate_limiter import ProviderType
+
+    RATE_LIMITER_ENABLED = True
+    logger.info("Intelligent Rate Limiter loaded successfully")
+except ImportError as e:
+    logger.warning(f"Rate limiter not available: {e}")
+    RATE_LIMITER_ENABLED = False
+    IntelligentRateLimiter = None
+    ProviderType = None
+
+# Import Intelligent Threat Cache
+try:
+    from intelligent_cache import IntelligentThreatCache
+
+    # Check environment variable for cache enablement
+    cache_env = os.getenv("CACHE_ENABLED", "false")
+    CACHE_ENABLED = cache_env.lower() in ("true", "1", "yes", "on")
+    logger.info(f"Cache environment variable: CACHE_ENABLED='{cache_env}', parsed as: {CACHE_ENABLED}")
+    if CACHE_ENABLED:
+        logger.info("Intelligent Threat Cache loaded and enabled")
+    else:
+        logger.info("Intelligent Threat Cache loaded but disabled via CACHE_ENABLED=false")
+except ImportError as e:
+    logger.warning(f"Intelligent cache not available: {e}")
+    CACHE_ENABLED = False
+    IntelligentThreatCache = None  # type: ignore
+
 app = FastAPI(
     title="Kong Guard AI - Threat Analysis Service",
     description="Enterprise AI-powered API threat detection",
@@ -216,6 +246,122 @@ if ML_ENABLED:
 else:
     model_manager = None
 
+# Initialize Intelligent Rate Limiter
+if RATE_LIMITER_ENABLED:
+    rate_limiter = IntelligentRateLimiter()
+    logger.info("Intelligent Rate Limiter initialized")
+else:
+    rate_limiter = None
+
+# Initialize Intelligent Threat Cache
+if CACHE_ENABLED:
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+    threat_cache = IntelligentThreatCache(redis_url=redis_url)
+    # Initialize cache connection asynchronously
+    asyncio.create_task(threat_cache.initialize())
+    logger.info("Intelligent Threat Cache initialized")
+else:
+    threat_cache = None  # type: ignore
+
+
+# Warm cache with common attack patterns on startup
+async def warm_cache_on_startup():
+    """Warm the cache with common attack patterns"""
+    if CACHE_ENABLED and threat_cache:
+        try:
+            logger.info("Starting cache warming...")
+
+            # Common attack patterns for cache warming
+            common_attacks = [
+                # SQL Injection
+                {
+                    "payload": "' OR 1=1--",
+                    "type": "sql_injection",
+                    "method": "POST",
+                    "path": "/login",
+                    "features": {"has_sql_keywords": True, "length_bucket": 1},
+                },
+                {
+                    "payload": "admin'--",
+                    "type": "sql_injection",
+                    "method": "POST",
+                    "path": "/login",
+                    "features": {"has_sql_keywords": True, "length_bucket": 0},
+                },
+                {
+                    "payload": "' UNION SELECT * FROM users--",
+                    "type": "sql_injection",
+                    "method": "GET",
+                    "path": "/search",
+                    "features": {"has_sql_keywords": True, "length_bucket": 3},
+                },
+                # XSS Attacks
+                {
+                    "payload": "<script>alert('xss')</script>",
+                    "type": "xss",
+                    "method": "POST",
+                    "path": "/comment",
+                    "features": {"has_script_tags": True, "length_bucket": 2},
+                },
+                {
+                    "payload": "<img src=x onerror=alert(1)>",
+                    "type": "xss",
+                    "method": "POST",
+                    "path": "/profile",
+                    "features": {"has_script_tags": False, "has_special_chars": True, "length_bucket": 2},
+                },
+                {
+                    "payload": "javascript:alert(document.cookie)",
+                    "type": "xss",
+                    "method": "GET",
+                    "path": "/redirect",
+                    "features": {"has_script_tags": False, "has_special_chars": True, "length_bucket": 3},
+                },
+                # Path Traversal
+                {
+                    "payload": "../../../etc/passwd",
+                    "type": "path_traversal",
+                    "method": "GET",
+                    "path": "/file",
+                    "features": {"has_special_chars": True, "length_bucket": 2},
+                },
+                {
+                    "payload": "..\\..\\windows\\system32\\config\\sam",
+                    "type": "path_traversal",
+                    "method": "GET",
+                    "path": "/download",
+                    "features": {"has_special_chars": True, "length_bucket": 3},
+                },
+                # Command Injection
+                {
+                    "payload": "; cat /etc/passwd",
+                    "type": "command_injection",
+                    "method": "POST",
+                    "path": "/exec",
+                    "features": {"has_special_chars": True, "length_bucket": 2},
+                },
+                {
+                    "payload": "| whoami",
+                    "type": "command_injection",
+                    "method": "GET",
+                    "path": "/cmd",
+                    "features": {"has_special_chars": True, "length_bucket": 1},
+                },
+            ]
+
+            await threat_cache.warm_cache(common_attacks)
+            logger.info(f"Cache warmed with {len(common_attacks)} attack patterns")
+
+        except Exception as e:
+            logger.error(f"Cache warming failed: {e}")
+
+
+# Initialize cache warming
+if CACHE_ENABLED and threat_cache:
+    import asyncio
+
+    asyncio.create_task(warm_cache_on_startup())
+
 # ============================================================================
 # AI Providers
 # ============================================================================
@@ -270,7 +416,7 @@ Request: {features.method} {features.path}
 Client IP: {features.client_ip} (Previous requests: {context.previous_requests})
 Rate: {features.requests_per_minute} req/min
 Query: {features.query}
-Body: {features.body[:500] if features.body else 'None'}
+Body: {features.body[:500] if features.body else "None"}
 Failed Auth Attempts: {context.failed_attempts}
 Anomaly Score: {context.anomaly_score}
 
@@ -343,7 +489,7 @@ class GroqProvider(AIProvider):
 Method: {features.method} {features.path}
 IP: {features.client_ip} | Rate: {features.requests_per_minute}/min
 Query: {features.query}
-Body: {features.body[:200] if features.body else 'None'}
+Body: {features.body[:200] if features.body else "None"}
 
 Return JSON: threat_score, threat_type, confidence, reasoning, recommended_action, indicators"""
 
@@ -446,7 +592,7 @@ Request Details:
 - Client IP: {features.client_ip}
 - Request Rate: {features.requests_per_minute} requests/minute
 - Query: {features.query}
-- Body: {features.body[:500] if features.body else 'None'}
+- Body: {features.body[:500] if features.body else "None"}
 - Previous requests from IP: {context.previous_requests}
 - Failed auth attempts: {context.failed_attempts}
 - Anomaly score: {context.anomaly_score}
@@ -570,7 +716,7 @@ class OllamaProvider(AIProvider):
 
 Request: {features.method} {features.path}
 Query: {features.query}
-Body: {features.body[:200] if features.body else 'None'}
+Body: {features.body[:200] if features.body else "None"}
 Client: {features.client_ip} ({features.requests_per_minute} req/min)
 
 JSON format: {{"threat_score": 0-1, "threat_type": "type", "confidence": 0-1, "reasoning": "why", "recommended_action": "block|allow|monitor", "indicators": ["list"]}}"""
@@ -660,8 +806,40 @@ Provide analysis as JSON with these fields:
 # ============================================================================
 
 
-def get_ai_provider() -> AIProvider:
-    """Get the configured AI provider"""
+async def get_intelligent_provider(estimated_tokens: int = 500, priority: str = "balanced") -> AIProvider:
+    """Get the optimal AI provider using intelligent rate limiting"""
+    if not RATE_LIMITER_ENABLED or not rate_limiter:
+        # Fallback to simple provider selection
+        return get_simple_provider()
+
+    # Get optimal provider from rate limiter
+    provider_type = await rate_limiter.get_optimal_provider(estimated_tokens, priority)
+
+    if not provider_type:
+        logger.warning("No providers available - falling back to signature detection")
+        return SignatureBasedProvider()
+
+    # Map ProviderType to actual provider instance
+    provider_map = {
+        ProviderType.OPENAI: lambda: OpenAIProvider() if OPENAI_API_KEY else None,
+        ProviderType.GROQ: lambda: GroqProvider() if GROQ_API_KEY else None,
+        ProviderType.GEMINI: lambda: GeminiProvider() if GEMINI_API_KEY else None,
+        ProviderType.OLLAMA: lambda: OllamaProvider(),
+    }
+
+    provider_func = provider_map.get(provider_type)
+    if provider_func:
+        provider = provider_func()
+        if provider:
+            return provider
+
+    # Fallback to signature-based detection
+    logger.warning(f"Provider {provider_type.value} not available - using signature detection")
+    return SignatureBasedProvider()
+
+
+def get_simple_provider() -> AIProvider:
+    """Simple provider selection (fallback when rate limiter unavailable)"""
     if AI_PROVIDER == "openai" and OPENAI_API_KEY:
         return OpenAIProvider()
     elif AI_PROVIDER == "groq" and GROQ_API_KEY:
@@ -691,10 +869,13 @@ async def root():
         "features": [
             "Real-time AI threat analysis",
             "Multiple AI provider support",
+            "Intelligent threat caching (Phase 2)",
             "Threat signature detection",
             "Learning from feedback",
             "High-performance inference",
         ],
+        "cache_enabled": CACHE_ENABLED,
+        "rate_limiter_enabled": RATE_LIMITER_ENABLED,
     }
 
 
@@ -702,6 +883,76 @@ async def root():
 async def analyze_threat(request: ThreatAnalysisRequest):
     """Analyze a request for threats using AI and ML models"""
     start_time = time.time()
+
+    # Prepare content for cache lookup
+    payload = f"{request.features.query or ''} {request.features.body or ''}".strip()
+    if not payload:
+        payload = request.features.path
+
+    # Check cache first (Phase 2: Intelligent Caching)
+    if CACHE_ENABLED and threat_cache:
+        try:
+            # Prepare features for behavioral fingerprinting
+            features = {
+                "method": request.features.method,
+                "path": request.features.path,
+                "client_ip": request.features.client_ip,
+                "user_agent": request.features.user_agent,
+                "requests_per_minute": request.features.requests_per_minute,
+                "content_length": request.features.content_length,
+                "query_param_count": request.features.query_param_count,
+                "header_count": request.features.header_count,
+                "content": payload,
+            }
+
+            # Check cache for existing analysis
+            cached_result = await threat_cache.get_cached_analysis(
+                payload=payload, method=request.features.method, path=request.features.path, features=features
+            )
+
+            if cached_result:
+                # Cache hit! Return cached result immediately
+                processing_time = time.time() - start_time
+                logger.info(f"Cache hit: {cached_result.cache_hit_type} - {processing_time:.3f}s")
+
+                # Broadcast cache hit to WebSocket
+                await broadcast_threat_analysis(
+                    {
+                        "type": "cached_threat_analysis",
+                        "threat_score": cached_result.threat_score,
+                        "threat_type": cached_result.threat_type,
+                        "confidence": cached_result.confidence,
+                        "reasoning": f"Cached: {cached_result.reasoning}",
+                        "recommended_action": cached_result.recommended_action,
+                        "method": request.features.method,
+                        "path": request.features.path,
+                        "client_ip": request.features.client_ip,
+                        "cache_hit_type": cached_result.cache_hit_type,
+                        "processing_time_ms": processing_time * 1000,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+
+                return ThreatAnalysisResponse(
+                    threat_score=cached_result.threat_score,
+                    threat_type=cached_result.threat_type,
+                    confidence=cached_result.confidence,
+                    reasoning=f"Cached ({cached_result.cache_hit_type}): {cached_result.reasoning}",
+                    recommended_action=cached_result.recommended_action,
+                    indicators=cached_result.indicators,
+                    ai_model=f"cache/{cached_result.provider_used}",
+                    processing_time=processing_time,
+                    detailed_analysis={
+                        "cache_hit": True,
+                        "cache_hit_type": cached_result.cache_hit_type,
+                        "original_provider": cached_result.provider_used,
+                        "cached_at": getattr(cached_result, "cached_at", None),
+                    },
+                )
+
+        except Exception as e:
+            logger.warning(f"Cache lookup failed: {e}")
+            # Continue with normal analysis if cache fails
 
     # Try ML-based analysis first if available
     if ML_ENABLED and model_manager:
@@ -773,16 +1024,47 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             processing_time=time.time() - start_time,
         )
 
-    # Get AI provider
-    ai_provider = get_ai_provider()
+    # Estimate tokens for rate limiting (rough estimate: ~500 tokens per request)
+    estimated_tokens = 500
+
+    # Get intelligent AI provider
+    ai_provider = await get_intelligent_provider(estimated_tokens, priority="balanced")
+
+    # Reserve quota if using rate limiter
+    quota_reserved = False
+    if RATE_LIMITER_ENABLED and rate_limiter and hasattr(ai_provider, "model"):
+        provider_type_map = {
+            "gpt-4o-mini": ProviderType.OPENAI,
+            "mixtral-8x7b-32768": ProviderType.GROQ,
+            "gemini-2.0-flash-exp": ProviderType.GEMINI,
+        }
+        provider_type = None
+        for model_name, p_type in provider_type_map.items():
+            if model_name in getattr(ai_provider, "model", ""):
+                provider_type = p_type
+                break
+
+        if provider_type:
+            quota_reserved = await rate_limiter.reserve_quota(provider_type, estimated_tokens)
+            if not quota_reserved:
+                logger.warning(f"Quota exhausted for {provider_type.value} - using fallback")
+                ai_provider = SignatureBasedProvider()
 
     try:
         # Perform AI analysis
+        start_analysis = time.time()
         ai_result = await ai_provider.analyze(request.features, request.context)
+        analysis_time = time.time() - start_analysis
 
         # Track threats
         if ai_result.get("threat_score", 0) > 0.8:
             threat_intel.add_threat(request.features.client_ip, ai_result.get("threat_type", "unknown"))
+
+        # Record results with rate limiter
+        if RATE_LIMITER_ENABLED and rate_limiter and quota_reserved and provider_type:
+            actual_tokens = estimated_tokens  # Could be more sophisticated token counting
+            success = ai_result.get("threat_score") is not None
+            await rate_limiter.record_result(provider_type, actual_tokens, analysis_time * 1000, success)
 
         # Build response
         response = ThreatAnalysisResponse(
@@ -796,6 +1078,51 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             processing_time=time.time() - start_time,
             detailed_analysis=ai_result,
         )
+
+        # Cache the analysis result (Phase 2: Intelligent Caching)
+        if CACHE_ENABLED and threat_cache:
+            try:
+                # Prepare features for cache storage
+                cache_features = {
+                    "method": request.features.method,
+                    "path": request.features.path,
+                    "client_ip": request.features.client_ip,
+                    "user_agent": request.features.user_agent,
+                    "requests_per_minute": request.features.requests_per_minute,
+                    "content_length": request.features.content_length,
+                    "query_param_count": request.features.query_param_count,
+                    "header_count": request.features.header_count,
+                    "content": payload,
+                }
+
+                # Create cache analysis object
+                from intelligent_cache import ThreatAnalysis
+
+                cache_analysis = ThreatAnalysis(
+                    threat_score=response.threat_score,
+                    threat_type=response.threat_type,
+                    confidence=response.confidence,
+                    reasoning=response.reasoning,
+                    recommended_action=response.recommended_action,
+                    indicators=response.indicators,
+                    provider_used=getattr(ai_provider, "model", "unknown"),
+                    cached=False,
+                )
+
+                # Store in cache asynchronously (don't block response)
+                asyncio.create_task(
+                    threat_cache.cache_analysis(
+                        payload=payload,
+                        method=request.features.method,
+                        path=request.features.path,
+                        features=cache_features,
+                        analysis=cache_analysis,
+                    )
+                )
+
+            except Exception as e:
+                logger.warning(f"Cache storage failed: {e}")
+                # Don't fail the response if caching fails
 
         # Broadcast to WebSocket clients
         try:
@@ -871,6 +1198,137 @@ async def health_check():
         "service": "Kong Guard AI",
         "ai_provider": AI_PROVIDER,
         "ml_enabled": ML_ENABLED,
+        "rate_limiter_enabled": RATE_LIMITER_ENABLED,
+        "cache_enabled": CACHE_ENABLED,
+        "redis_connected": threat_cache.redis_client is not None if CACHE_ENABLED and threat_cache else False,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+@app.get("/providers/stats")
+async def get_provider_stats():
+    """Get comprehensive provider statistics and rate limiting info"""
+    if not RATE_LIMITER_ENABLED or not rate_limiter:
+        return {"error": "Rate limiter not available"}
+
+    stats = rate_limiter.get_comprehensive_stats()
+    return {
+        "stats": stats,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+@app.get("/test")
+async def test_endpoint():
+    """Simple test endpoint"""
+    return {"message": "Test endpoint working", "timestamp": datetime.now(UTC).isoformat()}
+
+
+@app.get("/providers/health")
+async def check_provider_health():
+    """Check health of all configured providers"""
+    if not RATE_LIMITER_ENABLED or not rate_limiter:
+        return {"error": "Rate limiter not available"}
+
+    health_results = {}
+
+    # Simple health check based on API key configuration
+    provider_checks = {
+        "openai": OPENAI_API_KEY,
+        "groq": GROQ_API_KEY,
+        "gemini": GEMINI_API_KEY,
+        "ollama": True,  # Ollama doesn't need API key
+    }
+
+    for provider_name, api_key in provider_checks.items():
+        if api_key:
+            health_results[provider_name] = {"status": "configured", "api_key_set": True}
+        else:
+            health_results[provider_name] = {"status": "not_configured", "api_key_set": False}
+
+    return {
+        "health_check": health_results,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+@app.get("/cache/stats")
+async def get_cache_stats():
+    """Get comprehensive cache performance statistics"""
+    if not CACHE_ENABLED or not threat_cache:
+        return {"error": "Intelligent cache not available"}
+
+    stats = threat_cache.get_cache_stats()
+    return {
+        "cache_stats": stats,
+        "cache_enabled": CACHE_ENABLED,
+        "redis_connected": threat_cache.redis_client is not None,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+@app.get("/providers/analytics")
+async def get_provider_analytics(hours: int = 1):
+    """Get comprehensive provider performance analytics"""
+    if not RATE_LIMITER_ENABLED or not rate_limiter:
+        return {"error": "Rate limiter not available"}
+
+    analytics = {}
+    current_time = time.time()
+    time_window = hours * 3600  # Convert hours to seconds
+
+    for provider_type, history in rate_limiter.performance_history.items():
+        # Filter data for the specified time window
+        recent_data = [h for h in history if current_time - h["timestamp"] < time_window]
+
+        if recent_data:
+            # Calculate analytics
+            total_requests = len(recent_data)
+            successful_requests = sum(1 for h in recent_data if h["success"])
+            failed_requests = total_requests - successful_requests
+            success_rate = successful_requests / total_requests if total_requests > 0 else 0
+
+            avg_latency = sum(h["response_time"] for h in recent_data) / total_requests
+            avg_tokens = sum(h["tokens"] for h in recent_data) / total_requests
+
+            # Cost calculation (rough estimate)
+            limits = rate_limiter.provider_limits[provider_type]
+            estimated_cost = (sum(h["tokens"] for h in recent_data) / 1000) * limits.cost_per_1k_tokens
+
+            analytics[provider_type.value] = {
+                "time_window_hours": hours,
+                "total_requests": total_requests,
+                "successful_requests": successful_requests,
+                "failed_requests": failed_requests,
+                "success_rate": round(success_rate, 3),
+                "avg_latency_ms": round(avg_latency, 2),
+                "avg_tokens_per_request": round(avg_tokens, 1),
+                "estimated_cost": round(estimated_cost, 4),
+                "cost_per_request": round(estimated_cost / total_requests, 6) if total_requests > 0 else 0,
+                "efficiency_score": round(
+                    success_rate * (1 / (avg_latency / 1000)) * (1 / limits.cost_per_1k_tokens), 2
+                ),
+            }
+        else:
+            analytics[provider_type.value] = {
+                "time_window_hours": hours,
+                "total_requests": 0,
+                "message": "No data available for the specified time window",
+            }
+
+    return {
+        "analytics": analytics,
+        "summary": {
+            "best_performer": max(analytics.items(), key=lambda x: x[1].get("efficiency_score", 0))[0]
+            if analytics
+            else None,
+            "total_requests_all_providers": sum(a.get("total_requests", 0) for a in analytics.values()),
+            "overall_success_rate": round(
+                sum(a.get("successful_requests", 0) for a in analytics.values())
+                / max(1, sum(a.get("total_requests", 0) for a in analytics.values())),
+                3,
+            ),
+        },
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
@@ -1379,6 +1837,8 @@ if __name__ == "__main__":
     print("🚀 Kong Guard AI - Threat Analysis Service")
     print(f"📊 AI Provider: {AI_PROVIDER}")
     print(f"🤖 ML Models: {'Enabled' if ML_ENABLED else 'Disabled'}")
+    print(f"⚡ Rate Limiter: {'Enabled' if RATE_LIMITER_ENABLED else 'Disabled'}")
+    print(f"💾 Intelligent Cache: {'Enabled' if CACHE_ENABLED else 'Disabled'}")
     print(f"🔍 Starting on http://localhost:{PORT}")
     print("")
     print("Available providers:")
@@ -1387,6 +1847,15 @@ if __name__ == "__main__":
     print("  - Gemini Flash 2.5: Set GEMINI_API_KEY")
     print("  - Ollama (Local): Install and run Ollama")
     print("")
+
+    if CACHE_ENABLED:
+        print("Intelligent Caching System (Phase 2):")
+        print("  ✅ 5-Tier Caching (Signature → Behavioral → Response → Negative → Redis)")
+        print("  ✅ Threat Pattern Recognition")
+        print("  ✅ Behavioral Fingerprinting")
+        print("  ✅ Cache Warming on Startup")
+        print("  ✅ 90%+ Expected Cache Hit Rate")
+        print("")
 
     if ML_ENABLED:
         print("Machine Learning Models:")

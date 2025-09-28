@@ -31,10 +31,6 @@ api_keys.json
 # OS specific
 .DS_Store
 
-# Task files
-# tasks.json
-# tasks/
-
 # Docker volumes and data
 redis-data/
 kong-datastore/
@@ -146,3 +142,9 @@ diagnostics.txt
 errors.log
 *.html
 *.json
+
+# Environment variables
+
+# Task files
+# tasks.json
+# tasks/

@@ -1,0 +1,42 @@
+# Task ID: 1
+# Title: Initialize Kong Plugin Project and Local Development Stack
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Scaffold a Kong Lua plugin with handler.lua and schema.lua. Set up Docker Compose with Kong Gateway 3.x, Postgres, a demo upstream, and mount the plugin. Verify the plugin loads.
+# Details:
+Create the minimal plugin structure (handler.lua, schema.lua, daos.lua if needed). Provide a docker-compose.yml that runs Kong with the plugin mounted. Confirm init_worker runs and baseline logs are produced.
+
+# Test Strategy:
+Run docker-compose up; enable the plugin on a test service/route; send a request via curl and confirm the plugin loads and logs in Kong stdout.
+
+# Subtasks:
+## 1. Scaffold Minimal Kong Plugin Structure [done]
+### Dependencies: None
+### Description: Create the initial Kong plugin directory with mandatory files: handler.lua and schema.lua. Add daos.lua if custom entities are required.
+### Details:
+Follow Kong's plugin architecture conventions. Ensure handler.lua contains the plugin logic entry point and schema.lua defines the configuration schema. Include daos.lua only if the plugin needs custom database entities.
+
+## 2. Develop Docker Compose Stack for Local Kong Gateway [done]
+### Dependencies: 1.1
+### Description: Set up a docker-compose.yml that provisions Kong Gateway 3.x, Postgres, and a demo upstream service. Configure Kong to mount the custom plugin.
+### Details:
+Ensure Kong loads the plugin from a local volume. The stack should include all necessary environment variables and network configuration for Kong, Postgres, and the upstream service.
+
+## 3. Configure Kong for Plugin Activation [done]
+### Dependencies: 1.2
+### Description: Register the plugin in Kong's configuration and enable it on a test service or route using declarative config or Admin API.
+### Details:
+Use declarative configuration (YAML) or Admin API calls to enable the plugin on a demo service/route. Ensure the plugin is listed in Kong's plugin registry.
+
+## 4. Verify Plugin Lifecycle and Logging [done]
+### Dependencies: 1.3
+### Description: Confirm that the plugin's init_worker phase runs and baseline logs are produced in Kong's stdout.
+### Details:
+Implement basic logging in handler.lua (e.g., in init_worker and access phases). Ensure logs appear in Kong's stdout when the plugin is loaded and requests are processed.
+
+## 5. Validate End-to-End Plugin Functionality [done]
+### Dependencies: 1.4
+### Description: Test the full stack by sending requests via curl to the demo upstream through Kong, confirming plugin execution and log output.
+### Details:
+Use curl to send requests to Kong's proxy endpoint. Check that the plugin processes requests and produces expected logs, confirming correct mounting and execution.

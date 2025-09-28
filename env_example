@@ -26,26 +26,31 @@ KONGA_TOKEN_SECRET=your_konga_token_secret_here
 # NETWORK CONFIGURATION
 # =============================================================================
 
-# Kong Gateway Ports
+# Kong Gateway Ports (inside containers)
 KONG_PROXY_PORT=8000
 KONG_PROXY_SSL_PORT=8443
 KONG_ADMIN_PORT=8001
 KONG_ADMIN_SSL_PORT=8444
 
-# External Access Ports (for development)
-KONG_PROXY_EXTERNAL_PORT=18000
-KONG_PROXY_SSL_EXTERNAL_PORT=18443
-KONG_ADMIN_EXTERNAL_PORT=18001
-KONG_ADMIN_SSL_EXTERNAL_PORT=18444
-
-# Demo API Ports
-DEMO_API_PORT=18085
-MOCK_ATTACKER_PORT=18090
+# Host exposure ports (non-dev defaults to avoid collisions)
+POSTGRES_EXTERNAL_PORT=25432
+KONG_PROXY_EXTERNAL_PORT=28080
+KONG_PROXY_SSL_EXTERNAL_PORT=28443
+KONG_ADMIN_EXTERNAL_PORT=28081
+KONG_ADMIN_SSL_EXTERNAL_PORT=28444
+DEMO_API_PORT=28085
+MOCK_ATTACKER_PORT=28090
+REDIS_EXTERNAL_PORT=26379
+KONGA_UI_PORT=21337
+GRAFANA_PORT=33000
+PROMETHEUS_PORT=39090
+AI_CLOUD_EXTERNAL_PORT=28100
+AI_OLLAMA_EXTERNAL_PORT=28101
+DASHBOARD_EXTERNAL_PORT=28880
 
 # Redis Configuration
 REDIS_HOST=redis
 REDIS_PORT=6379
-REDIS_EXTERNAL_PORT=16379
 
 # =============================================================================
 # SUPABASE CONFIGURATION
@@ -94,7 +99,7 @@ KONG_LOG_LEVEL=info
 KONG_GUARD_AI_LOG_LEVEL=info
 
 # Grafana Configuration (if using)
-GRAFANA_PORT=3000
+# GRAFANA_PORT is defined above in the host exposure section
 GRAFANA_HOST=your_grafana_host_here
 
 # =============================================================================

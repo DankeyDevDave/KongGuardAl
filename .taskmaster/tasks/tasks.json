@@ -961,5 +961,234 @@
       "updated": "2025-08-19T22:33:34.391Z",
       "description": "Tasks for assistant-local context (locally parsed; no external AI)"
     }
+  },
+  "enhancement-program": {
+    "tasks": [
+      {
+        "id": 11,
+        "title": "Sprint 0: Runtime Guardrails Implementation",
+        "description": "Stabilize the core plugin infrastructure to prevent bootstrap failures and ensure graceful degradation with missing dependencies.",
+        "details": "Add missing require calls for incident_analytics and incident_alerting modules in handler.lua. Implement feature flags for optional modules with meaningful warning logs. Create comprehensive regression tests covering plugin bootstrap error scenarios. Ensure plugin can start successfully even when optional dependencies are missing.",
+        "testStrategy": "Test plugin loading with and without optional modules. Verify graceful degradation and proper warning logs. Run regression tests to ensure bootstrap failures are handled correctly.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Sprint 0: Traffic Normalization Implementation",
+        "description": "Implement comprehensive request normalization to ensure consistent threat detection across varied input formats.",
+        "details": "Implement URL canonicalization including percent-encoding normalization, Unicode normalization, and dot-segment removal. Add request body normalization for JSON, form-data, and other content types prior to threat analysis. Document all normalization behaviors and provide configuration toggles.",
+        "testStrategy": "Test normalization with various URL formats, encoding schemes, and content types. Verify that normalized data maintains semantic equivalence while providing consistent format for analysis.",
+        "priority": "high",
+        "dependencies": [11],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Sprint 0: Proxy Header Security Lockdown",
+        "description": "Lock down proxy header handling to prevent header injection attacks and ensure secure defaults.",
+        "details": "Change default trust_proxy_headers configuration to false for security-by-default. Implement IP allowlist/denylist configuration for trusted upstream proxies. Update deployment documentation to highlight new security defaults and provide migration steps.",
+        "testStrategy": "Test with various proxy configurations. Verify that untrusted headers are rejected and only allowlisted proxies can set trusted headers. Validate migration documentation with existing deployments.",
+        "priority": "high",
+        "dependencies": [11],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Sprint 0: Telemetry Stabilization",
+        "description": "Ensure monitoring and alerting systems degrade gracefully and provide actionable insights when external services are unavailable.",
+        "details": "Implement graceful degradation for error reporting and incident pipelines. Add structured logging around all detection verdicts with consistent format and severity levels. Create comprehensive on-call runbook covering common failure modes and troubleshooting steps.",
+        "testStrategy": "Simulate external service failures and verify graceful degradation. Test structured logging output format and consistency. Validate on-call runbook procedures through simulated incidents.",
+        "priority": "medium",
+        "dependencies": [11],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Sprint 1: Extended Threat Detection Surface",
+        "description": "Expand threat detection to cover all request components and modern API patterns including GraphQL and gRPC.",
+        "details": "Implement analyzers for query parameters, request headers, JSON payloads, form data, and multipart request bodies. Add content-type aware parsing and validation with support for nested data structures. Implement GraphQL query analysis and gRPC payload inspection.",
+        "testStrategy": "Test detection across all supported content types and API patterns. Verify GraphQL operation complexity scoring and gRPC message analysis. Ensure seamless integration with existing detection pipeline.",
+        "priority": "high",
+        "dependencies": [12, 13, 14],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Sprint 1: Advanced Bot Detection",
+        "description": "Implement sophisticated bot detection using TLS fingerprinting and behavioral analysis to identify automated clients.",
+        "details": "Capture and analyze JA3/JA4 TLS fingerprints to identify automated clients. Implement client behavior scoring based on request patterns, timing, and velocity metrics. Add detection signatures for common automation tools including Puppeteer, Selenium, and Playwright.",
+        "testStrategy": "Test against known automation tools and legitimate browsers. Verify TLS fingerprint capture and analysis accuracy. Validate behavioral scoring algorithms with false positive mitigation.",
+        "priority": "medium",
+        "dependencies": [15],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Sprint 1: AI/ML Security Pipeline Enhancement",
+        "description": "Harden the machine learning pipeline against adversarial attacks and ensure model reliability with ensemble architecture.",
+        "details": "Implement comprehensive model drift detection with automatic alerts. Add auto-retraining hooks with approval workflows. Implement feedback poisoning safeguards and deploy ensemble model architecture with lightweight edge analysis and deep cloud-based analysis.",
+        "testStrategy": "Test model drift detection with degraded model performance. Verify feedback poisoning protection mechanisms. Validate ensemble model fallback logic when AI/ML services are unavailable.",
+        "priority": "medium",
+        "dependencies": [15],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Sprint 1: Detection Observability Enhancement",
+        "description": "Provide comprehensive visibility into detection system performance and effectiveness with quality metrics and alerting.",
+        "details": "Publish detection quality metrics including precision, recall, false positive rates to monitoring dashboards. Implement alerting rules for sudden detection coverage gaps. Provide pre-built sample queries for threat hunting teams using Splunk, Elastic, and other SIEM platforms.",
+        "testStrategy": "Validate metric accuracy through controlled testing scenarios. Test alerting rules with simulated detection degradation. Verify SIEM query effectiveness with real threat hunting scenarios.",
+        "priority": "medium",
+        "dependencies": [15, 16, 17],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Sprint 2: Zero-Trust Security Controls",
+        "description": "Implement comprehensive zero-trust architecture with adaptive security controls and per-session risk scoring.",
+        "details": "Implement per-session risk scoring with dynamic threshold adjustment based on user behavior and context. Store and analyze device fingerprints with trust tier classification. Add micro-segmentation policy hooks for integration with network security controls.",
+        "testStrategy": "Test risk scoring accuracy across different user behaviors and contexts. Verify device fingerprinting and trust tier classification. Validate micro-segmentation policy integration with network controls.",
+        "priority": "high",
+        "dependencies": [18],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Sprint 2: Distributed Performance & Scalability",
+        "description": "Enhance system performance and scalability for enterprise deployment scenarios with distributed architecture.",
+        "details": "Replace node-local rate limiting with Redis or database-backed distributed rate limiting. Implement streaming analysis for large payload processing. Add adaptive sampling mechanisms keyed to traffic volume with quality preservation.",
+        "testStrategy": "Test distributed rate limiting under high load and network partitions. Verify streaming analysis memory efficiency with large payloads. Validate adaptive sampling maintains detection quality at scale.",
+        "priority": "high",
+        "dependencies": [18],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Sprint 2: Hot-Path Optimization",
+        "description": "Optimize critical performance paths to minimize latency impact on API traffic through profiling and optimization.",
+        "details": "Profile plugin performance and eliminate redundant Kong API calls. Precompile all regex patterns with PCRE JIT compilation. Implement memory pool reuse for frequent allocations to reduce garbage collection overhead.",
+        "testStrategy": "Profile and benchmark performance improvements. Measure latency reduction and resource utilization optimization. Verify regex precompilation effectiveness under load.",
+        "priority": "medium",
+        "dependencies": [19, 20],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Sprint 2: Explainable AI Decisions",
+        "description": "Provide transparency and explainability for AI-driven security decisions with analyst-facing tools and override workflows.",
+        "details": "Implement SHAP/LIME analysis outputs for each AI decision with confidence scores. Provide analyst-facing decision tree visualizations and confidence intervals. Build human-in-the-loop override workflow for disputed decisions.",
+        "testStrategy": "Validate explanation accuracy and usefulness for security analysts. Test human override workflow effectiveness. Verify audit trails for all AI decisions and human interventions.",
+        "priority": "medium",
+        "dependencies": [17, 19],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Strategic: Behavioral Analytics Suite",
+        "description": "Implement advanced behavioral analysis to detect sophisticated attacks through baseline learning and anomaly detection.",
+        "details": "Learn and model baseline API usage patterns for each protected service. Detect anomalous endpoint access patterns and potential data exfiltration flows. Add business logic abuse heuristics specific to application context.",
+        "testStrategy": "Test baseline learning accuracy and anomaly detection effectiveness. Verify business logic abuse detection with application-specific scenarios. Validate temporal analysis for attack campaign detection.",
+        "priority": "medium",
+        "dependencies": [21, 22],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Strategic: Threat Intelligence Integration",
+        "description": "Integrate external threat intelligence sources for enhanced detection capabilities with STIX/TAXII feeds and threat actor mapping.",
+        "details": "Implement STIX/TAXII feed ingestion with automatic indicator enrichment. Map detected activities to known threat actor campaigns and tactics. Correlate indicator of compromise hits across aggregated logs.",
+        "testStrategy": "Test threat intelligence feed integration and enrichment accuracy. Verify threat actor campaign mapping effectiveness. Validate IOC correlation across distributed logs.",
+        "priority": "low",
+        "dependencies": [23],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Strategic: Cloud-Native Security Posture",
+        "description": "Extend security coverage to cloud-native environments and infrastructure with service mesh integration and multi-cloud support.",
+        "details": "Integrate with service mesh technologies including Istio and Linkerd for comprehensive traffic visibility. Implement multi-cloud incident correlation and analysis. Add serverless function security scanning and Kubernetes metadata enrichment.",
+        "testStrategy": "Test service mesh integration and traffic visibility. Verify multi-cloud correlation capabilities. Validate serverless and Kubernetes security scanning effectiveness.",
+        "priority": "low",
+        "dependencies": [23],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 26,
+        "title": "Strategic: Privacy, Compliance, and Governance",
+        "description": "Ensure enterprise-grade privacy protection and regulatory compliance with differential privacy and audit capabilities.",
+        "details": "Apply differential privacy techniques to analytics output. Implement GDPR-style data minimization and consent tracking. Map security controls to SOC 2, PCI DSS, and NIST Cybersecurity Framework requirements.",
+        "testStrategy": "Test differential privacy implementation effectiveness. Verify GDPR compliance mechanisms. Validate control mapping to regulatory frameworks through audit scenarios.",
+        "priority": "low",
+        "dependencies": [24, 25],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Integration: SIEM/SOAR Ecosystem Integration",
+        "description": "Provide seamless integration with enterprise security operations platforms through native connectors and automation playbooks.",
+        "details": "Ship native connectors for Splunk, Elastic Stack, and leading SOAR platforms. Publish automation playbook triggers and response templates. Document comprehensive threat hunting query catalog with use cases.",
+        "testStrategy": "Test native connector functionality with target SIEM/SOAR platforms. Verify automation playbook effectiveness. Validate threat hunting query catalog with real security operations scenarios.",
+        "priority": "medium",
+        "dependencies": [18],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 28,
+        "title": "Integration: Secure Delivery Pipeline",
+        "description": "Integrate security testing and policy management into development workflows with comprehensive CI/CD security gates.",
+        "details": "Embed comprehensive API security tests into CI/CD pipelines including security linting, fuzzing, and contract testing. Implement policy-as-code management alongside infrastructure as code. Automate vulnerability scanning for dependencies and container images.",
+        "testStrategy": "Test CI/CD security gate effectiveness. Verify policy-as-code management integration. Validate automated vulnerability scanning accuracy and coverage.",
+        "priority": "medium",
+        "dependencies": [21],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 29,
+        "title": "UX: Intelligent Configuration Management",
+        "description": "Provide intelligent, adaptive configuration management to reduce operational overhead with auto-tuning and drift detection.",
+        "details": "Implement auto-tuning of detection thresholds based on traffic profiles and false positive feedback. Add configuration drift detection and alerting. Implement security posture scoring with guided recommendations.",
+        "testStrategy": "Test auto-tuning effectiveness across different traffic patterns. Verify configuration drift detection accuracy. Validate security posture scoring and recommendation quality.",
+        "priority": "medium",
+        "dependencies": [27, 28],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 30,
+        "title": "UX: Operations Dashboards and Customer Enablement",
+        "description": "Provide comprehensive dashboards for security operations and executive reporting with interactive investigation tools and training materials.",
+        "details": "Build SOC-focused real-time dashboard with threat intelligence and active incidents. Provide executive KPI summary views with business impact analysis. Implement interactive investigation tools with pivoting capabilities. Produce comprehensive operator training materials and architecture decision records.",
+        "testStrategy": "Test dashboard functionality and real-time data accuracy. Verify executive reporting effectiveness. Validate interactive investigation tool usability. Review training materials for completeness and clarity.",
+        "priority": "low",
+        "dependencies": [29],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-09-18T06:50:00.000Z",
+      "updated": "2025-09-18T06:50:00.000Z",
+      "description": "Enhancement Program tasks for KongGuardAI enterprise transformation"
+    }
   }
 }

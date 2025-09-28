@@ -67,8 +67,15 @@ class IntelligentRateLimiter:
 
         self.quotas: dict[ProviderType, APIQuota] = {provider: APIQuota() for provider in ProviderType}
 
-        # Request queues for each provider
+        # Request queues for each provider with backpressure
         self.request_queues: dict[ProviderType, deque] = {provider: deque() for provider in ProviderType}
+        self.max_queue_size = 100  # Maximum requests per provider queue
+        self.processing_tasks: dict[ProviderType, asyncio.Task] = {}
+
+        # Backpressure monitoring
+        self.backpressure_events: dict[ProviderType, asyncio.Event] = {
+            provider: asyncio.Event() for provider in ProviderType
+        }
 
         # Performance tracking
         self.performance_history = defaultdict(list)
@@ -133,12 +140,20 @@ class IntelligentRateLimiter:
         return available_providers[0]
 
     async def reserve_quota(self, provider: ProviderType, estimated_tokens: int) -> bool:
-        """Reserve API quota for a request"""
+        """Reserve API quota for a request with backpressure handling"""
         quota = self.quotas[provider]
         limits = self.provider_limits[provider]
 
+        # Check if we're at rate limit
         if quota.requests_used >= limits.rpm or quota.tokens_used + estimated_tokens > limits.tpm:
+            # Trigger backpressure event
+            self.backpressure_events[provider].set()
+            logger.warning(f"Rate limit reached for {provider.value}, triggering backpressure")
             return False
+
+        # Clear backpressure event if we're no longer at limit
+        if quota.requests_used < limits.rpm * 0.8 and quota.tokens_used < limits.tpm * 0.8:
+            self.backpressure_events[provider].clear()
 
         quota.requests_used += 1
         quota.tokens_used += estimated_tokens
@@ -169,6 +184,57 @@ class IntelligentRateLimiter:
         # Keep only last 100 entries per provider
         if len(self.performance_history[provider]) > 100:
             self.performance_history[provider].pop(0)
+
+    async def enqueue_request(self, provider: ProviderType, request_data: dict) -> bool:
+        """Enqueue a request with backpressure handling"""
+        queue = self.request_queues[provider]
+
+        if len(queue) >= self.max_queue_size:
+            logger.warning(f"Queue full for {provider.value}, rejecting request")
+            return False
+
+        queue.append(request_data)
+        logger.info(f"Request enqueued for {provider.value}, queue size: {len(queue)}")
+
+        # Start processing if not already running
+        if provider not in self.processing_tasks or self.processing_tasks[provider].done():
+            self.processing_tasks[provider] = asyncio.create_task(self._process_queue(provider))
+
+        return True
+
+    async def _process_queue(self, provider: ProviderType):
+        """Process queued requests for a provider"""
+        queue = self.request_queues[provider]
+
+        while queue:
+            try:
+                # Wait for quota availability
+                while not await self.reserve_quota(provider, 500):  # Assume 500 tokens
+                    await asyncio.sleep(0.1)  # Wait 100ms before retrying
+
+                # Process next request
+                request_data = queue.popleft()
+                logger.info(f"Processing queued request for {provider.value}, remaining: {len(queue)}")
+
+                # Here you would actually process the request
+                # For now, just simulate processing
+                await asyncio.sleep(0.1)
+
+            except Exception as e:
+                logger.error(f"Error processing queue for {provider.value}: {e}")
+                break
+
+    def get_queue_status(self) -> dict:
+        """Get current queue status for monitoring"""
+        status = {}
+        for provider, queue in self.request_queues.items():
+            status[provider.value] = {
+                "queue_size": len(queue),
+                "max_queue_size": self.max_queue_size,
+                "queue_utilization": len(queue) / self.max_queue_size,
+                "is_processing": provider in self.processing_tasks and not self.processing_tasks[provider].done(),
+            }
+        return status
 
     def get_provider_stats(self) -> dict:
         """Get current provider statistics"""
@@ -204,6 +270,22 @@ class IntelligentRateLimiter:
             }
 
         return stats
+
+    def get_comprehensive_stats(self) -> dict:
+        """Get comprehensive statistics including queues and backpressure"""
+        base_stats = self.get_provider_stats()
+        queue_stats = self.get_queue_status()
+
+        return {
+            "providers": base_stats,
+            "queues": queue_stats,
+            "backpressure": {provider.value: self.backpressure_events[provider].is_set() for provider in ProviderType},
+            "system_health": {
+                "total_queued_requests": sum(q["queue_size"] for q in queue_stats.values()),
+                "providers_under_backpressure": sum(1 for event in self.backpressure_events.values() if event.is_set()),
+                "avg_queue_utilization": sum(q["queue_utilization"] for q in queue_stats.values()) / len(queue_stats),
+            },
+        }
 
 
 # Usage example

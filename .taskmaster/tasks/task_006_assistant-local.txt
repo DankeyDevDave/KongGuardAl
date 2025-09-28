@@ -1,0 +1,42 @@
+# Task ID: 6
+# Title: Core Remediation via Admin API
+# Status: done
+# Dependencies: 4
+# Priority: high
+# Description: Apply automated actions via the Kong Admin API: rate-limiting, request-termination, and ACL/IP restrictions on offending consumers/services/routes.
+# Details:
+Secure Admin API access via config. Resolve the target entity from incident context. Ensure actions are idempotent with retry/backoff and audit logs.
+
+# Test Strategy:
+Trigger a detection that should apply a rate limit to a consumer. Verify via the Admin API that the policy is applied to the intended entity.
+
+# Subtasks:
+## 1. Secure Admin API Access Configuration [done]
+### Dependencies: None
+### Description: Configure and validate secure access to the Kong Admin API, ensuring only authorized automation can perform remediation actions.
+### Details:
+Implement authentication and network restrictions for the Admin API endpoint. Store credentials and endpoint configuration securely for use by automation components.
+
+## 2. Incident Context Entity Resolution [done]
+### Dependencies: 6.1
+### Description: Develop logic to extract and resolve the target consumer, service, or route from the incident context for precise remediation.
+### Details:
+Parse incident payloads to identify the affected entity type and unique identifier. Map incident data to Kong Admin API resource references.
+
+## 3. Automated Remediation Action Execution [done]
+### Dependencies: 6.2
+### Description: Implement automated application of rate-limiting, request-termination, and ACL/IP restriction plugins to the resolved entity via the Kong Admin API.
+### Details:
+Invoke Admin API endpoints to configure or update plugins on the target entity. Support all three remediation types and ensure correct plugin parameters are set.
+
+## 4. Idempotency, Retry, and Backoff Mechanisms [done]
+### Dependencies: 6.3
+### Description: Ensure all remediation actions are idempotent, with robust retry and exponential backoff logic to handle transient failures.
+### Details:
+Track action state to prevent duplicate application. Implement retry logic with exponential backoff for failed API calls, and handle error responses gracefully.
+
+## 5. Audit Logging of Remediation Actions [done]
+### Dependencies: 6.4
+### Description: Record detailed audit logs for all remediation actions, including entity, action type, parameters, status, and timestamps.
+### Details:
+Log every attempted and completed remediation action with sufficient metadata for traceability and compliance. Store logs in a persistent and queryable format.

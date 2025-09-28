@@ -1,0 +1,51 @@
+# Kong Pongo Configuration for Kong Guard AI TAXII Testing
+
+# Kong version to test against
+KONG_VERSION=3.4.0
+
+# Additional dependencies for TAXII functionality
+KONG_PLUGINS=kong-guard-ai
+
+# Test-specific environment variables
+export KONG_LOG_LEVEL=info
+export KONG_DATABASE=off
+
+# TAXII testing configuration
+export TAXII_TEST_SERVER_PORT=8080
+export TAXII_TEST_TIMEOUT=30
+
+# Lua path for plugin modules
+export LUA_PATH="./kong/plugins/?.lua;./kong/plugins/?/init.lua;$LUA_PATH"
+
+# Test database (if needed)
+export KONG_PG_HOST=postgres
+export KONG_PG_DATABASE=kong_tests
+export KONG_PG_USER=kong
+export KONG_PG_PASSWORD=kong
+
+# Redis configuration (for shared state if needed)
+export KONG_REDIS_HOST=redis
+export KONG_REDIS_PORT=6379
+
+# Additional Lua modules needed for TAXII
+ADDITIONAL_DEPENDENCIES="
+luarocks install lua-resty-http
+luarocks install lua-resty-ipmatcher
+luarocks install lua-cjson
+"
+
+# Custom test hooks
+TEST_SETUP_HOOK="
+echo 'Setting up TAXII integration tests...'
+# Start mock TAXII server if needed
+lua ./spec/kong-guard-ai/integration/mock_taxii_server.lua &
+sleep 2
+echo 'Mock TAXII server started'
+"
+
+TEST_TEARDOWN_HOOK="
+echo 'Cleaning up TAXII integration tests...'
+# Kill mock TAXII server
+pkill -f mock_taxii_server.lua || true
+echo 'Cleanup completed'
+"
