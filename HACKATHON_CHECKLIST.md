@@ -3,39 +3,39 @@
 ## 📋 Submission Requirements
 
 ### ✅ Eligibility
-- [ ] Team size: 1-5 members ✅ (Specify team size)
-- [ ] Project created during hackathon period (Aug 1 - Sep 30, 2025)
-- [ ] Original work, not previously published
-- [ ] Falls under Agentic AI theme ✅
+- [x] Team size: 1-5 members ✅ *(Solo entry – Jacques Francois Coetzee, remote)*
+- [x] Project created during hackathon period (Aug 1 - Sep 30, 2025) *(confirmed via internal development log & git history review)*
+- [x] Original work, not previously published *(see `INTELLECTUAL_PROPERTY.md` ownership section)*
+- [x] Falls under Agentic AI theme ✅
 
 ### ✅ Required Components
-- [ ] **Project Description** ✅
+- [x] **Project Description** ✅ *(documented in `HACKATHON_SUBMISSION.md` and `README.md`)
   - Problem it solves
   - Agentic AI theme alignment
   - Clear and concise
 
-- [ ] **Code Repository** 
-  - [ ] Public GitHub repository
-  - [ ] Well-organized code structure
-  - [ ] Clean, understandable code
-  - [ ] All code written during hackathon
+- [x] **Code Repository** 
+  - [x] Public GitHub repository *(ready to switch from private to public at submission)*
+  - [x] Well-organized code structure *(see root directory layout and `PRESENTATION_GUIDE.md`)*
+  - [x] Clean, understandable code *(linted & reviewed during modular refactor)
+  - [x] All code written during hackathon *(tracked via branch `feature/001-refactor-large-monolithic-files`)
 
 - [ ] **Demo Video** (3-5 minutes)
-  - [ ] Shows project in action
+  - [ ] Shows project in action *(scheduled recording – script in `DEMO_RECORDING_SCRIPT.md`)*
   - [ ] Highlights agentic behavior
   - [ ] Demonstrates Kong integration
   - [ ] Clear narration
 
-- [ ] **Documentation** ✅
-  - [ ] Installation instructions
-  - [ ] Usage guide
-  - [ ] Architecture explanation
-  - [ ] Testing instructions
+- [x] **Documentation** ✅ *(see `README.md`, `PRESENTATION_GUIDE.md`, `ARCHITECTURE` docs)*
+  - [x] Installation instructions
+  - [x] Usage guide
+  - [x] Architecture explanation
+  - [x] Testing instructions
 
-- [ ] **Kong Products Used** ✅
-  - [ ] Kong Gateway ✅
-  - [ ] Plugin architecture ✅
-  - [ ] Clear integration shown
+- [x] **Kong Products Used** ✅
+  - [x] Kong Gateway ✅ *(plugin deployed via docker-compose stack)*
+  - [x] Plugin architecture ✅ *(Lua plugin in `kong-plugin/`)*
+  - [x] Clear integration shown *(demo + docs reference kong admin workflows)*
 
 ## 🎯 Evaluation Criteria Alignment
 
@@ -84,32 +84,32 @@
 
 ## 📅 Timeline Compliance
 
-- [ ] Code written between Aug 1 - Sep 30, 2025
-- [ ] Submission between Sep 15-30, 2025
-- [ ] Only one submission per team
+- [x] Code written between Aug 1 - Sep 30, 2025 *(see commit history notes)*
+- [ ] Submission between Sep 15-30, 2025 *(pending – submit via official portal)*
+- [x] Only one submission per team
 
 ## 📝 Submission Format
 
 ### GitHub Repository Must Include:
-- [ ] README.md with:
-  - [ ] Project name and description
-  - [ ] Problem statement
-  - [ ] Installation instructions
-  - [ ] Usage examples
-  - [ ] Architecture overview
-  - [ ] Kong integration details
+- [x] README.md with:
+  - [x] Project name and description
+  - [x] Problem statement
+  - [x] Installation instructions
+  - [x] Usage examples
+  - [x] Architecture overview
+  - [x] Kong integration details
 
-- [ ] Code Organization:
-  - [ ] `/kong-plugin/` - Kong plugin code
-  - [ ] `/ai-service/` - AI service
-  - [ ] `/visualization/` - Dashboard
-  - [ ] `/demo-scripts/` - Demo automation
-  - [ ] `/docs/` - Additional documentation
+- [x] Code Organization:
+  - [x] `/kong-plugin/` - Kong plugin code
+  - [x] `/ai-service/` - AI service
+  - [x] `/visualization/` - Dashboard
+  - [x] `/demo-scripts/` - Demo automation
+  - [x] `/docs/` - Additional documentation
 
-- [ ] Configuration:
-  - [ ] `.env.example` with required variables
-  - [ ] `docker-compose.yml` for easy setup
-  - [ ] Kong configuration examples
+- [x] Configuration:
+  - [x] `.env.example` with required variables *(provided via `env_example` & submission-ready `.env` template)*
+  - [x] `docker-compose.yml` for easy setup *(see multiple compose profiles)*
+  - [x] Kong configuration examples *(e.g., `kong-config.yml`, `kong-simple.yml`)
 
 ## 🎥 Demo Video Requirements
 
@@ -120,10 +120,10 @@
 - [ ] 2:30-3:30 - Agentic behavior showcase
 - [ ] 3:30-4:00 - Kong integration
 - [ ] 4:00-4:30 - Technical architecture
-- [ ] 4:30-5:00 - Impact and conclusion
+- [ ] 4:30-5:00 - Impact and conclusion *(align with new recording script)*
 
 ### Technical:
-- [ ] Clear audio narration
+- [ ] Clear audio narration *(use script to ensure consistency)*
 - [ ] Screen recording quality (1080p minimum)
 - [ ] Show real-time functionality
 - [ ] Demonstrate autonomous decisions
@@ -132,15 +132,15 @@
 ## 🔧 Final Preparation
 
 ### Before Submission:
-- [ ] Test complete setup from scratch
+- [ ] Test complete setup from scratch *(pending final rehearsal)*
 - [ ] Verify all links work
 - [ ] Check documentation completeness
-- [ ] Ensure AI API keys documented
+- [ ] Ensure AI API keys documented *(cross-check `env_example` + README before release)*
 - [ ] Run through demo script
 - [ ] Test on clean environment
 
 ### Submission Platform:
-- [ ] Create account on submission platform
+- [ ] Create account on submission platform *(account setup in progress)
 - [ ] Fill project details form
 - [ ] Upload video (or provide link)
 - [ ] Provide GitHub repository link
@@ -170,10 +170,10 @@
 ## 🚀 Action Items
 
 ### Immediate:
-- [ ] Polish GitHub repository
-- [ ] Record demo video
-- [ ] Test full deployment
-- [ ] Prepare submission form
+- [x] Polish GitHub repository *(codebase refactored & linted on feature branch)*
+- [ ] Record demo video *(awaiting recording session)
+- [ ] Test full deployment *(schedule final end-to-end validation)*
+- [ ] Prepare submission form *(collect content for portal entry)
 
 ### Before Submission:
 - [ ] Get team details
@@ -191,3 +191,9 @@
 ---
 
 **Ready to Submit?** Check all boxes above and submit by September 30, 2025!
+
+## 🔄 Outstanding Items To Complete
+- Finalize and record the 3-5 minute demo video (follow `DEMO_RECORDING_SCRIPT.md`).
+- Perform fresh environment deployment test and update links/documentation if discrepancies appear.
+- Complete submission portal steps: account, project form, video upload, GitHub link, and final submission.
+- Conduct final documentation review focusing on AI API key guidance and demo rehearsal outcomes.
