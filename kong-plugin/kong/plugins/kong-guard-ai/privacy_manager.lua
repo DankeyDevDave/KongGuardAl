@@ -1412,7 +1412,7 @@ function _M:_collect_ccpa_personal_info(user_id)
         sensory_data = {},
         professional_info = {job_title = "developer"},
         education_info = {education_level = "bachelors"},
-        inferences = {interests = ["technology", "privacy"]}
+        inferences = {interests = {"technology", "privacy"}}
     }
 end
 

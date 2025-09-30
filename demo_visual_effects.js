@@ -20,13 +20,13 @@ const BRAND_COLORS = {
 function initializeVisualEffects() {
   // Inject CSS for visual effects
   injectVisualEffectsCSS();
-  
+
   // Create click ripple container
   createRippleContainer();
-  
+
   // Create progress indicator
   createProgressIndicator();
-  
+
   console.log('Kong Guard AI Visual Effects initialized');
 }
 
@@ -46,7 +46,7 @@ function injectVisualEffectsCSS() {
       opacity: 0.6;
       animation: kg-ripple-expand 0.8s ease-out forwards;
     }
-    
+
     @keyframes kg-ripple-expand {
       0% {
         transform: scale(0);
@@ -60,7 +60,7 @@ function injectVisualEffectsCSS() {
         opacity: 0;
       }
     }
-    
+
     /* Element Highlight Effect */
     .kg-highlight {
       outline: 3px solid ${BRAND_COLORS.steel} !important;
@@ -71,7 +71,7 @@ function injectVisualEffectsCSS() {
       position: relative;
       z-index: 9998;
     }
-    
+
     @keyframes kg-pulse {
       0%, 100% {
         box-shadow: 0 0 30px rgba(174, 180, 189, 0.8);
@@ -82,7 +82,7 @@ function injectVisualEffectsCSS() {
         outline-offset: 6px;
       }
     }
-    
+
     /* Progress Indicator */
     .kg-progress-indicator {
       position: fixed;
@@ -99,7 +99,7 @@ function injectVisualEffectsCSS() {
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
       min-width: 300px;
     }
-    
+
     .kg-progress-header {
       display: flex;
       align-items: center;
@@ -111,14 +111,14 @@ function injectVisualEffectsCSS() {
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-    
+
     .kg-progress-title {
       color: ${BRAND_COLORS.silver};
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 4px;
     }
-    
+
     .kg-progress-narration {
       color: ${BRAND_COLORS.txt};
       font-size: 13px;
@@ -128,7 +128,7 @@ function injectVisualEffectsCSS() {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
+
     .kg-progress-bar {
       width: 100%;
       height: 4px;
@@ -137,14 +137,14 @@ function injectVisualEffectsCSS() {
       overflow: hidden;
       margin-bottom: 8px;
     }
-    
+
     .kg-progress-fill {
       height: 100%;
       background: linear-gradient(90deg, ${BRAND_COLORS.accent}, ${BRAND_COLORS.steel});
       transition: width 0.3s ease;
       border-radius: 2px;
     }
-    
+
     .kg-progress-time {
       display: flex;
       justify-content: space-between;
@@ -152,7 +152,7 @@ function injectVisualEffectsCSS() {
       color: ${BRAND_COLORS.steel};
       font-weight: 500;
     }
-    
+
     /* Scene Badge */
     .kg-scene-badge {
       position: fixed;
@@ -170,12 +170,12 @@ function injectVisualEffectsCSS() {
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
-    
+
     .kg-scene-number {
       color: ${BRAND_COLORS.accent};
       margin-right: 4px;
     }
-    
+
     /* Hover Indicator */
     .kg-hover-indicator {
       position: fixed;
@@ -189,7 +189,7 @@ function injectVisualEffectsCSS() {
       transform: translate(-50%, -50%);
       animation: kg-hover-pulse 1s ease-in-out infinite;
     }
-    
+
     @keyframes kg-hover-pulse {
       0%, 100% {
         transform: translate(-50%, -50%) scale(1);
@@ -200,7 +200,7 @@ function injectVisualEffectsCSS() {
         opacity: 0.7;
       }
     }
-    
+
     /* Screenshot Flash */
     .kg-screenshot-flash {
       position: fixed;
@@ -214,7 +214,7 @@ function injectVisualEffectsCSS() {
       opacity: 0;
       animation: kg-flash 0.3s ease-out;
     }
-    
+
     @keyframes kg-flash {
       0% {
         opacity: 0;
@@ -251,9 +251,9 @@ function showClickRipple(x, y) {
   ripple.style.height = '40px';
   ripple.style.marginLeft = '-20px';
   ripple.style.marginTop = '-20px';
-  
+
   document.body.appendChild(ripple);
-  
+
   setTimeout(() => {
     ripple.remove();
   }, 800);
@@ -268,12 +268,12 @@ function highlightElement(selector, duration = 3000) {
     console.warn(`Element not found: ${selector}`);
     return;
   }
-  
+
   element.classList.add('kg-highlight');
-  
+
   // Scroll element into view smoothly
   element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  
+
   if (duration > 0) {
     setTimeout(() => {
       element.classList.remove('kg-highlight');
@@ -336,24 +336,24 @@ function updateProgress(sceneInfo, progress) {
   const fill = document.getElementById('kg-progress-fill');
   const timeCurrent = document.getElementById('kg-time-current');
   const timeTotal = document.getElementById('kg-time-total');
-  
+
   if (title && sceneInfo) {
     title.textContent = `Scene ${sceneInfo.number}: ${sceneInfo.title}`;
   }
-  
+
   if (narration && sceneInfo) {
     narration.textContent = sceneInfo.narration.substring(0, 150) + '...';
   }
-  
+
   if (fill && typeof progress === 'number') {
     fill.style.width = `${Math.min(100, Math.max(0, progress))}%`;
   }
-  
+
   if (timeCurrent && sceneInfo) {
     const elapsed = sceneInfo.start_time + (sceneInfo.duration * (progress / 100));
     timeCurrent.textContent = formatTime(elapsed);
   }
-  
+
   if (timeTotal) {
     timeTotal.textContent = formatTime(285); // Total demo duration
   }
@@ -379,7 +379,7 @@ function showScreenshotFlash() {
   const flash = document.createElement('div');
   flash.className = 'kg-screenshot-flash';
   document.body.appendChild(flash);
-  
+
   setTimeout(() => {
     flash.remove();
   }, 300);
@@ -403,7 +403,7 @@ function showHoverIndicator(x, y, duration = 2000) {
   indicator.style.left = `${x}px`;
   indicator.style.top = `${y}px`;
   document.body.appendChild(indicator);
-  
+
   setTimeout(() => {
     indicator.remove();
   }, duration);

@@ -114,7 +114,7 @@ show_header() {
 # Main Menu
 show_main_menu() {
     show_header
-    
+
     echo -e "${BOLD}1.${NC} 🎬 Demo Recording"
     echo -e "${BOLD}2.${NC} 🔧 Environment Setup"
     echo -e "${BOLD}3.${NC} ⚙️  Configuration"
@@ -145,9 +145,9 @@ demo_recording_menu() {
         echo ""
         echo -e "${BOLD}B.${NC} Back to main menu"
         echo ""
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1)
                 echo ""
@@ -205,9 +205,9 @@ environment_setup_menu() {
         echo ""
         echo -e "${BOLD}B.${NC} Back to main menu"
         echo ""
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1)
                 echo ""
@@ -261,9 +261,9 @@ configuration_menu() {
         echo ""
         echo -e "${BOLD}B.${NC} Back to main menu"
         echo ""
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1)
                 echo ""
@@ -348,9 +348,9 @@ preparation_tasks_menu() {
         echo ""
         echo -e "${BOLD}B.${NC} Back to main menu"
         echo ""
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1)
                 echo ""
@@ -405,9 +405,9 @@ post_production_menu() {
         echo ""
         echo -e "${BOLD}B.${NC} Back to main menu"
         echo ""
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1)
                 echo ""
@@ -453,7 +453,7 @@ checklists_menu() {
     show_header
     echo -e "${BOLD}📋 HACKATHON CHECKLISTS${NC}"
     echo ""
-    
+
     echo -e "${BOLD}PRE-RECORDING CHECKLIST:${NC}"
     echo "□ Services running (check with: Environment Setup > Check Status)"
     echo "□ Dashboard accessible at $DASHBOARD_URL"
@@ -461,7 +461,7 @@ checklists_menu() {
     echo "□ Playwright installed"
     echo "□ Configuration reviewed"
     echo ""
-    
+
     echo -e "${BOLD}POST-RECORDING CHECKLIST:${NC}"
     echo "□ Video file exists (demo_recordings/*/video.webm)"
     echo "□ All 17 screenshots captured"
@@ -469,7 +469,7 @@ checklists_menu() {
     echo "□ Video quality reviewed"
     echo "□ Convert to MP4 if needed"
     echo ""
-    
+
     echo -e "${BOLD}SUBMISSION CHECKLIST:${NC}"
     echo "□ Video length 4:30-5:00 minutes"
     echo "□ Add voiceover narration"
@@ -477,7 +477,7 @@ checklists_menu() {
     echo "□ Test playback on different devices"
     echo "□ Upload to hackathon platform"
     echo ""
-    
+
     read -p "Press Enter to continue..."
 }
 
@@ -486,7 +486,7 @@ troubleshooting_menu() {
     show_header
     echo -e "${BOLD}🔍 TROUBLESHOOTING${NC}"
     echo ""
-    
+
     echo -e "${BOLD}Common Issues:${NC}"
     echo ""
     echo "1. Dashboard not accessible"
@@ -504,7 +504,7 @@ troubleshooting_menu() {
     echo "   → Ensure VIDEO_ENABLED=true in configuration"
     echo "   → Check disk space: Preparation Tasks > Check Disk Space"
     echo ""
-    
+
     read -p "Press Enter to continue..."
 }
 
@@ -513,7 +513,7 @@ documentation_menu() {
     show_header
     echo -e "${BOLD}📚 DOCUMENTATION${NC}"
     echo ""
-    
+
     local docs=(
         "README.md:Main README"
         "TEST_RESULTS_SUCCESS.md:Test Results"
@@ -521,10 +521,10 @@ documentation_menu() {
         "narrator_timing.json:Timing Configuration"
         "demo_visual_effects.js:Visual Effects"
     )
-    
+
     echo "Available Documentation:"
     echo ""
-    
+
     for doc in "${docs[@]}"; do
         IFS=':' read -r file desc <<< "$doc"
         if [[ -f "$file" ]]; then
@@ -533,7 +533,7 @@ documentation_menu() {
             echo -e "${RED}✗${NC} $desc ($file) - not found"
         fi
     done
-    
+
     echo ""
     read -p "Press Enter to continue..."
 }
@@ -551,9 +551,9 @@ quick_actions_menu() {
         echo ""
         echo -e "${BOLD}B.${NC} Back to main menu"
         echo ""
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1)
                 echo ""
@@ -682,13 +682,13 @@ main() {
     if [[ $# -gt 0 ]]; then
         handle_cli_args "$@"
     fi
-    
+
     # Interactive menu
     while true; do
         show_main_menu
-        
+
         read -p "Select option: " option
-        
+
         case $option in
             1) demo_recording_menu ;;
             2) environment_setup_menu ;;

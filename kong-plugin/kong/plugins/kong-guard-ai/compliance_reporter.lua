@@ -4,12 +4,36 @@ local _M = {}
 -- Handles automated compliance reporting, monitoring, and regulatory requirements
 
 local cjson = require("cjson.safe")
-local pl_stringx = require("pl.stringx")
-local pl_tablex = require("pl.tablex")
-local pl_file = require("pl.file")
-local pl_path = require("pl.path")
-local pl_date = require("pl.date")
-local uuid = require("resty.uuid")
+
+-- Optional Penlight dependencies - gracefully handle absence
+local pl_stringx, pl_tablex, pl_file, pl_path, pl_date
+pcall(function()
+    pl_stringx = require("pl.stringx")
+    pl_tablex = require("pl.tablex")
+    pl_file = require("pl.file")
+    pl_path = require("pl.path")
+    pl_date = require("pl.date")
+end)
+
+-- Optional UUID library
+local uuid
+local uuid_ok = pcall(function()
+    uuid = require("resty.uuid")
+end)
+
+-- Fallback UUID generator if resty.uuid not available
+local function generate_uuid()
+    if uuid_ok and uuid then
+        return uuid.generate_random()
+    else
+        -- Simple UUID v4 generator fallback
+        local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+        return string.gsub(template, '[xy]', function(c)
+            local v = (c == 'x') and math.random(0, 15) or math.random(8, 11)
+            return string.format('%x', v)
+        end)
+    end
+end
 
 -- Dependencies
 local logger = require("kong.plugins.kong-guard-ai.audit_logger")
@@ -50,7 +74,7 @@ end
 function _M.generate_report(report_type, config, options)
     options = options or {}
 
-    local report_id = uuid.generate()
+    local report_id = generate_uuid()
     local timestamp = ngx.time()
     local report_data = {
         report_id = report_id,

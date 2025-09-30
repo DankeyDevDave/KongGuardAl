@@ -5,7 +5,6 @@ Uses Google Gemini TTS to generate professional narration
 """
 
 import argparse
-import base64
 import json
 import mimetypes
 import os
@@ -30,7 +29,7 @@ AVAILABLE_VOICES = {
     "Fenrir": "Confident male",
     "Aoede": "Bright female",
     "Gacrux": "Professional male (default)",
-    "Algieba": "Energetic, exciting voice"
+    "Algieba": "Energetic, exciting voice",
 }
 
 
@@ -66,19 +65,19 @@ def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:
 
     header = struct.pack(
         "<4sI4s4sIHHIIHH4sI",
-        b"RIFF",          # ChunkID
-        chunk_size,       # ChunkSize (total file size - 8 bytes)
-        b"WAVE",          # Format
-        b"fmt ",          # Subchunk1ID
-        16,               # Subchunk1Size (16 for PCM)
-        1,                # AudioFormat (1 for PCM)
-        num_channels,     # NumChannels
-        sample_rate,      # SampleRate
-        byte_rate,        # ByteRate
-        block_align,      # BlockAlign
+        b"RIFF",  # ChunkID
+        chunk_size,  # ChunkSize (total file size - 8 bytes)
+        b"WAVE",  # Format
+        b"fmt ",  # Subchunk1ID
+        16,  # Subchunk1Size (16 for PCM)
+        1,  # AudioFormat (1 for PCM)
+        num_channels,  # NumChannels
+        sample_rate,  # SampleRate
+        byte_rate,  # ByteRate
+        block_align,  # BlockAlign
         bits_per_sample,  # BitsPerSample
-        b"data",          # Subchunk2ID
-        data_size         # Subchunk2Size (size of audio data)
+        b"data",  # Subchunk2ID
+        data_size,  # Subchunk2Size (size of audio data)
     )
     return header + audio_data
 
@@ -119,7 +118,7 @@ def parse_audio_mime_type(mime_type: str) -> dict:
 def load_narrator_config(config_path="narrator_timing.json"):
     """Load narrator timing configuration"""
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path) as f:
             config = json.load(f)
         return config
     except Exception as e:
@@ -129,25 +128,25 @@ def load_narrator_config(config_path="narrator_timing.json"):
 
 def generate_scene_voice(scene_number, narration_text, voice_name="Gacrux", output_dir="demo_recordings/voiceovers"):
     """Generate voice narration for a scene using Gemini TTS"""
-    
+
     # Get API key
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         print("❌ GEMINI_API_KEY not set in environment")
         print("Set it with: export GEMINI_API_KEY='your-key-here'")
         sys.exit(1)
-    
+
     print(f"\n🎤 Generating voice for Scene {scene_number}...")
     print(f"   Voice: {voice_name}")
     print(f"   Text: {narration_text[:80]}...")
-    
+
     # Create output directory
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Initialize Gemini client
     client = genai.Client(api_key=api_key)
-    
+
     model = "gemini-2.5-pro-preview-tts"
     contents = [
         types.Content(
@@ -157,23 +156,19 @@ def generate_scene_voice(scene_number, narration_text, voice_name="Gacrux", outp
             ],
         ),
     ]
-    
+
     generate_content_config = types.GenerateContentConfig(
         temperature=1,
         response_modalities=["audio"],
         speech_config=types.SpeechConfig(
-            voice_config=types.VoiceConfig(
-                prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                    voice_name=voice_name
-                )
-            )
+            voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name))
         ),
     )
-    
+
     # Generate audio
     print("   Generating audio...")
     audio_chunks = []
-    
+
     try:
         for chunk in client.models.generate_content_stream(
             model=model,
@@ -186,39 +181,42 @@ def generate_scene_voice(scene_number, narration_text, voice_name="Gacrux", outp
                 or chunk.candidates[0].content.parts is None
             ):
                 continue
-            
-            if chunk.candidates[0].content.parts[0].inline_data and chunk.candidates[0].content.parts[0].inline_data.data:
+
+            if (
+                chunk.candidates[0].content.parts[0].inline_data
+                and chunk.candidates[0].content.parts[0].inline_data.data
+            ):
                 inline_data = chunk.candidates[0].content.parts[0].inline_data
                 data_buffer = inline_data.data
-                
+
                 # Convert to WAV if needed
                 file_extension = mimetypes.guess_extension(inline_data.mime_type)
                 if file_extension is None:
                     file_extension = ".wav"
                     data_buffer = convert_to_wav(inline_data.data, inline_data.mime_type)
-                
+
                 audio_chunks.append(data_buffer)
             else:
                 # Text response
-                if hasattr(chunk, 'text'):
+                if hasattr(chunk, "text"):
                     print(f"   {chunk.text}")
-        
+
         # Combine all audio chunks
         if audio_chunks:
-            final_audio = b''.join(audio_chunks)
+            final_audio = b"".join(audio_chunks)
             file_name = output_path / f"scene_{scene_number}_narration.wav"
             save_binary_file(str(file_name), final_audio)
-            
+
             # Get file size
             file_size = len(final_audio) / 1024 / 1024
             print(f"   Size: {file_size:.2f} MB")
             print(f"✅ Scene {scene_number} voice generated successfully!")
-            
+
             return str(file_name)
         else:
             print(f"❌ No audio data received for Scene {scene_number}")
             return None
-            
+
     except Exception as e:
         print(f"❌ Failed to generate voice: {e}")
         return None
@@ -226,34 +224,34 @@ def generate_scene_voice(scene_number, narration_text, voice_name="Gacrux", outp
 
 def generate_all_scenes(voice_name="Gacrux", output_dir="demo_recordings/voiceovers"):
     """Generate voice narration for all scenes"""
-    
+
     # Load config
     config = load_narrator_config()
-    scenes = config['scenes']
-    
+    scenes = config["scenes"]
+
     print(f"🎬 Generating voice for {len(scenes)} scenes...")
     print(f"   Voice: {voice_name} ({AVAILABLE_VOICES.get(voice_name, 'Unknown')})")
     print(f"   Output: {output_dir}")
     print("")
-    
+
     generated_files = []
-    
+
     for scene in scenes:
-        scene_number = scene['number']
-        narration = scene['narration']
-        
+        scene_number = scene["number"]
+        narration = scene["narration"]
+
         result = generate_scene_voice(scene_number, narration, voice_name, output_dir)
-        
+
         if result:
             generated_files.append(result)
-    
+
     print(f"\n{'='*60}")
     print(f"✅ Generated {len(generated_files)} voice files")
     print(f"{'='*60}")
-    
+
     for file in generated_files:
         print(f"   📄 {file}")
-    
+
     print("")
     print("💡 Next steps:")
     print("   1. Review generated audio files")
@@ -264,10 +262,10 @@ def generate_all_scenes(voice_name="Gacrux", output_dir="demo_recordings/voiceov
 def list_voices():
     """List available TTS voices"""
     print("\n🎤 Available Gemini TTS Voices:\n")
-    
+
     for voice, description in AVAILABLE_VOICES.items():
         print(f"   {voice:12} - {description}")
-    
+
     print("\nUsage: --voice <name>")
     print("Example: --voice Gacrux\n")
 
@@ -280,70 +278,47 @@ def main():
 Examples:
   # Generate voice for Scene 1
   ./generate_scene_voice.py --scene 1
-  
+
   # Generate all scenes
   ./generate_scene_voice.py --all
-  
+
   # Generate specific scenes
   ./generate_scene_voice.py --scenes 1,3,5
-  
+
   # Use different voice
   ./generate_scene_voice.py --scene 1 --voice Puck
-  
+
   # List available voices
   ./generate_scene_voice.py --list-voices
-        """
+        """,
     )
-    
+
+    parser.add_argument("--scene", type=int, help="Generate voice for specific scene number (1-7)")
+
+    parser.add_argument("--scenes", help='Generate voice for multiple scenes (comma-separated, e.g., "1,3,5")')
+
+    parser.add_argument("--all", action="store_true", help="Generate voice for all scenes")
+
     parser.add_argument(
-        '--scene',
-        type=int,
-        help='Generate voice for specific scene number (1-7)'
-    )
-    
-    parser.add_argument(
-        '--scenes',
-        help='Generate voice for multiple scenes (comma-separated, e.g., "1,3,5")'
-    )
-    
-    parser.add_argument(
-        '--all',
-        action='store_true',
-        help='Generate voice for all scenes'
-    )
-    
-    parser.add_argument(
-        '--voice',
-        default='Gacrux',
+        "--voice",
+        default="Gacrux",
         choices=list(AVAILABLE_VOICES.keys()),
-        help='Voice to use for narration (default: Gacrux)'
+        help="Voice to use for narration (default: Gacrux)",
     )
-    
-    parser.add_argument(
-        '--output-dir',
-        default='demo_recordings/voiceovers',
-        help='Output directory for voice files'
-    )
-    
-    parser.add_argument(
-        '--config',
-        default='narrator_timing.json',
-        help='Path to narrator timing configuration'
-    )
-    
-    parser.add_argument(
-        '--list-voices',
-        action='store_true',
-        help='List available voices'
-    )
-    
+
+    parser.add_argument("--output-dir", default="demo_recordings/voiceovers", help="Output directory for voice files")
+
+    parser.add_argument("--config", default="narrator_timing.json", help="Path to narrator timing configuration")
+
+    parser.add_argument("--list-voices", action="store_true", help="List available voices")
+
     args = parser.parse_args()
-    
+
     # List voices
     if args.list_voices:
         list_voices()
         return
-    
+
     # Check API key
     if not os.environ.get("GEMINI_API_KEY"):
         print("❌ GEMINI_API_KEY not set in environment")
@@ -352,39 +327,39 @@ Examples:
         print("\nOr in your .env file:")
         print("   GEMINI_API_KEY=your-key-here")
         sys.exit(1)
-    
+
     # Load config
     config = load_narrator_config(args.config)
-    scenes = config['scenes']
-    
+    scenes = config["scenes"]
+
     print("🎬 Kong Guard AI - Voice Generation")
     print(f"   Voice: {args.voice} ({AVAILABLE_VOICES.get(args.voice, 'Unknown')})")
     print(f"   Output: {args.output_dir}")
-    
+
     # Generate voice
     if args.all:
         generate_all_scenes(args.voice, args.output_dir)
-    
+
     elif args.scenes:
-        scene_numbers = [int(n.strip()) for n in args.scenes.split(',')]
+        scene_numbers = [int(n.strip()) for n in args.scenes.split(",")]
         print(f"\n🎤 Generating voice for scenes: {scene_numbers}")
-        
+
         generated = []
         for scene_num in scene_numbers:
-            scene = next((s for s in scenes if s['number'] == scene_num), None)
+            scene = next((s for s in scenes if s["number"] == scene_num), None)
             if scene:
-                result = generate_scene_voice(scene_num, scene['narration'], args.voice, args.output_dir)
+                result = generate_scene_voice(scene_num, scene["narration"], args.voice, args.output_dir)
                 if result:
                     generated.append(result)
             else:
                 print(f"⚠️  Scene {scene_num} not found")
-        
+
         print(f"\n✅ Generated {len(generated)} voice file(s)")
-    
+
     elif args.scene:
-        scene = next((s for s in scenes if s['number'] == args.scene), None)
+        scene = next((s for s in scenes if s["number"] == args.scene), None)
         if scene:
-            result = generate_scene_voice(args.scene, scene['narration'], args.voice, args.output_dir)
+            result = generate_scene_voice(args.scene, scene["narration"], args.voice, args.output_dir)
             if result:
                 print(f"\n✅ Voice generated: {result}")
                 print("\n💡 Next steps:")
@@ -394,7 +369,7 @@ Examples:
         else:
             print(f"❌ Scene {args.scene} not found")
             print(f"Available scenes: 1-{len(scenes)}")
-    
+
     else:
         parser.print_help()
         print("\n💡 Tip: Use --scene 1 to generate Scene 1 voice")

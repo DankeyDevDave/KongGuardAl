@@ -22,7 +22,11 @@
       "WebFetch(domain:docs.claude.com)",
       "mcp__task-master-ai__use_tag",
       "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//Users/jacques/.config/opencode/**)",
+      "Bash(docker-compose:*)",
+      "Bash(xargs docker start:*)",
+      "Bash(curl:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

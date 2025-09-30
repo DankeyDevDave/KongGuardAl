@@ -9,4 +9,3 @@ Docker container status:
 No containers found
 
 Recent Docker logs:
-

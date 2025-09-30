@@ -13,6 +13,13 @@ local threat_detector = require "kong.plugins.kong-guard-ai.modules.ai.threat_de
 -- Import threat detection modules
 local threat_orchestrator = require "kong.plugins.kong-guard-ai.modules.threat.threat_orchestrator"
 
+-- Import Prometheus metrics (optional for advanced features)
+local PrometheusMetrics
+local ok, prometheus_module = pcall(require, "kong.plugins.kong-guard-ai.prometheus_metrics")
+if ok then
+    PrometheusMetrics = prometheus_module
+end
+
 -- Feature cache (kept in main handler for now)
 local _feature_cache = {}
 
@@ -103,9 +110,13 @@ function KongGuardAIHandler:configure(config)
         kong.log.info("Circuit breaker initialized")
     end
 
-    -- Initialize Prometheus metrics
-    prometheus_metrics = PrometheusMetrics:new(config)
-    kong.log.info("Prometheus metrics initialized")
+    -- Initialize Prometheus metrics (if available)
+    if PrometheusMetrics then
+        prometheus_metrics = PrometheusMetrics:new(config)
+        kong.log.info("Prometheus metrics initialized")
+    else
+        kong.log.warn("PrometheusMetrics module not available, metrics disabled")
+    end
 
     -- Initialize SOAR Integration components
     if config.enable_soar_integration then
@@ -205,21 +216,22 @@ function KongGuardAIHandler:access(config)
     local privacy_manager, audit_logger, retention_manager, compliance_reporter
     local data_classifier, data_lineage_tracker, data_quality_monitor, data_catalog_integrator
 
-    if config.compliance_config.enable_gdpr_compliance or config.privacy_config.pii_detection then
+    if (config.compliance_config and config.compliance_config.enable_gdpr_compliance) or
+       (config.privacy_config and config.privacy_config.pii_detection) then
         privacy_manager = load_module("privacy_manager")
     end
-    if config.compliance_config.enable_audit_logging then
+    if config.compliance_config and config.compliance_config.enable_audit_logging then
         audit_logger = load_module("audit_logger")
     end
-    if config.compliance_config.enable_data_retention then
+    if config.compliance_config and config.compliance_config.enable_data_retention then
         retention_manager = load_module("retention_manager")
     end
-    if config.regulatory_config.gdpr_compliance or config.regulatory_config.ccpa_compliance then
+    if config.regulatory_config and (config.regulatory_config.gdpr_compliance or config.regulatory_config.ccpa_compliance) then
         compliance_reporter = load_module("compliance_reporter")
     end
 
     -- Load data governance modules
-    if config.enable_data_governance then
+    if config.enable_data_governance and config.data_governance then
         if config.data_governance.enable_classification then
             data_classifier = load_module("data_classifier")
         end

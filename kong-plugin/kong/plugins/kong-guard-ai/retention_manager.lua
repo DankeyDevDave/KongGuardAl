@@ -507,7 +507,7 @@ function _M:generate_retention_report()
         generated_at = ngx.now(),
         report_period = {
             start = ngx.now() - (30 * 86400),  -- Last 30 days
-            end = ngx.now()
+            ["end"] = ngx.now()
         },
         summary = {
             total_cleanup_operations = self.metrics.cleanup_operations,
