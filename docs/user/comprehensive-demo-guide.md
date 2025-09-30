@@ -114,7 +114,49 @@ python3 attack_comparison_engine.py --export-results
 
 ### Create Professional Demo Videos
 
-#### Automated Video Generation
+#### 🆕 Hackathon Demo Recorder (Recommended for Submission)
+The new **Hackathon Demo Recorder** provides professional demo recording with visual click indicators, automatic screenshots, and perfect narrator timing alignment:
+
+```bash
+# Full hackathon demo with all features (headed, video, screenshots)
+python3 hackathon_demo_recorder.py --headed --screenshots --narrator-timing
+
+# Quick test run (specific scenes only)
+python3 hackathon_demo_recorder.py --scenes 1,3,5
+
+# Headless recording (for server/CI)
+python3 hackathon_demo_recorder.py --headless
+```
+
+**Features:**
+- ✨ **Visual Click Indicators**: Animated ripple effects on all clicks (Kong Guard AI branded)
+- 🎯 **Element Highlighting**: Pulsing glow effects before interactions
+- 📸 **Auto Screenshots**: Captures every stage automatically (~15-20 screenshots)
+- ⏱️ **Narrator Timing**: Precise wait times aligned with voiceover script
+- 📊 **Progress Indicators**: On-screen scene badges and progress bars
+- 📋 **Timing Logs**: JSON report comparing planned vs actual timing
+
+**Output Structure:**
+```
+demo_recordings/hackathon_demo_YYYYMMDD_HHMMSS/
+├── video.webm                    # Main recording (4:30-5:00 mins)
+├── screenshots/
+│   ├── 01_overview_status.png
+│   ├── 01_metrics_tiles.png
+│   ├── 02_architecture_flow.png
+│   ├── 03_attack_simulator.png
+│   ├── 03_sql_injection_result.png
+│   ├── ... (15-20 total screenshots)
+│   └── 07_closing_overview.png
+└── timing_log.json               # Timing analysis
+```
+
+**Configuration:**
+- Edit `narrator_timing.json` to adjust scene timings
+- Matches `demo-voiceover-script.md` exactly
+- Customize visual effects in `demo_visual_effects.js`
+
+#### Alternative: Automated Video Generation
 ```bash
 # Create comprehensive demo video with narration
 python3 video_presentation.py --mode manual
@@ -132,9 +174,9 @@ python3 demo_narrator.py --mode executive --export
 - **Industry Mode**: Sector-specific threats, regulations, case studies
 
 ### Video Output
-- **Location**: `demo_videos/kong_guard_ai_demo_YYYYMMDD_HHMMSS/`
+- **Location**: `demo_recordings/` or `demo_videos/kong_guard_ai_demo_YYYYMMDD_HHMMSS/`
 - **Format**: WebM (1920x1080)
-- **Duration**: 6-8 minutes comprehensive demo
+- **Duration**: 4:30-5:00 minutes (hackathon spec) or 6-8 minutes (comprehensive)
 - **Features**: On-screen narration, visual highlights, progress indicators
 
 ## 📊 Comprehensive Testing Results
