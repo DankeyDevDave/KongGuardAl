@@ -10,7 +10,7 @@
 
 ## ⚠️ PROPRIETARY SOFTWARE NOTICE
 
-This is proprietary software developed for the Kong Agentic AI Hackathon 2025. The ML models and core algorithms are protected intellectual property. See [LICENSE](LICENSE) and [PROPRIETARY_NOTICE.md](PROPRIETARY_NOTICE.md) for details.
+This is proprietary software developed for the Kong Agentic AI Hackathon 2025. The ML models and core algorithms are protected intellectual property. See [LICENSE](LICENSE) and [proprietary-notice.md](proprietary-notice.md) for details.
 
 **Copyright © 2024 Jacques Francois Coetzee. All Rights Reserved.**
 

@@ -54,7 +54,7 @@ tests/
 ├── ci/                           # CI/CD pipeline configuration
 │   └── github-actions.yml       # GitHub Actions workflow
 └── scripts/                     # Utility scripts
-    └── run_integration_tests.sh # Main test runner script
+    └── run-integration-tests.sh # Main test runner script
 ```
 
 ## Test Categories
@@ -111,13 +111,13 @@ chmod +x hey_linux_amd64 && sudo mv hey_linux_amd64 /usr/local/bin/hey
 cd kong-guard-ai/tests
 
 # Run comprehensive test suite
-./scripts/run_integration_tests.sh
+./scripts/run-integration-tests.sh
 
 # Run specific test category
-./scripts/run_integration_tests.sh --category threat-detection
+./scripts/run-integration-tests.sh --category threat-detection
 
 # Run with verbose output
-./scripts/run_integration_tests.sh --verbose
+./scripts/run-integration-tests.sh --verbose
 ```
 
 ### Run Tests in Docker
@@ -148,7 +148,7 @@ cat test-results/comprehensive-test-report.json
 
 ```bash
 export TEST_ENVIRONMENT=local
-./scripts/run_integration_tests.sh
+./scripts/run-integration-tests.sh
 ```
 
 ### Docker Environment  
@@ -159,7 +159,7 @@ export TEST_ENVIRONMENT=local
 
 ```bash
 export TEST_ENVIRONMENT=docker
-./scripts/run_integration_tests.sh
+./scripts/run-integration-tests.sh
 ```
 
 ### CI Environment
@@ -178,7 +178,7 @@ export TEST_ENVIRONMENT=docker
 ### Command Line Options
 
 ```bash
-./scripts/run_integration_tests.sh [OPTIONS]
+./scripts/run-integration-tests.sh [OPTIONS]
 
 Options:
   -e, --environment     Test environment (local|docker|ci)
@@ -214,19 +214,19 @@ export KONG_PROXY_URL=http://kong:8000
 
 ```bash
 # Run all tests
-./scripts/run_integration_tests.sh
+./scripts/run-integration-tests.sh
 
 # Run only threat detection tests
-./scripts/run_integration_tests.sh --category threat-detection
+./scripts/run-integration-tests.sh --category threat-detection
 
 # Run security tests with 8 workers
-./scripts/run_integration_tests.sh --suite security --workers 8
+./scripts/run-integration-tests.sh --suite security --workers 8
 
 # Run load tests against Kong 3.6
-./scripts/run_integration_tests.sh --suite load --kong-version 3.6
+./scripts/run-integration-tests.sh --suite load --kong-version 3.6
 
 # Run in Docker with no cleanup for debugging
-./scripts/run_integration_tests.sh --environment docker --no-cleanup --verbose
+./scripts/run-integration-tests.sh --environment docker --no-cleanup --verbose
 ```
 
 ## Test Configuration
@@ -351,13 +351,13 @@ The load test script automatically validates:
 
 ```bash
 # Light load (100 RPS, 60s)
-./scripts/run_integration_tests.sh --suite load --workers 2
+./scripts/run-integration-tests.sh --suite load --workers 2
 
 # Medium load (1000 RPS, 120s)  
-./scripts/run_integration_tests.sh --suite load --workers 4
+./scripts/run-integration-tests.sh --suite load --workers 4
 
 # Heavy load (5000 RPS, 300s)
-./scripts/run_integration_tests.sh --suite load --workers 8
+./scripts/run-integration-tests.sh --suite load --workers 8
 ```
 
 ## Security Testing
@@ -391,7 +391,7 @@ curl -d "cmd=; cat /etc/passwd" "http://localhost:8000/exec"
 
 ```bash
 # Full security suite
-./scripts/run_integration_tests.sh --suite security
+./scripts/run-integration-tests.sh --suite security
 
 # Docker-based security testing (recommended)
 cd tests/docker
@@ -467,7 +467,7 @@ luarocks list
 lua -e "require('tests.integration_test_framework').initialize()"
 
 # Debug verbose mode
-./scripts/run_integration_tests.sh --verbose
+./scripts/run-integration-tests.sh --verbose
 ```
 
 #### Docker Environment Issues

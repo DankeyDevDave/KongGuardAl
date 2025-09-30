@@ -247,7 +247,7 @@ Best moments to capture:
 - **GitHub**: https://github.com/yourusername/kong-guard-ai
 - **Gemini API**: https://aistudio.google.com/app/apikey
 - **Kong Gateway**: https://konghq.com
-- **Documentation**: See README-AI.md
+- **Documentation**: See readme-ai.md
 
 ---
 

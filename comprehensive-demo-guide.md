@@ -49,7 +49,7 @@ docker-compose -f docker-compose-demo.yml up -d
 sleep 60
 
 # Configure all three Kong tiers
-./configure_three_tier.sh
+./configure-three-tier.sh
 ```
 
 ### 3. Access Demo Interfaces
@@ -221,7 +221,7 @@ Kong-Guard-AI/
 docker-compose -f docker-compose-demo.yml up -d
 
 # Configure Kong tiers
-./configure_three_tier.sh
+./configure-three-tier.sh
 
 # Open dashboard for live demo
 open http://localhost:8090/enterprise_demo_dashboard.html
