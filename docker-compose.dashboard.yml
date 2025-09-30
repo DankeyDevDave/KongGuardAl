@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  kong-guard-dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile.dev
+    container_name: kong-guard-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://192.168.0.228:28100
+      - NEXT_PUBLIC_WEBSOCKET_URL=ws://192.168.0.228:28100/ws
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - kong-net
+    restart: unless-stopped
+
+networks:
+  kong-net:
+    external: true
+    name: kongguardai_kong-net
