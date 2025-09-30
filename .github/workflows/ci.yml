@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     name: Test Kong Guard AI
-    runs-on: [self-hosted, proxmox]
+    runs-on: self-hosted
 
     steps:
       - name: Clean workspace
@@ -74,7 +74,7 @@ jobs:
 
   deploy:
     name: Deploy Kong Guard AI
-    runs-on: [self-hosted, proxmox]
+    runs-on: self-hosted
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
