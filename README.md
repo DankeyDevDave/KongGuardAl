@@ -600,5 +600,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Kong Guard AI** - Autonomous API Security for the Modern Web 🛡️🤖
 
-
-
+<!-- Smoke test: 2025-09-30 17:16:46 UTC -->
