@@ -19,7 +19,7 @@ export default function KongGuardDashboard() {
 
   // Use the real-time dashboard hook
   const { data, testAttack, launchAttackFlood, isConnected } = useRealtimeDashboard({
-    websocketUrl: 'ws://localhost:8000/ws',
+    websocketUrl: 'ws://localhost:18002/ws',
     apiBaseUrls: {
       unprotected: 'http://localhost:8000',
       cloud: 'http://localhost:18002',

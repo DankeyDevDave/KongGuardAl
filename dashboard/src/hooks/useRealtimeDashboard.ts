@@ -52,7 +52,7 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
   const [websocket, setWebsocket] = useState<WebSocket | null>(null)
 
   const defaultOptions = {
-    websocketUrl: 'ws://localhost:8000/ws',
+    websocketUrl: 'ws://localhost:18002/ws',
     apiBaseUrls: {
       unprotected: 'http://localhost:8000',
       cloud: 'http://localhost:18002',
@@ -122,6 +122,24 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
     console.log('📨 WebSocket message:', message)
 
     switch (message.type) {
+      case 'connection':
+        console.log('✅ Connection established:', message.message)
+        if (message.metrics) {
+          console.log('📊 Initial metrics:', message.metrics)
+        }
+        break
+
+      case 'ai_thinking':
+        console.log('🤔 AI processing:', message.data)
+        break
+
+      case 'threat_analysis':
+        console.log('🔍 Threat analysis received:', message.data)
+        if (message.metrics) {
+          console.log('📊 Updated metrics:', message.metrics)
+        }
+        break
+
       case 'attack_flood_started':
         console.log('🚀 Attack flood started:', message)
         break
