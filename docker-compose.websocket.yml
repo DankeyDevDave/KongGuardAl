@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  kong-guard-ai-websocket:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile.websocket
+    container_name: kong-guard-ai-websocket
+    restart: unless-stopped
+    networks:
+      - kongguardai_kong-net
+    ports:
+      - "18002:18002"
+    environment:
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PORT=18002
+      - ENABLE_WEBSOCKET=true
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs/websocket-ai:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18002/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  kongguardai_kong-net:
+    external: true
