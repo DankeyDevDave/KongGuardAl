@@ -6,45 +6,45 @@ The Unified Enterprise Dashboard provides a single, cohesive interface for acces
 
 ## Features
 
-### 🎯 **Unified Interface**
+### **Unified Interface**
 - **Single Header**: Consistent branding and status indicators across all dashboards
 - **Tabbed Navigation**: Easy switching between different dashboard views
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Consistent Theming**: Dark enterprise theme applied across all components
 
-### 📊 **Available Dashboards**
+### **Available Dashboards**
 
-1. **🎯 Enterprise Demo**
+1. ** Enterprise Demo**
    - Main demonstration dashboard with three-tier protection
    - Attack flood simulation with multi-select protection tiers
    - Real-time metrics and live analysis
 
-2. **⚔️ Attack Simulation**
+2. ** Attack Simulation**
    - Enterprise attack simulation dashboard
    - Advanced attack categories and scenarios
    - Protection module testing
 
-3. **🔧 Kong Dashboard**
+3. ** Kong Dashboard**
    - Kong Gateway status and configuration
    - Service health monitoring
    - Testing and validation tools
 
-4. **📊 Attack Reports**
+4. ** Attack Reports**
    - Comprehensive attack analytics
    - Performance metrics and charts
    - Historical data analysis
 
-5. **🛡️ Protection Test**
+5. ** Protection Test**
    - Protection module testing interface
    - Security validation tools
    - Performance benchmarking
 
-6. **🧠 AI Insights**
+6. ** AI Insights**
    - AI-powered security insights
    - Threat intelligence analysis
    - Machine learning metrics
 
-7. **📈 Visualization**
+7. ** Visualization**
    - Data visualization dashboard
    - Charts and graphs
    - Performance analytics
@@ -117,7 +117,7 @@ http://localhost:8080/unified_dashboard.html
 ```javascript
 // In the tab navigation section
 <button class="tab-button" data-tab="new-dashboard">
-    <span class="tab-icon">🔧</span>
+    <span class="tab-icon"></span>
     New Dashboard
 </button>
 

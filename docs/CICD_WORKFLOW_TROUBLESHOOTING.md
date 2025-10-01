@@ -64,7 +64,7 @@ Add conditional checks before running tests:
 **Files Modified:**
 - `.github/workflows/deploy.yml` (Test job, steps 6-7)
 
-**Status:** ✅ Resolved
+**Status:** Resolved
 
 ---
 
@@ -99,7 +99,7 @@ Upgrade to v3:
 **Files Modified:**
 - `.github/workflows/deploy.yml` (Security Scan job, step 5)
 
-**Status:** ✅ Resolved
+**Status:** Resolved
 
 ---
 
@@ -124,7 +124,7 @@ security-scan:
   runs-on: ubuntu-latest
   permissions:
     contents: read
-    security-events: write  # Required for SARIF upload
+    security-events: write # Required for SARIF upload
   steps:
     # ... rest of job
 ```
@@ -137,7 +137,7 @@ security-scan:
 **Files Modified:**
 - `.github/workflows/deploy.yml` (Security Scan job)
 
-**Status:** ⚠️ Partial (permission added, may require GHAS enablement)
+**Status:** Partial (permission added, may require GHAS enablement)
 
 ---
 
@@ -188,8 +188,8 @@ globals = {
 }
 max_line_length = 120
 ignore = {
-  "212",  -- Unused argument
-  "213",  -- Unused loop variable
+  "212", -- Unused argument
+  "213", -- Unused loop variable
 }
 ```
 
@@ -203,7 +203,7 @@ ignore = {
     fi
 ```
 
-**Status:** ⚠️ Ongoing (code quality improvements needed)
+**Status:** Ongoing (code quality improvements needed)
 
 ---
 
@@ -244,7 +244,7 @@ Similar to Issue #1, assumes Python test directory exists.
 **Files Modified:**
 - `.github/workflows/deploy.yml` (Test job, steps 7-8)
 
-**Status:** ✅ Resolved
+**Status:** Resolved
 
 ---
 
@@ -266,7 +266,7 @@ Runner labels in workflow don't match actual runner configuration.
 jobs:
   test:
     name: Test Kong Guard AI
-    runs-on: self-hosted  # or [self-hosted, linux, x64] depending on your setup
+    runs-on: self-hosted # or [self-hosted, linux, x64] depending on your setup
 ```
 
 **Diagnostic Commands:**
@@ -278,7 +278,7 @@ gh api repos/{owner}/{repo}/actions/runners
 gh api repos/{owner}/{repo}/actions/runners | jq '.runners[] | {name, labels}'
 ```
 
-**Status:** ℹ️ Environment-specific
+**Status:** Environment-specific
 
 ---
 
@@ -420,7 +420,7 @@ Validate workflow syntax before pushing:
 
 ```bash
 # Install actionlint
-brew install actionlint  # macOS
+brew install actionlint # macOS
 # or
 go install github.com/rhysd/actionlint/cmd/actionlint@latest
 
@@ -434,7 +434,7 @@ Test workflows locally before pushing:
 
 ```bash
 # Install act
-brew install act  # macOS
+brew install act # macOS
 
 # Run workflow locally
 act push -j test
@@ -601,26 +601,26 @@ gh workflow run deploy.yml \
 
 ```bash
 # Workflow Management
-gh workflow list                          # List all workflows
-gh workflow view {workflow}               # View workflow details
-gh workflow run {workflow}                # Trigger workflow
-gh workflow disable {workflow}            # Disable workflow
-gh workflow enable {workflow}             # Enable workflow
+gh workflow list # List all workflows
+gh workflow view {workflow} # View workflow details
+gh workflow run {workflow} # Trigger workflow
+gh workflow disable {workflow} # Disable workflow
+gh workflow enable {workflow} # Enable workflow
 
 # Run Management
-gh run list                               # List recent runs
-gh run view {run_id}                      # View run details
-gh run rerun {run_id}                     # Rerun failed jobs
-gh run cancel {run_id}                    # Cancel running workflow
-gh run watch {run_id}                     # Watch run in real-time
+gh run list # List recent runs
+gh run view {run_id} # View run details
+gh run rerun {run_id} # Rerun failed jobs
+gh run cancel {run_id} # Cancel running workflow
+gh run watch {run_id} # Watch run in real-time
 
 # Repository Secrets
-gh secret list                            # List secrets
-gh secret set {name} < secret.txt         # Set secret from file
-gh secret set {name} --body "value"       # Set secret directly
+gh secret list # List secrets
+gh secret set {name} < secret.txt # Set secret from file
+gh secret set {name} --body "value" # Set secret directly
 
 # Runner Management
-gh api repos/{owner}/{repo}/actions/runners  # List runners
+gh api repos/{owner}/{repo}/actions/runners # List runners
 ```
 
 ### Workflow File Templates
@@ -692,7 +692,7 @@ jobs:
 To update this document:
 
 1. Add new issues to "Common Issues and Solutions"
-2. Update status indicators (✅ Resolved, ⚠️ Ongoing, ℹ️ Info)
+2. Update status indicators ( Resolved, Ongoing, Info)
 3. Include code examples and commit references
 4. Update changelog with version and date
 

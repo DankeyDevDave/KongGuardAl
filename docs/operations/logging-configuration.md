@@ -21,15 +21,15 @@ The plugin supports five log levels, from most verbose to least:
 ### Primary Log Level
 
 ```lua
-log_level = "info"  -- Sets the overall verbosity
+log_level = "info" -- Sets the overall verbosity
 ```
 
 ### Granular Controls
 
 ```lua
-log_threats = true      -- Log detected threats
-log_requests = false    -- Log all incoming requests (verbose)
-log_decisions = true    -- Log blocking/rate-limiting decisions
+log_threats = true -- Log detected threats
+log_requests = false -- Log all incoming requests (verbose)
+log_decisions = true -- Log blocking/rate-limiting decisions
 ```
 
 ## Configuration Methods

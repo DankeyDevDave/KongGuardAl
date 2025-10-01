@@ -1,37 +1,37 @@
 # Claude-Flow Slash Commands for Claude Code
 
-## 🚀 Quick Reference Guide
+## Quick Reference Guide
 
 ### Core Swarm Operations
 ```bash
-/swarm-init [topology] [agents]     # Initialize coordination swarm
-/spawn-agents [types] [count]       # Create specialized AI agents  
-/swarm-status [detailed]            # Check swarm health and metrics
-/orchestrate [task description]     # Coordinate complex development tasks
+/swarm-init [topology] [agents] # Initialize coordination swarm
+/spawn-agents [types] [count] # Create specialized AI agents  
+/swarm-status [detailed] # Check swarm health and metrics
+/orchestrate [task description] # Coordinate complex development tasks
 ```
 
 ### Neural Intelligence
 ```bash
-/neural-train [pattern] [data]      # Train coordination patterns
+/neural-train [pattern] [data] # Train coordination patterns
 ```
 
 ### Memory Management
 ```bash
-/memory-store [key] [value] [ns]    # Store persistent context and decisions
+/memory-store [key] [value] [ns] # Store persistent context and decisions
 ```
 
 ### Performance & Security
 ```bash
 /performance-report [time] [format] # Generate analytics and optimization
-/kong-security [operation]          # Manage Kong Guard AI security
+/kong-security [operation] # Manage Kong Guard AI security
 ```
 
 ### Help & Documentation
 ```bash
-/claude-flow-help [category]        # Show available commands and usage
+/claude-flow-help [category] # Show available commands and usage
 ```
 
-## 📋 Common Workflows
+## Common Workflows
 
 ### 1. **Initialize Development Swarm**
 ```bash
@@ -67,7 +67,7 @@
 /memory-store "security" "All threats blocked successfully" incidents
 ```
 
-## 🎯 Integration Features
+## Integration Features
 
 ### **Claude Code Native**
 - Slash commands work directly in Claude Code
@@ -89,7 +89,7 @@
 - CI/CD coordination with agents
 - Performance validation
 
-## 🔧 Configuration
+## Configuration
 
 Commands are automatically available in Claude Code with:
 - **Settings**: `.claude/settings.json` configured
@@ -97,7 +97,7 @@ Commands are automatically available in Claude Code with:
 - **Tool Allowlist**: Claude-Flow MCP tools enabled
 - **Integration**: Kong Guard AI + Task Master coordination
 
-## 📊 Example Usage Session
+## Example Usage Session
 
 ```bash
 # 1. Start development session
@@ -124,7 +124,7 @@ Commands are automatically available in Claude Code with:
 /performance-report 24h json > session-metrics.json
 ```
 
-## 🚨 Emergency Operations
+## Emergency Operations
 
 ```bash
 # Security incident response
@@ -140,6 +140,6 @@ Commands are automatically available in Claude Code with:
 
 ---
 
-**🌊 Powered by Claude-Flow v2.0.0 Alpha**
+** Powered by Claude-Flow v2.0.0 Alpha**
 
 All commands integrate seamlessly with Kong Guard AI security operations and Task Master project management.

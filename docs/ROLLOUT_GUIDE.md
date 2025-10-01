@@ -1,25 +1,25 @@
 # Kong Guard AI Rollout Guide
 ## Production Deployment Strategy and Best Practices
 
-### 📋 **Overview**
+### **Overview**
 
 This guide provides comprehensive strategies for safely deploying Kong Guard AI to production environments, including phased rollouts, monitoring strategies, and risk mitigation approaches.
 
 ---
 
-## 🎯 **Rollout Strategy Framework**
+## **Rollout Strategy Framework**
 
 ### **Three-Phase Approach**
 
 | Phase | Duration | Goal | Risk Level |
 |-------|----------|------|------------|
-| **Observe** | 1-2 weeks | Monitor and learn without enforcement | 🟢 Low |
-| **Rate Limit** | 1-2 weeks | Apply rate limiting only | 🟡 Medium |
-| **Enforce** | Ongoing | Full blocking with gradual threshold reduction | 🔴 High |
+| **Observe** | 1-2 weeks | Monitor and learn without enforcement | Low |
+| **Rate Limit** | 1-2 weeks | Apply rate limiting only | Medium |
+| **Enforce** | Ongoing | Full blocking with gradual threshold reduction | High |
 
 ---
 
-## 📊 **Phase 1: Observe Mode**
+## **Phase 1: Observe Mode**
 
 ### **Configuration**
 ```yaml
@@ -28,8 +28,8 @@ plugins:
   config:
     # CRITICAL: No enforcement
     dry_run: true
-    block_threshold: 1.0  # Never block
-    rate_limit_threshold: 1.0  # Never rate limit
+    block_threshold: 1.0 # Never block
+    rate_limit_threshold: 1.0 # Never rate limit
 
     # Maximum logging and monitoring
     log_level: "debug"
@@ -43,14 +43,14 @@ plugins:
     enable_graphql_detection: true
     enable_grpc_detection: true
     enable_tls_fingerprints: true
-    enable_mesh_enricher: true  # If in K8s
-    enable_taxii_ingestion: true  # If threat feeds available
+    enable_mesh_enricher: true # If in K8s
+    enable_taxii_ingestion: true # If threat feeds available
 
     # Conservative detection settings
     anomaly_threshold: 0.8
-    graphql_max_depth: 20  # Permissive initially
+    graphql_max_depth: 20 # Permissive initially
     graphql_max_complexity: 5000
-    grpc_max_message_size: 8388608  # 8MB
+    grpc_max_message_size: 8388608 # 8MB
 ```
 
 ### **Monitoring Objectives**
@@ -97,7 +97,7 @@ echo "=== Kong Guard AI Daily Observation Report ==="
 echo "Date: $(date)"
 
 # Traffic summary
-echo -e "\n📊 Traffic Summary:"
+echo -e "\n Traffic Summary:"
 curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
   "Total requests: \(.total_requests)",
   "Unique IPs: \(.unique_client_ips)",
@@ -105,7 +105,7 @@ curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
 '
 
 # Threat detection summary
-echo -e "\n🚨 Threat Detection (Would-be Actions):"
+echo -e "\n Threat Detection (Would-be Actions):"
 curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
   "Would block: \(.would_block_requests)",
   "Would rate limit: \(.would_rate_limit_requests)",
@@ -113,7 +113,7 @@ curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
 '
 
 # Performance impact
-echo -e "\n⚡ Performance Impact:"
+echo -e "\n Performance Impact:"
 curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
   "Avg latency: \(.avg_processing_latency)ms",
   "Memory usage: \(.memory_usage_mb)MB",
@@ -121,7 +121,7 @@ curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
 '
 
 # Feature utilization
-echo -e "\n🔧 Feature Utilization:"
+echo -e "\n Feature Utilization:"
 curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
   "GraphQL requests: \(.graphql_requests)",
   "gRPC requests: \(.grpc_requests)",
@@ -139,7 +139,7 @@ curl -s http://localhost:8001/kong-guard-ai/metrics | jq -r '
 
 ---
 
-## ⚠️ **Phase 2: Rate Limit Mode**
+## **Phase 2: Rate Limit Mode**
 
 ### **Configuration**
 ```yaml
@@ -148,12 +148,12 @@ plugins:
   config:
     # Enable rate limiting only
     dry_run: false
-    block_threshold: 1.0  # Still no blocking
-    rate_limit_threshold: 0.7  # Conservative threshold
+    block_threshold: 1.0 # Still no blocking
+    rate_limit_threshold: 0.7 # Conservative threshold
 
     # Rate limiting settings
-    rate_limit_duration: 300  # 5 minutes
-    rate_limit_requests: 20   # Generous limit
+    rate_limit_duration: 300 # 5 minutes
+    rate_limit_requests: 20 # Generous limit
 
     # Continue monitoring
     log_level: "info"
@@ -161,10 +161,10 @@ plugins:
     log_decisions: true
 
     # Tune thresholds based on Phase 1 observations
-    anomaly_threshold: 0.75  # Slightly more sensitive
-    graphql_max_depth: 15    # Tighten based on observations
+    anomaly_threshold: 0.75 # Slightly more sensitive
+    graphql_max_depth: 15 # Tighten based on observations
     graphql_max_complexity: 3000
-    grpc_max_message_size: 4194304  # 4MB
+    grpc_max_message_size: 4194304 # 4MB
 
     # Enable notifications for rate limiting
     enable_notifications: true
@@ -254,7 +254,7 @@ adjust_thresholds() {
 
 ---
 
-## 🛡️ **Phase 3: Enforcement Mode**
+## **Phase 3: Enforcement Mode**
 
 ### **Configuration**
 ```yaml
@@ -289,7 +289,7 @@ plugins:
 **Week 1: High Confidence Threats Only**
 ```yaml
 config:
-  block_threshold: 0.9  # Only block obvious attacks
+  block_threshold: 0.9 # Only block obvious attacks
   rate_limit_threshold: 0.6
 ```
 
@@ -310,7 +310,7 @@ config:
 **Week 4+: Optimized**
 ```yaml
 config:
-  block_threshold: 0.75  # Based on environment tuning
+  block_threshold: 0.75 # Based on environment tuning
   rate_limit_threshold: 0.55
 ```
 
@@ -319,14 +319,14 @@ config:
 # Emergency circuit breaker configuration
 config:
   # Auto-disable blocking if false positive rate too high
-  auto_disable_threshold: 0.1  # 10% false positive rate
-  auto_disable_duration: 300   # Disable for 5 minutes
+  auto_disable_threshold: 0.1 # 10% false positive rate
+  auto_disable_duration: 300 # Disable for 5 minutes
   auto_disable_notification: true
 ```
 
 ---
 
-## 🎯 **Environment-Specific Rollout Strategies**
+## **Environment-Specific Rollout Strategies**
 
 ### **Microservices Architecture**
 
@@ -338,7 +338,7 @@ services:
   plugins:
   - name: kong-guard-ai
     config:
-      block_threshold: 0.7  # More sensitive for internal
+      block_threshold: 0.7 # More sensitive for internal
 
 # Progress to public APIs
 services:
@@ -346,7 +346,7 @@ services:
   plugins:
   - name: kong-guard-ai
     config:
-      block_threshold: 0.8  # Conservative for public
+      block_threshold: 0.8 # Conservative for public
 
 # Finish with critical APIs
 services:
@@ -354,7 +354,7 @@ services:
   plugins:
   - name: kong-guard-ai
     config:
-      block_threshold: 0.9  # Very conservative for critical
+      block_threshold: 0.9 # Very conservative for critical
       enable_notifications: true
 ```
 
@@ -393,22 +393,22 @@ regions:
   us-east:
     config:
       block_threshold: 0.8
-      blocked_countries: ["XX", "YY"]  # Higher risk regions
+      blocked_countries: ["XX", "YY"] # Higher risk regions
 
   eu-west:
     config:
-      block_threshold: 0.75  # GDPR considerations
-      log_level: "warn"      # Reduced logging for privacy
+      block_threshold: 0.75 # GDPR considerations
+      log_level: "warn" # Reduced logging for privacy
 
   asia-pacific:
     config:
-      block_threshold: 0.85  # Different threat landscape
-      enable_mesh_enricher: true  # K8s prevalent
+      block_threshold: 0.85 # Different threat landscape
+      enable_mesh_enricher: true # K8s prevalent
 ```
 
 ---
 
-## 📈 **Monitoring and Alerting**
+## **Monitoring and Alerting**
 
 ### **Critical Alerts**
 
@@ -477,7 +477,7 @@ rollout_health_check() {
 
 ---
 
-## 🚨 **Incident Response During Rollout**
+## **Incident Response During Rollout**
 
 ### **Incident Classification**
 
@@ -505,7 +505,7 @@ emergency_rollback() {
 
     # 2. Notify operations team
     curl -X POST "$SLACK_WEBHOOK_URL" \
-         -d '{"text": "🚨 EMERGENCY: Kong Guard AI rolled back to observation mode"}'
+         -d '{"text": " EMERGENCY: Kong Guard AI rolled back to observation mode"}'
 
     # 3. Log incident
     echo "$(date): Emergency rollback executed" >> /var/log/kong-guard-ai/incidents.log
@@ -555,7 +555,7 @@ graceful_degradation() {
 
 ---
 
-## 📋 **Rollout Checklist**
+## **Rollout Checklist**
 
 ### **Pre-Rollout Preparation**
 - [ ] **Environment Setup**

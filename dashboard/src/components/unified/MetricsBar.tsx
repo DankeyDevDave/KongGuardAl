@@ -75,25 +75,24 @@ export function MetricsBar({ metrics, isConnected, className = "" }: MetricsBarP
 
   return (
     <Card className={`border-b border-border bg-kong-surface/50 backdrop-blur-sm ${className}`}>
-      <div className="container mx-auto px-6 py-3">
-        <div className="flex items-center justify-between">
+      <div className="w-full px-6 py-3">
+        <div className="flex items-center justify-between gap-4">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <img
-              src="/kong-guard-ai-logo.webp"
-              alt="Kong Guard AI"
-              className="h-10 w-auto"
-              style={{ filter: 'brightness(1.1) contrast(1.1)' }}
-            />
-            <div className="hidden md:block">
-              <h1 className="text-lg font-bold text-kong-silver">Kong Guard AI</h1>
+            <div className="flex flex-col">
+              <img
+                src="/kong-guard-ai-full-logo.png"
+                alt="Kong Guard AI full logo"
+                className="h-12 w-auto max-w-[220px] object-contain"
+                style={{ filter: 'brightness(1.1) contrast(1.1)' }}
+              />
               <p className="text-xs text-muted-foreground">Enterprise Security Dashboard</p>
             </div>
           </div>
 
           {/* Metrics */}
           <TooltipProvider>
-            <div className="flex items-center gap-4 lg:gap-6">
+            <div className="ml-auto flex items-center gap-4 lg:gap-6">
               {metricItems.map((metric, index) => {
                 const Icon = metric.icon
                 return (

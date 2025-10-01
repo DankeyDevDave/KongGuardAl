@@ -1,6 +1,6 @@
 # Kong Guard AI - Remote Docker Deployment Guide
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
@@ -39,7 +39,7 @@
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/yourorg/kong-guard-ai.git
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 ```
 
@@ -100,17 +100,17 @@ docker compose version
 #### Configure Firewall
 ```bash
 # Allow necessary ports
-sudo ufw allow 22/tcp    # SSH
-sudo ufw allow 80/tcp    # HTTP
-sudo ufw allow 443/tcp   # HTTPS
-sudo ufw allow 8000/tcp  # Kong Proxy
-sudo ufw allow 8443/tcp  # Kong Proxy SSL
+sudo ufw allow 22/tcp # SSH
+sudo ufw allow 80/tcp # HTTP
+sudo ufw allow 443/tcp # HTTPS
+sudo ufw allow 8000/tcp # Kong Proxy
+sudo ufw allow 8443/tcp # Kong Proxy SSL
 
 # Block admin ports from external access
-sudo ufw deny 8001/tcp   # Kong Admin
-sudo ufw deny 8444/tcp   # Kong Admin SSL
-sudo ufw deny 9090/tcp   # Prometheus
-sudo ufw deny 3000/tcp   # Grafana
+sudo ufw deny 8001/tcp # Kong Admin
+sudo ufw deny 8444/tcp # Kong Admin SSL
+sudo ufw deny 9090/tcp # Prometheus
+sudo ufw deny 3000/tcp # Grafana
 
 # Enable firewall
 sudo ufw enable
@@ -199,14 +199,14 @@ DEPLOYMENT_ENV=production
 DOMAIN=your-domain.com
 
 # Kong Settings
-KONG_REPLICAS=2                    # Number of Kong instances
+KONG_REPLICAS=2 # Number of Kong instances
 KONG_PG_DATABASE=kong
 KONG_PG_USER=kong
 KONG_LOG_LEVEL=info
 
 # API Settings
-API_REPLICAS=2                     # Number of FastAPI instances
-API_WORKERS=4                      # Uvicorn workers per instance
+API_REPLICAS=2 # Number of FastAPI instances
+API_WORKERS=4 # Uvicorn workers per instance
 API_PORT=8080
 LOG_LEVEL=info
 
@@ -277,10 +277,10 @@ docker run --env-file .env.production ...
 networks:
   kong-net:
     driver: bridge
-    internal: true  # Isolate internal services
+    internal: true # Isolate internal services
     
   public-net:
-    driver: bridge  # For public-facing services
+    driver: bridge # For public-facing services
 ```
 
 ### 3. SSL/TLS Configuration
@@ -321,9 +321,9 @@ ssh -L 8001:localhost:8001 \
     ubuntu@your-server.com
 
 # Access locally
-open http://localhost:8001  # Kong Admin
-open http://localhost:3000  # Grafana (admin/[password])
-open http://localhost:9090  # Prometheus
+open http://localhost:8001 # Kong Admin
+open http://localhost:3000 # Grafana (admin/[password])
+open http://localhost:9090 # Prometheus
 ```
 
 ### Grafana Dashboards
@@ -624,10 +624,11 @@ sysctl -p
 
 ## Support
 
-- **Documentation**: [Kong Guard AI Docs](https://docs.kongguard.ai)
-- **Issues**: [GitHub Issues](https://github.com/yourorg/kong-guard-ai/issues)
-- **Discord**: [Join Discord](https://discord.gg/kongguard)
-- **Email**: support@kongguard.ai
+Maintained by DankeyDevDave (https://github.com/DankeyDevDave)
+
+- Issues: https://github.com/DankeyDevDave/KongGuardAI/issues
+- Documentation: https://github.com/DankeyDevDave/KongGuardAI/tree/main/docs
+- Contact: Open an issue or reach out via the GitHub profile above
 
 ---
 

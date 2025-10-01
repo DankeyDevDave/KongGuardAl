@@ -1,12 +1,12 @@
-# 🚀 Kong Guard AI - Quick Start Guide (Port 12345)
+# Kong Guard AI - Quick Start Guide (Port 12345)
 
-## 🎯 **Dashboard is Running!**
+## **Dashboard is Running!**
 
 The Kong Guard AI Unified Dashboard is now running on **port 12345** for quick development access.
 
 ---
 
-## 📍 **Access URLs**
+## **Access URLs**
 
 ### **Primary Dashboard**
 ```
@@ -31,20 +31,20 @@ http://localhost:12345/unified_dashboard.html
 
 ---
 
-## 🆕 **New Features Available**
+## **New Features Available**
 
-### **🤖 AI Model Selection**
+### ** AI Model Selection**
 - **OpenAI** (GPT-4, GPT-3.5-turbo)
 - **Claude** (Anthropic models)
 - **Ollama** (Local models)
 - **Local** (On-premise models)
 
-### **🛡️ Protection Tier Selection**
+### ** Protection Tier Selection**
 - **Unprotected Kong** (Baseline testing)
 - **Cloud AI Protection** (Cloud-based analysis)
 - **Local AI Protection** (Local processing)
 
-### **⚡ Smart Features**
+### ** Smart Features**
 - **Multi-select**: Choose one, multiple, or all models/tiers
 - **Validation**: Prevents errors with invalid configurations
 - **Connectivity Testing**: Verify model availability
@@ -52,7 +52,7 @@ http://localhost:12345/unified_dashboard.html
 
 ---
 
-## 🎮 **Quick Start Steps**
+## **Quick Start Steps**
 
 1. **Open Dashboard**
    ```
@@ -65,7 +65,7 @@ http://localhost:12345/unified_dashboard.html
    - Use "All" or "None" buttons for quick selection
 
 3. **Test Connectivity** (Optional)
-   - Click "🔍 Test Connectivity" to verify model availability
+   - Click " Test Connectivity" to verify model availability
 
 4. **Launch Attacks**
    - Navigate to Enterprise Demo or Attack Simulation tabs
@@ -73,7 +73,7 @@ http://localhost:12345/unified_dashboard.html
 
 ---
 
-## 🔧 **Server Management**
+## **Server Management**
 
 ### **Check Server Status**
 ```bash
@@ -96,7 +96,7 @@ python3 serve_dashboard.py
 
 ---
 
-## 🎨 **Dashboard Features**
+## **Dashboard Features**
 
 ### **Unified Interface**
 - **Single Header**: Consistent branding across all dashboards
@@ -112,7 +112,7 @@ python3 serve_dashboard.py
 
 ---
 
-## 🚨 **Troubleshooting**
+## **Troubleshooting**
 
 ### **Dashboard Not Loading**
 ```bash
@@ -139,7 +139,7 @@ kill <PID>
 
 ---
 
-## 📱 **Mobile Access**
+## **Mobile Access**
 
 The dashboard is fully responsive and works on mobile devices:
 ```
@@ -148,7 +148,7 @@ http://localhost:12345/
 
 ---
 
-## 🎯 **Next Steps**
+## **Next Steps**
 
 1. **Explore Dashboards**: Try different tabs to see all features
 2. **Configure Models**: Select your preferred AI models
@@ -157,6 +157,6 @@ http://localhost:12345/
 
 ---
 
-**🎉 Ready to go! Open http://localhost:12345/ to start using Kong Guard AI**
+** Ready to go! Open http://localhost:12345/ to start using Kong Guard AI**
 
 *Port 12345 - Development Quick Start*

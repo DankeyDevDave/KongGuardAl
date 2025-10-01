@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-### 🚀 Launch the Complete Stack
+### Launch the Complete Stack
 ```bash
 ./launch-kong-guard.sh
 ```
@@ -16,7 +16,7 @@ This will:
 6. Open Kong Admin UI in your browser
 7. Provide Claude assistance if errors occur
 
-### 🛑 Stop All Services
+### Stop All Services
 ```bash
 ./stop-kong-guard.sh
 ```

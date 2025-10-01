@@ -64,10 +64,10 @@ This will:
 ./scripts/runner-management.sh
 
 # Or use direct commands:
-./scripts/runner-management.sh status    # Check status
-./scripts/runner-management.sh logs      # View logs
-./scripts/runner-management.sh restart   # Restart service
-./scripts/runner-management.sh cancel    # Cancel stuck workflows
+./scripts/runner-management.sh status # Check status
+./scripts/runner-management.sh logs # View logs
+./scripts/runner-management.sh restart # Restart service
+./scripts/runner-management.sh cancel # Cancel stuck workflows
 ```
 
 ## Workflow Configuration
@@ -86,7 +86,7 @@ on:
 jobs:
   test:
     name: Test Kong Guard AI
-    runs-on: [self-hosted, proxmox]  # Use labels, not runner name
+    runs-on: [self-hosted, proxmox] # Use labels, not runner name
     
     steps:
       - uses: actions/checkout@v4

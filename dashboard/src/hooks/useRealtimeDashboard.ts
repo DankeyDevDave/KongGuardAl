@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import type { ActivityLogEntry } from '@/components/unified/ActivityLogPanel'
 
 interface AttackResult {
   threat_score: number
@@ -50,13 +51,14 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
   })
 
   const [websocket, setWebsocket] = useState<WebSocket | null>(null)
+  const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([])
 
   const defaultOptions = {
     websocketUrl: 'ws://localhost:18002/ws',
     apiBaseUrls: {
       unprotected: 'http://localhost:8000',
-      cloud: 'http://localhost:18002',
-      local: 'http://localhost:18003'
+      cloud: 'http://localhost:28100',
+      local: 'http://localhost:28101'
     },
     ...options
   }
@@ -198,6 +200,22 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
         metrics: newMetrics
       }
     })
+
+    // Add to activity log
+    const newEntry: ActivityLogEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: Date.now(),
+      tier: metric.tier as 'unprotected' | 'cloud' | 'local',
+      attackType: metric.attack_type || 'unknown',
+      latencyMs: metric.response_time_ms || 0,
+      action: metric.blocked ? 'blocked' : 'allowed',
+      threatScore: metric.threat_score,
+      confidence: metric.confidence,
+      method: metric.method || 'GET',
+      path: metric.path || '/'
+    }
+
+    setActivityLog(prev => [newEntry, ...prev].slice(0, 60)) // Keep last 60 total
   }, [])
 
   // API methods for testing attacks
@@ -367,9 +385,25 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
         metrics: newMetrics
       }
     })
+
+    // Add to activity log
+    const newEntry: ActivityLogEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: Date.now(),
+      tier: tier as 'unprotected' | 'cloud' | 'local',
+      attackType: attackType,
+      latencyMs: (result.processing_time || 0),
+      action: result.threat_score >= 0.7 ? 'blocked' : 'allowed',
+      threatScore: result.threat_score,
+      confidence: result.confidence,
+      method: 'POST',
+      path: '/analyze'
+    }
+
+    setActivityLog(prev => [newEntry, ...prev].slice(0, 60))
   }, [])
 
-  // Attack flood control
+  // Attack flood control - simulates attack activity for demo
   const launchAttackFlood = useCallback(async (config: {
     intensity: string
     strategy: string
@@ -377,28 +411,115 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
     targets: string[]
   }) => {
     try {
-      const response = await fetch(`${defaultOptions.apiBaseUrls.cloud}/api/attack/flood`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...config,
-          record_metrics: true
+      console.log('🚀 Launching simulated attack flood:', config)
+      
+      const attackTypes = ['sql', 'xss', 'cmd_injection', 'path', 'ldap_injection', 'business_logic', 'ransomware', 'normal']
+      const duration = config.duration * 1000 // Convert to ms
+      
+      // Determine request interval based on intensity
+      const interval = config.intensity === 'low' ? 200 : 
+                      config.intensity === 'medium' ? 100 : 
+                      config.intensity === 'high' ? 50 : 30 // extreme
+      
+      const startTime = Date.now()
+      let requestCount = 0
+      
+      const simulateAttack = () => {
+        const elapsed = Date.now() - startTime
+        if (elapsed > duration) {
+          console.log(`✅ Attack flood completed: ${requestCount} requests simulated`)
+          return // Stop after duration
+        }
+        
+        // Generate random attack for each tier
+        const tiers: Array<'unprotected' | 'cloud' | 'local'> = ['unprotected', 'cloud', 'local']
+        
+        tiers.forEach(tier => {
+          const attackType = attackTypes[Math.floor(Math.random() * attackTypes.length)]
+          const isNormal = attackType === 'normal'
+          
+          // Realistic latency based on tier
+          const latency = tier === 'unprotected' ? 1.5 + Math.random() * 2 :
+                         tier === 'local' ? 5 + Math.random() * 4 :
+                         7 + Math.random() * 5
+          
+          // Threat score - normal traffic low, attacks high
+          const threatScore = isNormal ? Math.random() * 0.3 :
+                             0.65 + Math.random() * 0.35
+          
+          const newEntry: ActivityLogEntry = {
+            id: `${Date.now()}-${tier}-${Math.random()}`,
+            timestamp: Date.now(),
+            tier: tier,
+            attackType,
+            latencyMs: Number(latency.toFixed(2)),
+            action: (threatScore > 0.7 && tier !== 'unprotected') ? 'blocked' : 'allowed',
+            threatScore: Number(threatScore.toFixed(2)),
+            confidence: Number((0.75 + Math.random() * 0.25).toFixed(2)),
+            method: ['GET', 'POST', 'PUT', 'DELETE'][Math.floor(Math.random() * 4)],
+            path: ['/api/users', '/api/data', '/api/admin', '/api/login', '/api/transfer'][Math.floor(Math.random() * 5)]
+          }
+          
+          setActivityLog(prev => [newEntry, ...prev].slice(0, 60))
+          
+          // Update metrics to reflect flood activity
+          setData(prev => {
+            const newMetrics = { ...prev.metrics }
+            const tierMetrics = newMetrics[tier]
+            
+            if (tierMetrics) {
+              tierMetrics.total++
+              tierMetrics.totalTime += latency
+              
+              if (newEntry.action === 'blocked') {
+                tierMetrics.blocked++
+              } else if (tier === 'unprotected' && !isNormal) {
+                tierMetrics.vulnerable++
+              }
+              
+              // Calculate rates
+              if (tier === 'unprotected') {
+                tierMetrics.successRate = tierMetrics.total > 0 
+                  ? ((tierMetrics.total - tierMetrics.vulnerable) / tierMetrics.total) * 100 
+                  : 0
+              } else {
+                tierMetrics.detectionRate = tierMetrics.total > 0
+                  ? (tierMetrics.blocked / tierMetrics.total) * 100
+                  : 0
+              }
+            }
+            
+            return {
+              ...prev,
+              metrics: newMetrics
+            }
+          })
+          
+          requestCount++
         })
-      })
-
-      if (!response.ok) {
-        throw new Error(`Attack flood failed: ${response.statusText}`)
+        
+        // Schedule next batch
+        setTimeout(simulateAttack, interval)
       }
-
-      return await response.json()
+      
+      // Start the simulation
+      simulateAttack()
+      
+      return { 
+        status: 'started', 
+        message: `Simulated ${config.intensity} intensity flood attack for ${config.duration}s`,
+        run_id: Date.now()
+      }
+      
     } catch (error) {
-      console.error('Attack flood failed:', error)
+      console.error('Attack flood simulation failed:', error)
       throw error
     }
-  }, [defaultOptions.apiBaseUrls.cloud])
+  }, [])
 
   return {
     data,
+    activityLog,
     testAttack,
     launchAttackFlood,
     isConnected: data.connectionStatus === 'connected'

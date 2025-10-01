@@ -7,6 +7,7 @@ import { MetricsBar } from "@/components/unified/MetricsBar"
 import { ModeToggle } from "@/components/unified/ModeToggle"
 import { ControlPanel } from "@/components/unified/ControlPanel"
 import { LiveVisualization } from "@/components/unified/LiveVisualization"
+import { ActivityLogPanel } from "@/components/unified/ActivityLogPanel"
 
 export default function KongGuardDashboard() {
   const [isControlCollapsed, setIsControlCollapsed] = useState(false)
@@ -18,12 +19,12 @@ export default function KongGuardDashboard() {
   })
 
   // Use the real-time dashboard hook
-  const { data, testAttack, launchAttackFlood, isConnected } = useRealtimeDashboard({
+  const { data, activityLog, testAttack, launchAttackFlood, isConnected } = useRealtimeDashboard({
     websocketUrl: 'ws://localhost:18002/ws',
     apiBaseUrls: {
       unprotected: 'http://localhost:8000',
-      cloud: 'http://localhost:18002',
-      local: 'http://localhost:18003'
+      cloud: 'http://localhost:28100',
+      local: 'http://localhost:28101'
     }
   })
 
@@ -70,6 +71,12 @@ export default function KongGuardDashboard() {
           fullWidth={isFullWidth}
         />
       </div>
+
+      {/* Activity Log Panel - Below main content */}
+      <ActivityLogPanel 
+        activityLog={activityLog}
+        className="mx-6 mb-6"
+      />
     </div>
   )
 }

@@ -1,15 +1,15 @@
-# 🚀 Kong Guard AI - Self-Hosted Supabase Integration
+# Kong Guard AI - Self-Hosted Supabase Integration
 
 This guide walks through setting up Kong Guard AI with your self-hosted Supabase instance for enterprise-grade attack simulation and analytics.
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Self-hosted Supabase instance running
 - Python 3.8+ with pip
 - Node.js (for dashboard real-time features)
 - PostgreSQL access (for advanced queries)
 
-## 🏗️ Installation Steps
+## Installation Steps
 
 ### 1. Install Required Dependencies
 
@@ -113,7 +113,7 @@ window.SUPABASE_KEY = 'your_anon_key_here';
 </script>
 ```
 
-## 🔧 Configuration Options
+## Configuration Options
 
 ### Database Performance Tuning
 
@@ -162,12 +162,12 @@ const realtimeConfig = {
     dbType: 'supabase',
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseKey: process.env.SUPABASE_ANON_KEY,
-    updateInterval: 500,  // 500ms for high-frequency updates
-    maxDataPoints: 1000   // Keep more data points for analysis
+    updateInterval: 500, // 500ms for high-frequency updates
+    maxDataPoints: 1000 // Keep more data points for analysis
 };
 ```
 
-## 🚀 Advanced Features
+## Advanced Features
 
 ### High-Availability Setup
 
@@ -254,7 +254,7 @@ async def get_attack_patterns():
         return await get_sqlite_attack_patterns()
 ```
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### Row Level Security (RLS)
 
@@ -293,7 +293,7 @@ class SecureConfig:
         return self.cipher.decrypt(encrypted_key.encode()).decode()
 ```
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 ### Test Database Connection
 ```bash
@@ -316,7 +316,7 @@ async def load_test_supabase():
     
     # Generate test metrics
     metrics = []
-    for i in range(10000):  # 10K attack metrics
+    for i in range(10000): # 10K attack metrics
         metric = AttackMetric(
             run_id=run_id,
             tier="unprotected",
@@ -335,14 +335,14 @@ async def load_test_supabase():
     db.save_attack_metrics_batch(metrics)
     end_time = time.time()
     
-    print(f"✅ Inserted {len(metrics)} metrics in {end_time - start_time:.2f}s")
-    print(f"📊 Rate: {len(metrics) / (end_time - start_time):.0f} records/second")
+    print(f" Inserted {len(metrics)} metrics in {end_time - start_time:.2f}s")
+    print(f" Rate: {len(metrics) / (end_time - start_time):.0f} records/second")
 
 # Run load test
 asyncio.run(load_test_supabase())
 ```
 
-## 🎯 Production Deployment
+## Production Deployment
 
 ### Docker Configuration
 ```dockerfile
@@ -386,7 +386,7 @@ monitoring:
   health_check_interval: 30
 ```
 
-## 📞 Support & Troubleshooting
+## Support & Troubleshooting
 
 ### Common Issues
 
@@ -451,7 +451,7 @@ FROM pg_stat_replication;
 
 ---
 
-## ✅ Verification Checklist
+## Verification Checklist
 
 - [ ] Supabase instance accessible
 - [ ] Migration script executed successfully  
@@ -464,6 +464,6 @@ FROM pg_stat_replication;
 - [ ] Security policies properly configured
 - [ ] Backup and monitoring systems active
 
-**🎉 Your Kong Guard AI system is now powered by self-hosted Supabase!**
+** Your Kong Guard AI system is now powered by self-hosted Supabase!**
 
 For advanced configurations and enterprise features, refer to the Kong Guard AI documentation or contact support.

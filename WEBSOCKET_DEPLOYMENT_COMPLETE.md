@@ -1,8 +1,11 @@
 # WebSocket Backend Deployment - COMPLETE ✅
 
 **Date**: September 30, 2025  
-**Production URL**: https://kongguardai.jacqueswainwright.com/  
+**Production URL**: https://YOUR_PRODUCTION_DOMAIN/  
+**Maintainer**: DankeyDevDave (https://github.com/DankeyDevDave)
 **Server**: root@192.168.0.228
+
+> Replace `YOUR_PRODUCTION_DOMAIN` with your live deployment host when applying these steps.
 
 ---
 
@@ -117,7 +120,7 @@ docker-compose -f docker-compose.websocket.yml up -d
 ```
 ┌─────────────────────────────────────────────┐
 │  Dashboard (Port 3000)                      │
-│  https://kongguardai.jacqueswainwright.com │
+│  https://YOUR_PRODUCTION_DOMAIN │
 └─────────────┬───────────────────────────────┘
               │
               │ WebSocket Connection
@@ -172,7 +175,7 @@ The production dashboard is experiencing Turbopack module resolution issues. Thi
 
 ## Production Access
 
-**Dashboard URL**: https://kongguardai.jacqueswainwright.com/  
+**Dashboard URL**: https://YOUR_PRODUCTION_DOMAIN/  
 **WebSocket URL**: ws://192.168.0.228:18002/ws  
 **SSH Access**: `ssh root@192.168.0.228`
 

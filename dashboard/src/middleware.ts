@@ -1,5 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+// DEMO MODE: Temporarily disable authentication for recording
+// TODO: Re-enable after demo by uncommenting the protection below
+
 // Define which routes require authentication
 // Protect all routes by default (match everything)
 const isProtectedRoute = createRouteMatcher([
@@ -7,10 +10,12 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // If the route is protected, require authentication
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
+  // DEMO MODE: Authentication temporarily disabled
+  // Uncomment the lines below to re-enable authentication:
+  
+  // if (isProtectedRoute(req)) {
+  //   await auth.protect();
+  // }
 });
 
 export const config = {

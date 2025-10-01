@@ -1,4 +1,4 @@
-# 📘 Project Best Practices
+# Project Best Practices
 
 ## 1. Project Purpose
 Autonomous API Threat Response Agent for Kong Gateway. The core is a high‑priority Kong plugin (Lua/OpenResty) that detects API threats (SQLi, XSS, path traversal, DDoS patterns, credential stuffing, anomalies), scores risk, and applies graduated responses (block, rate limit, monitor). A lightweight dashboard (static HTML) and Playwright E2E tests validate the end‑to‑end behavior. An optional FastAPI management plane is scaffolded for configuration, analytics, and incident workflows.

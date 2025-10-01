@@ -1,13 +1,13 @@
 # Kong Guard AI Migration Guide
 ## Safe Upgrade Paths and Version Migration
 
-### 📋 **Overview**
+### **Overview**
 
 This guide provides step-by-step instructions for migrating between Kong Guard AI versions, including breaking changes, backward compatibility notes, and safe rollout strategies.
 
 ---
 
-## 🎯 **Version Overview**
+## **Version Overview**
 
 | Version | Release Date | Key Features | Breaking Changes |
 |---------|-------------|--------------|------------------|
@@ -17,7 +17,7 @@ This guide provides step-by-step instructions for migrating between Kong Guard A
 
 ---
 
-## 🔄 **Migration Paths**
+## **Migration Paths**
 
 ### **v1.0 → v2.0 Migration**
 
@@ -59,17 +59,17 @@ This guide provides step-by-step instructions for migrating between Kong Guard A
    plugins:
    - name: kong-guard-ai
      config:
-       threat_threshold: 0.8  # DEPRECATED
-       enable_sql_detection: true  # DEPRECATED
+       threat_threshold: 0.8 # DEPRECATED
+       enable_sql_detection: true # DEPRECATED
 
    # v2.0 configuration
    plugins:
    - name: kong-guard-ai
      config:
-       block_threshold: 0.8  # NEW
-       rate_limit_threshold: 0.6  # NEW
-       enable_ml_detection: true  # NEW
-       enable_ai_gateway: false  # NEW - start disabled
+       block_threshold: 0.8 # NEW
+       rate_limit_threshold: 0.6 # NEW
+       enable_ml_detection: true # NEW
+       enable_ai_gateway: false # NEW - start disabled
    ```
 
 4. **Gradual Feature Rollout**
@@ -78,13 +78,13 @@ This guide provides step-by-step instructions for migrating between Kong Guard A
    config:
      block_threshold: 0.8
      rate_limit_threshold: 0.6
-     enable_ml_detection: false  # Keep disabled initially
-     enable_ai_gateway: false    # Keep disabled initially
+     enable_ml_detection: false # Keep disabled initially
+     enable_ai_gateway: false # Keep disabled initially
 
    # Phase 2: Enable ML (after 1 week)
    config:
      enable_ml_detection: true
-     anomaly_threshold: 0.8  # Start conservative
+     anomaly_threshold: 0.8 # Start conservative
 
    # Phase 3: Enable AI Gateway (after 2 weeks)
    config:
@@ -93,11 +93,11 @@ This guide provides step-by-step instructions for migrating between Kong Guard A
    ```
 
 #### **Compatibility Notes**
-- **✅ Backward Compatible**: Core threat detection patterns
-- **✅ Backward Compatible**: Basic IP blocking functionality
-- **❌ Breaking Change**: Configuration parameter names
-- **❌ Breaking Change**: Log message format
-- **❌ Breaking Change**: Admin API endpoints
+- ** Backward Compatible**: Core threat detection patterns
+- ** Backward Compatible**: Basic IP blocking functionality
+- ** Breaking Change**: Configuration parameter names
+- ** Breaking Change**: Log message format
+- ** Breaking Change**: Admin API endpoints
 
 ---
 
@@ -148,7 +148,7 @@ This guide provides step-by-step instructions for migrating between Kong Guard A
    ```yaml
    config:
      normalize_url: true
-     normalize_body: false  # Start with URL only
+     normalize_body: false # Start with URL only
      normalization_profile: "lenient"
    ```
 
@@ -156,31 +156,31 @@ This guide provides step-by-step instructions for migrating between Kong Guard A
    ```yaml
    config:
      enable_graphql_detection: true
-     graphql_max_depth: 15  # Start conservative
+     graphql_max_depth: 15 # Start conservative
      graphql_max_complexity: 3000
 
      enable_grpc_detection: true
      grpc_max_message_size: 4194304
-     grpc_rate_limit_per_method: 200  # Start permissive
+     grpc_rate_limit_per_method: 200 # Start permissive
    ```
 
    **Phase 3: Advanced Features (Week 4+)**
    ```yaml
    config:
      enable_tls_fingerprints: true
-     enable_taxii_ingestion: true  # If threat feeds available
-     enable_mesh_enricher: true    # If in K8s environment
+     enable_taxii_ingestion: true # If threat feeds available
+     enable_mesh_enricher: true # If in K8s environment
    ```
 
 #### **Compatibility Notes**
-- **✅ Backward Compatible**: All v2.0 configurations work unchanged
-- **✅ Backward Compatible**: API endpoints and response formats
-- **✅ Backward Compatible**: Log formats (with new optional fields)
-- **✅ New Features**: All new capabilities are opt-in via feature flags
+- ** Backward Compatible**: All v2.0 configurations work unchanged
+- ** Backward Compatible**: API endpoints and response formats
+- ** Backward Compatible**: Log formats (with new optional fields)
+- ** New Features**: All new capabilities are opt-in via feature flags
 
 ---
 
-## 🛡️ **Safe Rollout Strategies**
+## **Safe Rollout Strategies**
 
 ### **Blue-Green Deployment**
 
@@ -237,23 +237,23 @@ config:
 # Week 2: Rate limiting only
 config:
   dry_run: false
-  block_threshold: 1.0  # Never block
+  block_threshold: 1.0 # Never block
   rate_limit_threshold: 0.6
 
 # Week 3: Gradual enforcement
 config:
-  block_threshold: 0.9  # Very high threshold
+  block_threshold: 0.9 # Very high threshold
   rate_limit_threshold: 0.6
 
 # Week 4: Full enforcement
 config:
-  block_threshold: 0.8  # Production threshold
+  block_threshold: 0.8 # Production threshold
   rate_limit_threshold: 0.6
 ```
 
 ---
 
-## 🔧 **Configuration Migration Tools**
+## **Configuration Migration Tools**
 
 ### **Automated Configuration Converter**
 
@@ -269,8 +269,8 @@ convert_v1_to_v2() {
     sed -i 's/enable_sql_detection/enable_ml_detection/g' "$config_file"
 
     # Add new required parameters
-    echo "  rate_limit_threshold: 0.6" >> "$config_file"
-    echo "  enable_ai_gateway: false" >> "$config_file"
+    echo " rate_limit_threshold: 0.6" >> "$config_file"
+    echo " enable_ai_gateway: false" >> "$config_file"
 }
 
 convert_v2_to_v3() {
@@ -320,7 +320,7 @@ validate_config() {
 
 ---
 
-## 📊 **Migration Monitoring**
+## **Migration Monitoring**
 
 ### **Key Metrics to Monitor**
 
@@ -359,33 +359,33 @@ check_plugin_health() {
 
     # Check plugin is loaded
     if ! kong plugins list | grep -q "kong-guard-ai"; then
-        echo "❌ Plugin not loaded"
+        echo " Plugin not loaded"
         return 1
     fi
 
     # Check threat detection is working
     local response=$(curl -s -w "%{http_code}" "http://localhost:8000/test?q='; DROP TABLE users;" -o /dev/null)
     if [ "$response" != "403" ]; then
-        echo "❌ Threat detection not working (expected 403, got $response)"
+        echo " Threat detection not working (expected 403, got $response)"
         return 1
     fi
 
     # Check AI service (if enabled)
     if curl -s http://localhost:8001/kong-guard-ai/config | grep -q '"enable_ai_gateway": true'; then
         if ! curl -s http://ai-service:8000/health > /dev/null; then
-            echo "❌ AI service not responding"
+            echo " AI service not responding"
             return 1
         fi
     fi
 
-    echo "✅ All health checks passed"
+    echo " All health checks passed"
     return 0
 }
 ```
 
 ---
 
-## 🔙 **Rollback Procedures**
+## **Rollback Procedures**
 
 ### **Emergency Rollback**
 
@@ -442,7 +442,7 @@ config:
 
 ---
 
-## 🔍 **Troubleshooting Migration Issues**
+## **Troubleshooting Migration Issues**
 
 ### **Common Problems**
 
@@ -488,7 +488,7 @@ curl http://localhost:8001/kong-guard-ai/dependencies
 
 ---
 
-## 📋 **Migration Checklist**
+## **Migration Checklist**
 
 ### **Pre-Migration**
 - [ ] Backup current Kong configuration

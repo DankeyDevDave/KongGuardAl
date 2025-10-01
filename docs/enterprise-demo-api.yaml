@@ -11,17 +11,18 @@ info:
     presentation automation for enterprise client demonstrations.
   version: 1.0.0
   contact:
-    name: Kong Guard AI Team
-    email: support@kongguardai.com
+    name: DankeyDevDave
+    url: https://github.com/DankeyDevDave
+    email: dankeydevdave@users.noreply.github.com
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 servers:
   - url: http://localhost:8090
-    description: Enterprise Demo System
-  - url: https://demo.kongguardai.com
-    description: Remote Demo Environment
+    description: Enterprise demo system (maintained locally by DankeyDevDave)
+  - url: http://localhost:8091
+    description: Placeholder remote demo target (update with your deployment)
 
 tags:
   - name: Attack Testing

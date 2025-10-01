@@ -1,13 +1,13 @@
 # Kong Guard AI - Hackathon Submission
 
-## 🏆 Kong Agentic AI Hackathon 2025
+## Kong Agentic AI Hackathon 2025
 
 **Event**: Kong API Summit 2025 Hackathon  
 **Theme**: Agentic AI - Solutions that take initiative and make autonomous decisions  
 **Prize Pool**: $10,000  
 **Status**: Submission Ready
 
-## 📝 Project Description
+## Project Description
 
 **Kong Guard AI** is an autonomous AI-powered threat detection and response system that transforms Kong Gateway into an intelligent security guardian. Unlike traditional WAFs that rely on static rules, Kong Guard AI uses real AI models (Gemini, GPT-4, Groq) to autonomously detect, analyze, and block sophisticated API threats in real-time - including zero-day attacks that rules can't catch.
 
@@ -21,7 +21,7 @@ Kong Guard AI embodies true agentic behavior:
 - **Learns and Adapts**: Builds threat intelligence from attacks to improve future decisions
 - **Real-World Impact**: Makes split-second security decisions that prevent data breaches
 
-## 🎯 Key Features
+## Key Features
 
 ### Agentic Capabilities
 - **Zero-Day Protection**: AI understands attack intent, not just patterns
@@ -35,7 +35,7 @@ Kong Guard AI embodies true agentic behavior:
 - **Native Kong Plugin**: Deep integration with Kong Gateway 3.8
 - **Enterprise Ready**: Docker, Kubernetes, horizontal scaling
 
-## 🔧 Kong Products Used
+## Kong Products Used
 
 1. **Kong Gateway** (v3.8.0)
    - Native Lua plugin using Kong PDK
@@ -54,7 +54,7 @@ Kong Guard AI embodies true agentic behavior:
    - Database-less deployment
    - Clustering support
 
-## 💡 Why This Wins
+## Why This Wins
 
 ### Creativity & Originality
 - First Kong plugin to use real AI for threat detection
@@ -79,27 +79,27 @@ Kong Guard AI embodies true agentic behavior:
 - Integrates with Kong rate limiting
 - Compatible with Kong Konnect
 
-## 🏆 Special Category Qualifications
+## Special Category Qualifications
 
-### Best Agentic AI Solution ✅
+### Best Agentic AI Solution 
 - Truly autonomous threat detection
 - Makes independent security decisions
 - Learns from attack patterns
 - No human intervention required
 
-### Kong Konnect Power Builder ✅
+### Kong Konnect Power Builder 
 - Plugin ready for Konnect deployment
 - Centralized configuration management
 - Multi-workspace support
 - Analytics integration ready
 
-### Most Creative Project ✅
+### Most Creative Project 
 - Real-time AI thinking visualization
 - Attack simulator for demos
 - WebSocket streaming architecture
 - Threat particle animations
 
-## 📊 Demo Highlights
+## Demo Highlights
 
 Our 3-5 minute demo will showcase:
 
@@ -123,26 +123,26 @@ Our 3-5 minute demo will showcase:
    - Kong integration
 7. **04:30-05:00** - Call to action and future vision
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 kong-guard-ai/
-├── kong-plugin/          # Native Kong plugin code
-│   └── kong/plugins/
-│       └── kong-guard-ai/
-├── ai-service/          # AI threat analysis service
-├── visualization/       # Real-time dashboard
-├── demo-scripts/        # Attack simulations
-├── docker-compose*.yml  # Complete deployment
-├── README.md           # Comprehensive docs
+├── kong-plugin/ # Native Kong plugin code
+│ └── kong/plugins/
+│ └── kong-guard-ai/
+├── ai-service/ # AI threat analysis service
+├── visualization/ # Real-time dashboard
+├── demo-scripts/ # Attack simulations
+├── docker-compose*.yml # Complete deployment
+├── README.md # Comprehensive docs
 └── PRESENTATION_GUIDE.md # Demo instructions
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/kong-guard-ai.git
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 
 # Configure AI (use free Gemini API key)
@@ -159,7 +159,7 @@ open http://localhost:8080
 ./demo-scripts/automated-demo.sh
 ```
 
-## 📹 Video Script
+## Video Script
 
 ### Opening (0:00-0:15)
 "APIs are under constant attack. Traditional security can't keep up. Meet Kong Guard AI - the first truly autonomous AI security guard for your APIs."
@@ -189,7 +189,7 @@ open http://localhost:8080
 ### Closing (4:30-5:00)
 "Kong Guard AI - where agentic AI meets API security. Autonomous. Intelligent. Protecting your APIs 24/7. The future of API security is here."
 
-## 📚 Documentation
+## Documentation
 
 ### For Judges
 
@@ -205,7 +205,7 @@ open http://localhost:8080
 - `visualization/index.html` - Real-time dashboard
 - `docker-compose-presentation.yml` - Complete stack
 
-## 🌟 Team
+## Team
 
 - **Developer**: Jacques Francois Coetzee
 - **Project**: Kong Guard AI
@@ -213,7 +213,7 @@ open http://localhost:8080
 - **Kong Products**: Kong Gateway, Plugin Architecture
 - **AI Providers**: Gemini, OpenAI, Groq, Ollama
 
-## 📜 Licensing & IP
+## Licensing & IP
 
 - **Code Ownership**: Retained by developer (Jacques Francois Coetzee)
 - **Hackathon License**: Evaluation and demonstration purposes only
@@ -221,7 +221,7 @@ open http://localhost:8080
 - **Open Source Components**: Basic plugin structure available under MIT
 - **Commercial Licensing**: Available post-hackathon
 
-## 🔗 Links
+## Links
 
 - **GitHub**: Private repository (demo access available for judges)
 - **Demo Video**: [To be uploaded]
@@ -230,4 +230,4 @@ open http://localhost:8080
 
 ---
 
-**Kong Guard AI** - Autonomous API Protection Powered by Real AI 🛡️🤖
+**Kong Guard AI** - Autonomous API Protection Powered by Real AI 

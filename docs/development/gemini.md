@@ -6,33 +6,33 @@
 
 ```bash
 # Project Setup
-task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
-task-master models --setup                        # Configure AI models interactively
+task-master init # Initialize Task Master in current project
+task-master parse-prd .taskmaster/docs/prd.txt # Generate tasks from PRD document
+task-master models --setup # Configure AI models interactively
 
 # Daily Development Workflow
-task-master list                                   # Show all tasks with status
-task-master next                                   # Get next available task to work on
-task-master show <id>                             # View detailed task information (e.g., task-master show 1.2)
-task-master set-status --id=<id> --status=done    # Mark task complete
+task-master list # Show all tasks with status
+task-master next # Get next available task to work on
+task-master show <id> # View detailed task information (e.g., task-master show 1.2)
+task-master set-status --id=<id> --status=done # Mark task complete
 
 # Task Management
-task-master add-task --prompt="description" --research        # Add new task with AI assistance
-task-master expand --id=<id> --research --force              # Break task into subtasks
-task-master update-task --id=<id> --prompt="changes"         # Update specific task
-task-master update --from=<id> --prompt="changes"            # Update multiple tasks from ID onwards
-task-master update-subtask --id=<id> --prompt="notes"        # Add implementation notes to subtask
+task-master add-task --prompt="description" --research # Add new task with AI assistance
+task-master expand --id=<id> --research --force # Break task into subtasks
+task-master update-task --id=<id> --prompt="changes" # Update specific task
+task-master update --from=<id> --prompt="changes" # Update multiple tasks from ID onwards
+task-master update-subtask --id=<id> --prompt="notes" # Add implementation notes to subtask
 
 # Analysis & Planning
-task-master analyze-complexity --research          # Analyze task complexity
-task-master complexity-report                      # View complexity analysis
-task-master expand --all --research               # Expand all eligible tasks
+task-master analyze-complexity --research # Analyze task complexity
+task-master complexity-report # View complexity analysis
+task-master expand --all --research # Expand all eligible tasks
 
 # Dependencies & Organization
-task-master add-dependency --id=<id> --depends-on=<id>       # Add task dependency
-task-master move --from=<id> --to=<id>                       # Reorganize task hierarchy
-task-master validate-dependencies                            # Check for dependency issues
-task-master generate                                         # Update task markdown files (usually auto-called)
+task-master add-dependency --id=<id> --depends-on=<id> # Add task dependency
+task-master move --from=<id> --to=<id> # Reorganize task hierarchy
+task-master validate-dependencies # Check for dependency issues
+task-master generate # Update task markdown files (usually auto-called)
 ```
 
 ## Key Files & Project Structure
@@ -57,23 +57,23 @@ task-master generate                                         # Update task markd
 ```
 project/
 ├── .taskmaster/
-│   ├── tasks/              # Task files directory
-│   │   ├── tasks.json      # Main task database
-│   │   ├── task-1.md      # Individual task files
-│   │   └── task-2.md
-│   ├── docs/              # Documentation directory
-│   │   ├── prd.txt        # Product requirements
-│   ├── reports/           # Analysis reports directory
-│   │   └── task-complexity-report.json
-│   ├── templates/         # Template files
-│   │   └── example_prd.txt  # Example PRD template
-│   └── config.json        # AI models & settings
+│ ├── tasks/ # Task files directory
+│ │ ├── tasks.json # Main task database
+│ │ ├── task-1.md # Individual task files
+│ │ └── task-2.md
+│ ├── docs/ # Documentation directory
+│ │ ├── prd.txt # Product requirements
+│ ├── reports/ # Analysis reports directory
+│ │ └── task-complexity-report.json
+│ ├── templates/ # Template files
+│ │ └── example_prd.txt # Example PRD template
+│ └── config.json # AI models & settings
 ├── .claude/
-│   ├── settings.json      # Claude Code configuration
-│   └── commands/         # Custom slash commands
-├── .env                  # API keys
-├── .mcp.json            # MCP configuration
-└── claude.md            # This file - auto-loaded by Claude Code
+│ ├── settings.json # Claude Code configuration
+│ └── commands/ # Custom slash commands
+├── .env # API keys
+├── .mcp.json # MCP configuration
+└── claude.md # This file - auto-loaded by Claude Code
 ```
 
 ## MCP Integration
@@ -152,8 +152,8 @@ If tasks already exist, another PRD can be parsed (with new information only!) u
 
 ```bash
 # Start each session
-task-master next                           # Find next available task
-task-master show <id>                     # Review task details
+task-master next # Find next available task
+task-master show <id> # Review task details
 
 # During implementation, check in code context into the tasks and subtasks
 task-master update-subtask --id=<id> --prompt="implementation notes..."
@@ -332,8 +332,8 @@ git worktree add ../project-auth feature/auth-system
 git worktree add ../project-api feature/api-refactor
 
 # Run Claude Code in each worktree
-cd ../project-auth && claude    # Terminal 1: Auth work
-cd ../project-api && claude     # Terminal 2: API work
+cd ../project-auth && claude # Terminal 1: Auth work
+cd ../project-api && claude # Terminal 2: API work
 ```
 
 ## Troubleshooting
@@ -342,7 +342,7 @@ cd ../project-api && claude     # Terminal 2: API work
 
 ```bash
 # Check API keys are configured
-cat .env                           # For CLI usage
+cat .env # For CLI usage
 
 # Verify model configuration
 task-master models

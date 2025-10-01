@@ -1,14 +1,14 @@
 # Kong Guard AI Demo Script
 ## 3-5 Minute Video Demo for Kong API Summit Hackathon
 
-### 🎬 **Demo Structure Overview**
+### **Demo Structure Overview**
 
 **Total Time**: 4 minutes 30 seconds
 **Theme**: "Agentic AI" - Autonomous security agents protecting Kong Gateway
 
 ---
 
-## 🎯 **Scene 1: Opening & Setup** (30 seconds)
+## **Scene 1: Opening & Setup** (30 seconds)
 
 ### **Voiceover Script**:
 *"Meet Kong Guard AI - the first autonomous AI security platform for Kong Gateway. Watch as intelligent agents work together to protect your APIs without human intervention."*
@@ -24,14 +24,14 @@ curl http://localhost:8001/status
 ```
 
 ### **Key Callouts**:
-- ✅ Kong Gateway 3.x running
-- ✅ Kong Guard AI plugin active  
-- ✅ <10ms baseline latency
-- ✅ Claude-Flow agents ready
+- Kong Gateway 3.x running
+- Kong Guard AI plugin active  
+- <10ms baseline latency
+- Claude-Flow agents ready
 
 ---
 
-## 🚨 **Scene 2: Autonomous Threat Detection** (90 seconds)
+## **Scene 2: Autonomous Threat Detection** (90 seconds)
 
 ### **Voiceover Script**:
 *"Here comes a sophisticated attack - SQL injection, cross-site scripting, and brute force attempts. Watch how Kong Guard AI's neural networks detect threats instantly and AI agents coordinate the response."*
@@ -76,14 +76,14 @@ npx claude-flow@alpha memory retrieve "threat-patterns"
 ```
 
 ### **Key Callouts**:
-- 🤖 **Agents Coordinate**: Security, Analyst, Coordinator agents work together
-- 🧠 **Neural Detection**: 99.5% threat accuracy with <10ms latency
-- 🛡️ **Real-Time Blocking**: All attacks blocked automatically
-- 📊 **Live Metrics**: Dashboard shows threat analysis in real-time
+- **Agents Coordinate**: Security, Analyst, Coordinator agents work together
+- **Neural Detection**: 99.5% threat accuracy with <10ms latency
+- **Real-Time Blocking**: All attacks blocked automatically
+- **Live Metrics**: Dashboard shows threat analysis in real-time
 
 ---
 
-## 🔍 **Scene 3: Intelligent Investigation** (90 seconds)
+## **Scene 3: Intelligent Investigation** (90 seconds)
 
 ### **Voiceover Script**:
 *"When threats are detected, Kong Guard AI doesn't just block them - it investigates. Watch as AI agents collaborate to analyze attack patterns, predict future threats, and automatically update security rules."*
@@ -125,14 +125,14 @@ npx claude-flow@alpha neural predict --model "threat-model" \
 ```
 
 ### **Key Callouts**:
-- 🧠 **Collaborative Intelligence**: 3 agents analyze attack from different angles
-- 📈 **Continuous Learning**: Neural models improve with each attack
-- 🔄 **Adaptive Defense**: Security rules update automatically
-- 💾 **Persistent Memory**: Threat intelligence stored for future use
+- **Collaborative Intelligence**: 3 agents analyze attack from different angles
+- **Continuous Learning**: Neural models improve with each attack
+- **Adaptive Defense**: Security rules update automatically
+- **Persistent Memory**: Threat intelligence stored for future use
 
 ---
 
-## 👨‍💻 **Scene 4: Developer Experience** (60 seconds)
+## **Scene 4: Developer Experience** (60 seconds)
 
 ### **Voiceover Script**:
 *"Kong Guard AI makes enterprise security accessible to every developer. No security expertise required - just simple commands in Claude Code."*
@@ -173,14 +173,14 @@ cat OPERATIONAL_RUNBOOK.md | head -20
 ```
 
 ### **Key Callouts**:
-- 🎯 **Simple Commands**: Complex security via `/kong-security status`
-- 🚀 **Instant Setup**: 5 minutes from clone to production
-- 🔧 **GitOps Ready**: Automated deployment with neural model training
-- 📖 **Production Docs**: Complete operational runbooks included
+- **Simple Commands**: Complex security via `/kong-security status`
+- **Instant Setup**: 5 minutes from clone to production
+- **GitOps Ready**: Automated deployment with neural model training
+- **Production Docs**: Complete operational runbooks included
 
 ---
 
-## 🏆 **Scene 5: Results & Impact** (30 seconds)
+## **Scene 5: Results & Impact** (30 seconds)
 
 ### **Voiceover Script**:
 *"Kong Guard AI delivers enterprise-grade security with AI intelligence. 99.5% threat detection, sub-10ms latency, and autonomous operation. The future of API security is here."*
@@ -217,14 +217,14 @@ npx claude-flow@alpha neural status
 ```
 
 ### **Key Callouts**:
-- ⚡ **Performance**: <10ms latency maintained during attacks
-- 🛡️ **Security**: 99.5% threat detection accuracy
-- 🤖 **Autonomous**: 6 AI agents coordinating seamlessly
-- 💰 **ROI**: 80% reduction in security operation overhead
+- **Performance**: <10ms latency maintained during attacks
+- **Security**: 99.5% threat detection accuracy
+- **Autonomous**: 6 AI agents coordinating seamlessly
+- **ROI**: 80% reduction in security operation overhead
 
 ---
 
-## 🎬 **Technical Demo Tips**
+## **Technical Demo Tips**
 
 ### **Pre-Recording Setup**:
 ```bash
@@ -254,7 +254,7 @@ npx claude-flow@alpha neural train --pattern coordination --epochs 5
 
 ---
 
-## 📝 **Voiceover Key Messages**
+## **Voiceover Key Messages**
 
 ### **Opening Hook**:
 *"What if your API gateway could think, learn, and defend itself?"*
@@ -276,25 +276,25 @@ npx claude-flow@alpha neural train --pattern coordination --epochs 5
 
 ---
 
-## 🎯 **Demo Success Criteria**
+## **Demo Success Criteria**
 
 ### **Must Show**:
-- ✅ Real Kong Gateway with plugin active
-- ✅ Live attack blocking with <10ms latency  
-- ✅ Multiple AI agents coordinating visibly
-- ✅ Neural learning improving over time
-- ✅ Simple developer commands working
-- ✅ Production-ready deployment process
+- Real Kong Gateway with plugin active
+- Live attack blocking with <10ms latency  
+- Multiple AI agents coordinating visibly
+- Neural learning improving over time
+- Simple developer commands working
+- Production-ready deployment process
 
 ### **Avoid**:
-- ❌ Mock/fake demonstrations
-- ❌ Pre-recorded terminal output
-- ❌ Complex technical jargon
-- ❌ Focusing on code instead of results
-- ❌ Going over 5-minute time limit
+- Mock/fake demonstrations
+- Pre-recorded terminal output
+- Complex technical jargon
+- Focusing on code instead of results
+- Going over 5-minute time limit
 
 ---
 
-**🎬 Ready to showcase the future of agentic API security!**
+** Ready to showcase the future of agentic API security!**
 
 This demo script highlights autonomous AI behavior while demonstrating practical Kong Gateway integration and immediate security value.

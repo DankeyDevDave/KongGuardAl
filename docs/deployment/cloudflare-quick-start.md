@@ -1,8 +1,8 @@
-# 🚀 Cloudflare Zero Trust - Quick Start Guide
+# Cloudflare Zero Trust - Quick Start Guide
 
 ## 5-Minute Setup for Kong Guard AI Dashboard
 
-### 1️⃣ **On Production Server (192.168.0.228)**
+### 1 **On Production Server (192.168.0.228)**
 
 ```bash
 # Install cloudflared
@@ -19,7 +19,7 @@ cloudflared tunnel create kong-guard-ai
 cloudflared tunnel list
 ```
 
-### 2️⃣ **Create Config File**
+### 2 **Create Config File**
 
 Create `~/.cloudflared/config.yml`:
 
@@ -39,7 +39,7 @@ ingress:
   - service: http_status:404
 ```
 
-### 3️⃣ **Add DNS Records**
+### 3 **Add DNS Records**
 
 ```bash
 # Automatic DNS setup
@@ -47,7 +47,7 @@ cloudflared tunnel route dns kong-guard-ai kong.yourdomain.com
 cloudflared tunnel route dns kong-guard-ai grafana.yourdomain.com
 ```
 
-### 4️⃣ **Start Tunnel**
+### 4 **Start Tunnel**
 
 ```bash
 # Run as service
@@ -59,7 +59,7 @@ sudo systemctl enable cloudflared
 sudo systemctl status cloudflared
 ```
 
-### 5️⃣ **Configure Access (Zero Trust Dashboard)**
+### 5 **Configure Access (Zero Trust Dashboard)**
 
 1. Go to: https://one.dash.cloudflare.com/
 2. Access → Applications → Add application → Self-hosted
@@ -70,7 +70,7 @@ sudo systemctl status cloudflared
      - Allow emails: your-email@domain.com
      - Or: Allow email domain: @yourcompany.com
 
-## 🎯 Access Your Dashboard
+## Access Your Dashboard
 
 From anywhere in the world:
 - Dashboard: **https://kong.yourdomain.com**
@@ -82,22 +82,22 @@ First-time access:
 3. Check email for verification code
 4. Access granted for 24 hours
 
-## 🔒 Security Features
+## Security Features
 
-✅ **No exposed ports** - Everything through Cloudflare  
-✅ **Email verification** - Every user authenticated  
-✅ **Session control** - Automatic logout after 24h  
-✅ **Access logs** - Full audit trail in Zero Trust  
-✅ **DDoS protection** - Cloudflare's network protection  
-✅ **SSL/TLS** - Automatic HTTPS everywhere  
+ **No exposed ports** - Everything through Cloudflare  
+ **Email verification** - Every user authenticated  
+ **Session control** - Automatic logout after 24h  
+ **Access logs** - Full audit trail in Zero Trust  
+ **DDoS protection** - Cloudflare's network protection  
+ **SSL/TLS** - Automatic HTTPS everywhere  
 
-## 📱 Mobile Access
+## Mobile Access
 
 1. Visit https://kong.yourdomain.com on mobile
 2. Complete email verification
 3. Save to home screen for app-like experience
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Tunnel not connecting?
 ```bash
@@ -125,7 +125,7 @@ dig kong.yourdomain.com
 - Verify email is in allowed list
 - Check session hasn't expired
 
-## 🚨 Quick Commands
+## Quick Commands
 
 ```bash
 # Restart tunnel
@@ -141,7 +141,7 @@ cloudflared tunnel metrics kong-guard-ai
 cloudflared update
 ```
 
-## 💡 Pro Tips
+## Pro Tips
 
 1. **Multiple Users**: Add team members in Zero Trust → Users
 2. **Service Tokens**: For API access without browser auth
@@ -151,4 +151,4 @@ cloudflared update
 
 ---
 
-**That's it!** Your Kong Guard AI dashboard is now securely accessible from anywhere via Cloudflare Zero Trust! 🎉
+**That's it!** Your Kong Guard AI dashboard is now securely accessible from anywhere via Cloudflare Zero Trust! 

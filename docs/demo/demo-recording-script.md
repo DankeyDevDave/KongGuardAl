@@ -12,7 +12,7 @@ This walkthrough mirrors the live attack dashboard (`visualization/index.html`) 
 - Disable notifications, set recorder to 1080p30, and verify microphone input.
 
 ## Scene 1 · Overview & Status (0:00 – 0:30)
-1. Begin on the dashboard header showing the "🟢 Connected" badge; toggle network/click to demonstrate live state if desired.
+1. Begin on the dashboard header showing the " Connected" badge; toggle network/click to demonstrate live state if desired.
 2. Hover over the six metric tiles (`Total Requests`, `Threats Blocked`, `Safe Requests`, `Current RPS`, `Avg Latency`, `AI Accuracy`).
 3. Cut briefly to Terminal: run `docker-compose ps` to confirm services, then return to the dashboard.
 
@@ -21,18 +21,18 @@ This walkthrough mirrors the live attack dashboard (`visualization/index.html`) 
 2. Return to the dashboard and highlight the "Threat Flow Visualization" section to mirror the same path in real-time.
 
 ## Scene 3 · Attack Simulator Showcase (1:15 – 2:00)
-1. Focus on the "🎯 Attack Simulator" card.
+1. Focus on the " Attack Simulator" card.
 2. Click `Normal Traffic` to establish baseline activity (observe low threat score in feed).
 3. Trigger `SQL Injection`, `XSS Attack`, and `DDoS Burst` buttons with ~3 second spacing.
 4. Point to updates in `AI Analysis Engine` (threat distribution bars) and scroll the `Live Threat Feed` to show new entries.
 
 ## Scene 4 · Full Demo Sequence (2:00 – 3:00)
-1. Press `🎬 Run Demo Sequence` to launch the scripted pattern.
+1. Press ` Run Demo Sequence` to launch the scripted pattern.
 2. Alternate between Terminal output (`./scripts/simulate-attacks.sh`) and dashboard events to show real traffic correlation.
 3. Zoom on any high-threat event card to showcase method, path, threat score, action, and IP.
 
 ## Scene 5 · AI Reasoning & Metrics (3:00 – 3:45)
-1. Capture the `🧠 AI Analysis Engine` overlay when reasoning spinner appears; pause to read the status text.
+1. Capture the ` AI Analysis Engine` overlay when reasoning spinner appears; pause to read the status text.
 2. Highlight the `Threat Distribution` bars adjusting live.
 3. Show the metrics terminal for JSON output, then cross-reference matching values on the dashboard tiles.
 

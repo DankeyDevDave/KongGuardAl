@@ -9,19 +9,18 @@ info:
     capabilities for Kong Gateway deployments. It includes real-time threat monitoring,
     AI-powered analysis, incident management, and performance optimization.
   contact:
-    name: Kong Guard AI Support
-    email: support@kongguard.ai
+    name: DankeyDevDave
+    url: https://github.com/DankeyDevDave
+    email: dankeydevdave@users.noreply.github.com
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
 
 servers:
-  - url: https://api.kongguard.ai/v1
-    description: Production server
-  - url: https://staging.kongguard.ai/v1
-    description: Staging server
   - url: http://localhost:8000/v1
-    description: Development server
+    description: Local development server (maintained by DankeyDevDave)
+  - url: http://localhost:8080/v1
+    description: Placeholder environment for staging setups
 
 tags:
   - name: Configuration
@@ -1208,8 +1207,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://auth.kongguard.ai/oauth/authorize
-          tokenUrl: https://auth.kongguard.ai/oauth/token
+          authorizationUrl: http://localhost:9000/oauth/authorize
+          tokenUrl: http://localhost:9000/oauth/token
           scopes:
             read:config: Read configuration
             write:config: Modify configuration

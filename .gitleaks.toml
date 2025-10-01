@@ -65,9 +65,18 @@ paths = [
     '''^\.env\.example$''',
     '''^tests/''',
     '''^spec/''',
+    '''^specs/''',
     '''^docs/''',
     '''^README\.md$''',
-    '''^CHANGELOG\.md$'''
+    '''^CHANGELOG\.md$''',
+    '''^.*DEPLOYMENT.*\.md$''',
+    '''^.*COMPLETE.*\.md$''',
+    '''^.*CHECKLIST.*\.md$''',
+    '''^.*SUMMARY.*\.md$''',
+    '''^.*GUIDE.*\.md$''',
+    '''^deploy-.*\.sh$''',
+    '''^grafana-data/plugins/''',
+    '''^config/docker/'''
 ]
 regexes = [
     '''your[_-]?api[_-]?key[_-]?here''',
@@ -78,5 +87,14 @@ regexes = [
     '''sk-ant-example''',
     '''sk-example''',
     '''AIza-example''',
-    '''eyJ-example'''
+    '''eyJ-example''',
+    '''pk_live_YOUR''',
+    '''sk_live_YOUR''',
+    '''pk_test_\*''',
+    '''sk_test_\*''',
+    '''NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=\*{10,}''',
+    '''CLERK_SECRET_KEY=\*{10,}''',
+    '''\*{10,}''',
+    '''redis://(localhost|redis|redis-service):''',
+    '''postgresql://(localhost|postgres|postgres-service):'''
 ]

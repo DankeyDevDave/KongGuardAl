@@ -1,13 +1,13 @@
 # Kong Guard AI Configuration Examples
 ## Real-World Use Cases and Production Configurations
 
-### 📋 **Overview**
+### **Overview**
 
 This document provides practical configuration examples for Kong Guard AI across different industries, deployment scenarios, and security requirements. Each example includes complete configurations, monitoring setups, and operational considerations.
 
 ---
 
-## 🏢 **Industry-Specific Configurations**
+## **Industry-Specific Configurations**
 
 ### **E-Commerce Platform**
 
@@ -32,13 +32,13 @@ plugins:
 
     # Payment protection
     credit_card_patterns:
-      - "4[0-9]{12}(?:[0-9]{3})?"  # Visa
-      - "5[1-5][0-9]{14}"          # Mastercard
-      - "3[47][0-9]{13}"           # Amex
+      - "4[0-9]{12}(?:[0-9]{3})?" # Visa
+      - "5[1-5][0-9]{14}" # Mastercard
+      - "3[47][0-9]{13}" # Amex
 
     # Protocol-specific protection
     enable_graphql_detection: true
-    graphql_max_depth: 8           # Conservative for product catalog
+    graphql_max_depth: 8 # Conservative for product catalog
     graphql_max_complexity: 1500
 
     # Checkout flow protection
@@ -51,7 +51,7 @@ plugins:
     # Request normalization
     normalize_url: true
     normalize_body: true
-    max_body_size_for_normalization: 524288  # 512KB
+    max_body_size_for_normalization: 524288 # 512KB
 
     # Customer behavior tracking
     enable_mesh_enricher: true
@@ -79,8 +79,8 @@ plugins:
 
     # Customer data protection
     pii_detection_patterns:
-      - "\\b[0-9]{3}-[0-9]{2}-[0-9]{4}\\b"  # SSN
-      - "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b"  # Email
+      - "\\b[0-9]{3}-[0-9]{2}-[0-9]{4}\\b" # SSN
+      - "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b" # Email
 
     # Monitoring
     log_level: "info"
@@ -111,7 +111,7 @@ plugins:
     # Account protection patterns
     account_protection:
       max_login_attempts: 3
-      account_lockout_duration: 1800  # 30 minutes
+      account_lockout_duration: 1800 # 30 minutes
       suspicious_transfer_threshold: 10000
 
     # gRPC service protection
@@ -122,7 +122,7 @@ plugins:
       "transaction.TransactionService/GetHistory": 50
       "admin.AdminService/*": 2
 
-    grpc_max_message_size: 65536  # 64KB limit
+    grpc_max_message_size: 65536 # 64KB limit
     grpc_block_reflection: true
     grpc_require_valid_proto: true
 
@@ -133,10 +133,10 @@ plugins:
       ja4: "X-JA4-Fingerprint"
 
     tls_blocklist:
-      - "e7d705a3286e19ea42f587b344ee6865"  # Known fraud tools
+      - "e7d705a3286e19ea42f587b344ee6865" # Known fraud tools
       - "suspicious_client_*"
 
-    tls_rate_limit_per_fp: 20  # Very restrictive
+    tls_rate_limit_per_fp: 20 # Very restrictive
 
     # Request normalization (strict)
     normalize_url: true
@@ -152,7 +152,7 @@ plugins:
 
     # Geographic restrictions
     geo_blocking:
-      blocked_countries: ["XX", "YY"]  # High-risk countries
+      blocked_countries: ["XX", "YY"] # High-risk countries
       allowed_countries: ["US", "CA", "GB"]
 
     # Advanced threat detection
@@ -170,7 +170,7 @@ plugins:
       large_transfer_amount: 50000
       unusual_api_usage: 200
 
-    log_level: "debug"  # Full audit trail
+    log_level: "debug" # Full audit trail
     metrics_enabled: true
 ```
 
@@ -205,8 +205,8 @@ plugins:
         - "delete.*from.*prescriptions"
 
       phi_exposure:
-        - "\\b[0-9]{3}-[0-9]{2}-[0-9]{4}\\b"  # SSN
-        - "\\b[0-9]{10}\\b"  # Medical Record Number
+        - "\\b[0-9]{3}-[0-9]{2}-[0-9]{4}\\b" # SSN
+        - "\\b[0-9]{10}\\b" # Medical Record Number
 
     # API-specific protection
     enable_graphql_detection: true
@@ -224,7 +224,7 @@ plugins:
     # Compliance features
     audit_trail:
       enabled: true
-      include_request_body: false  # Privacy protection
+      include_request_body: false # Privacy protection
       include_response_body: false
       track_data_access: true
 
@@ -240,11 +240,11 @@ plugins:
 
     # Request sanitization
     normalize_url: true
-    normalize_body: false  # Preserve medical data format
+    normalize_body: false # Preserve medical data format
 
     # Privacy-preserving monitoring
     privacy_mode: true
-    log_level: "warn"  # Minimal logging for privacy
+    log_level: "warn" # Minimal logging for privacy
     anonymize_logs: true
 
     # Compliance reporting
@@ -256,7 +256,7 @@ plugins:
 
 ---
 
-## 🌐 **Deployment Scenarios**
+## **Deployment Scenarios**
 
 ### **Multi-Region Global API**
 
@@ -295,7 +295,7 @@ plugins:
 
     # Cross-region correlation
     enable_global_correlation: true
-    correlation_window: 300  # 5 minutes
+    correlation_window: 300 # 5 minutes
 
     # Protocol support
     enable_graphql_detection: true
@@ -303,7 +303,7 @@ plugins:
 
     # Performance optimization
     cache_threat_intel: true
-    cache_ttl: 600  # 10 minutes
+    cache_ttl: 600 # 10 minutes
 
     # Regional monitoring
     metrics_by_region: true
@@ -428,7 +428,7 @@ plugins:
 
       bandwidth_exhaustion:
         - "range.*bytes=0-99999999"
-        - "accept-encoding.*,.*,.*,.*"  # Compression bombing
+        - "accept-encoding.*,.*,.*,.*" # Compression bombing
 
     # Fast path processing
     enable_fast_path: true
@@ -450,7 +450,7 @@ plugins:
 
     # Minimal latency processing
     processing_timeout_ms: 10
-    enable_ml_detection: false  # Too slow for edge
+    enable_ml_detection: false # Too slow for edge
 
     # Basic normalization only
     normalize_url: true
@@ -460,12 +460,12 @@ plugins:
     edge_metrics: true
     real_time_dashboards: true
 
-    log_level: "warn"  # Minimal logging at edge
+    log_level: "warn" # Minimal logging at edge
 ```
 
 ---
 
-## 🧪 **Development and Testing**
+## **Development and Testing**
 
 ### **Development Environment**
 
@@ -482,7 +482,7 @@ plugins:
     ddos_rpm_threshold: 1000
 
     # Development mode
-    dry_run: true  # Log only, no blocking
+    dry_run: true # Log only, no blocking
     debug_mode: true
 
     # Full feature testing
@@ -491,8 +491,8 @@ plugins:
     graphql_max_complexity: 10000
 
     enable_grpc_detection: true
-    grpc_max_message_size: 10485760  # 10MB
-    grpc_block_reflection: false  # Allow for testing
+    grpc_max_message_size: 10485760 # 10MB
+    grpc_block_reflection: false # Allow for testing
 
     # Comprehensive normalization
     normalize_url: true
@@ -504,7 +504,7 @@ plugins:
     tls_log_all_fingerprints: true
 
     # Development threat intel (sandboxed)
-    enable_taxii_ingestion: false  # Disable in dev
+    enable_taxii_ingestion: false # Disable in dev
 
     # Verbose logging
     log_level: "debug"
@@ -577,13 +577,13 @@ plugins:
 
     # Load testing support
     load_test_exemptions:
-      - ip: "10.0.100.0/24"  # Load test subnet
+      - ip: "10.0.100.0/24" # Load test subnet
       - user_agent: "LoadTestAgent/*"
 ```
 
 ---
 
-## 🔧 **Operational Configurations**
+## **Operational Configurations**
 
 ### **High-Availability Setup**
 
@@ -636,7 +636,7 @@ plugins:
     # Alerting
     ha_alerting:
       node_failure_alert: true
-      replication_lag_alert: 300  # 5 minutes
+      replication_lag_alert: 300 # 5 minutes
       cluster_split_brain_alert: true
 ```
 

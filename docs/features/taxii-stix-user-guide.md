@@ -45,14 +45,14 @@ Kong Guard AI now includes comprehensive support for ingesting threat intelligen
 ### Component Overview
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   TAXII Feeds   │───▶│  TAXII Scheduler │───▶│   STIX Parser   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────┐ ┌──────────────────┐ ┌─────────────────┐
+│ TAXII Feeds │───▶│ TAXII Scheduler │───▶│ STIX Parser │
+└─────────────────┘ └──────────────────┘ └─────────────────┘
                                                           │
                                                           ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ Request Handler │◀───│  Threat Cache    │◀───│   Normalizer    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────┐ ┌──────────────────┐ ┌─────────────────┐
+│ Request Handler │◀───│ Threat Cache │◀───│ Normalizer │
+└─────────────────┘ └──────────────────┘ └─────────────────┘
 ```
 
 ### Data Flow
@@ -75,15 +75,15 @@ Kong Guard AI now includes comprehensive support for ingesting threat intelligen
     enable_taxii_ingestion = true,
 
     -- TAXII protocol version
-    taxii_version = "2.1",  -- or "2.0"
+    taxii_version = "2.1", -- or "2.0"
 
     -- Polling configuration
-    taxii_poll_interval_seconds = 300,     -- 5 minutes
-    taxii_cache_ttl_seconds = 3600,        -- 1 hour
-    taxii_max_objects_per_poll = 500,      -- Objects per request
+    taxii_poll_interval_seconds = 300, -- 5 minutes
+    taxii_cache_ttl_seconds = 3600, -- 1 hour
+    taxii_max_objects_per_poll = 500, -- Objects per request
 
     -- HTTP configuration
-    taxii_http_timeout_ms = 2000,          -- 2 seconds
+    taxii_http_timeout_ms = 2000, -- 2 seconds
     taxii_retry_backoff_ms = {
       initial = 200,
       max = 5000,
@@ -165,7 +165,7 @@ tail -f /usr/local/kong/logs/error.log | grep TAXII
 curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:8000/your-api
 
 # Check if request was blocked or allowed
-echo $?  # 0 = allowed, non-zero = blocked
+echo $? # 0 = allowed, non-zero = blocked
 ```
 
 ## TAXII Server Configuration
@@ -205,9 +205,9 @@ echo $?  # 0 = allowed, non-zero = blocked
 {
   url = "https://taxii.server.com",
   collections = {
-    "malware-indicators",     -- Specific collection
-    "ip-blocklist",          -- Another collection
-    "domain-reputation"      -- Third collection
+    "malware-indicators", -- Specific collection
+    "ip-blocklist", -- Another collection
+    "domain-reputation" -- Third collection
   },
   auth_type = "none"
 }
@@ -247,13 +247,13 @@ taxii_servers = {
 ```stix
 [ipv4-addr:value = '192.168.1.100']
 [ipv6-addr:value = '2001:db8::1']
-[ipv4-addr:value = '10.0.0.0/8']  -- CIDR ranges
+[ipv4-addr:value = '10.0.0.0/8'] -- CIDR ranges
 ```
 
 #### Domain Names
 ```stix
 [domain-name:value = 'malicious.example.com']
-[domain-name:value = '*.evil.com']  -- Wildcard patterns
+[domain-name:value = '*.evil.com'] -- Wildcard patterns
 ```
 
 #### URLs
@@ -309,17 +309,17 @@ The plugin uses a weighted scoring system where different indicator types contri
 ```lua
 -- Default weights
 taxii_score_weights = {
-  ip_blocklist = 0.9,      -- High confidence for IP blocks
-  ip_allowlist = -0.5,     -- Strong negative weight for allowlist
-  domain_blocklist = 0.8,   -- High confidence for domain blocks
-  domain_allowlist = -0.4,  -- Moderate negative weight
-  url_blocklist = 0.8,      -- High confidence for URL blocks
-  url_allowlist = -0.4,     -- Moderate negative weight
-  ja3_blocklist = 0.7,      -- Moderate confidence for TLS fingerprints
-  ja3_allowlist = -0.3,     -- Lower negative weight
-  ja4_blocklist = 0.7,      -- Moderate confidence for JA4
-  ja4_allowlist = -0.3,     -- Lower negative weight
-  regex_match = 0.6         -- Moderate confidence for regex matches
+  ip_blocklist = 0.9, -- High confidence for IP blocks
+  ip_allowlist = -0.5, -- Strong negative weight for allowlist
+  domain_blocklist = 0.8, -- High confidence for domain blocks
+  domain_allowlist = -0.4, -- Moderate negative weight
+  url_blocklist = 0.8, -- High confidence for URL blocks
+  url_allowlist = -0.4, -- Moderate negative weight
+  ja3_blocklist = 0.7, -- Moderate confidence for TLS fingerprints
+  ja3_allowlist = -0.3, -- Lower negative weight
+  ja4_blocklist = 0.7, -- Moderate confidence for JA4
+  ja4_allowlist = -0.3, -- Lower negative weight
+  regex_match = 0.6 -- Moderate confidence for regex matches
 }
 ```
 
@@ -338,14 +338,14 @@ Adjust weights based on your threat intelligence confidence:
 ```lua
 -- High-confidence threat feed
 taxii_score_weights = {
-  ip_blocklist = 0.95,     -- Very high confidence
+  ip_blocklist = 0.95, -- Very high confidence
   domain_blocklist = 0.90,
   url_blocklist = 0.90
 }
 
 -- Lower-confidence or experimental feed
 taxii_score_weights = {
-  ip_blocklist = 0.6,      -- Lower confidence
+  ip_blocklist = 0.6, -- Lower confidence
   domain_blocklist = 0.5,
   url_blocklist = 0.5
 }
@@ -359,13 +359,13 @@ The plugin exposes several metrics for monitoring TAXII operations:
 
 ```lua
 -- Polling metrics
-taxii_polls_total              -- Total number of polling attempts
-taxii_indicators_loaded        -- Total indicators loaded
-taxii_errors_total            -- Total errors encountered
-taxii_last_success_ts         -- Timestamp of last successful poll
+taxii_polls_total -- Total number of polling attempts
+taxii_indicators_loaded -- Total indicators loaded
+taxii_errors_total -- Total errors encountered
+taxii_last_success_ts -- Timestamp of last successful poll
 
 -- Performance metrics
-taxii_last_poll_duration_ms   -- Duration of last polling cycle
+taxii_last_poll_duration_ms -- Duration of last polling cycle
 ```
 
 ### Accessing Metrics
@@ -406,7 +406,7 @@ Configure appropriate log levels to monitor TAXII operations:
 
 ```lua
 -- In Kong configuration
-log_level = info  -- or debug for more detailed logs
+log_level = info -- or debug for more detailed logs
 ```
 
 Log messages include:
@@ -486,14 +486,14 @@ Enable detailed logging for troubleshooting:
   config = {
     log_level = "debug",
     log_threats = true,
-    log_requests = false,  -- Only enable for debugging
+    log_requests = false, -- Only enable for debugging
     log_decisions = true,
 
     -- TAXII debugging
-    taxii_http_timeout_ms = 5000,  -- Longer timeout
+    taxii_http_timeout_ms = 5000, -- Longer timeout
     taxii_retry_backoff_ms = {
-      initial = 500,               -- Longer initial delay
-      max = 10000,                 -- Longer max delay
+      initial = 500, -- Longer initial delay
+      max = 10000, -- Longer max delay
       factor = 2
     }
   }
@@ -506,7 +506,7 @@ Enable detailed logging for troubleshooting:
 
 1. **TLS Verification**: Always verify TAXII server certificates
 ```lua
-taxii_tls_insecure_skip_verify = false  -- Never disable in production
+taxii_tls_insecure_skip_verify = false -- Never disable in production
 ```
 
 2. **Network Segmentation**: Isolate Kong instances accessing TAXII feeds
@@ -545,26 +545,26 @@ taxii_tls_insecure_skip_verify = false  -- Never disable in production
 ```lua
 -- Balanced configuration for medium-traffic sites
 {
-  taxii_poll_interval_seconds = 300,     -- 5 minutes
-  taxii_max_objects_per_poll = 500,      -- Moderate batch size
-  taxii_cache_ttl_seconds = 3600,        -- 1 hour cache
-  taxii_http_timeout_ms = 2000           -- 2 second timeout
+  taxii_poll_interval_seconds = 300, -- 5 minutes
+  taxii_max_objects_per_poll = 500, -- Moderate batch size
+  taxii_cache_ttl_seconds = 3600, -- 1 hour cache
+  taxii_http_timeout_ms = 2000 -- 2 second timeout
 }
 
 -- High-performance configuration for high-traffic sites
 {
-  taxii_poll_interval_seconds = 600,     -- 10 minutes
-  taxii_max_objects_per_poll = 1000,     -- Larger batches
-  taxii_cache_ttl_seconds = 7200,        -- 2 hour cache
-  taxii_http_timeout_ms = 5000           -- Longer timeout
+  taxii_poll_interval_seconds = 600, -- 10 minutes
+  taxii_max_objects_per_poll = 1000, -- Larger batches
+  taxii_cache_ttl_seconds = 7200, -- 2 hour cache
+  taxii_http_timeout_ms = 5000 -- Longer timeout
 }
 
 -- Real-time configuration for security-critical environments
 {
-  taxii_poll_interval_seconds = 60,      -- 1 minute
-  taxii_max_objects_per_poll = 200,      -- Smaller batches
-  taxii_cache_ttl_seconds = 1800,        -- 30 minute cache
-  taxii_http_timeout_ms = 1000           -- Fast timeout
+  taxii_poll_interval_seconds = 60, -- 1 minute
+  taxii_max_objects_per_poll = 200, -- Smaller batches
+  taxii_cache_ttl_seconds = 1800, -- 30 minute cache
+  taxii_http_timeout_ms = 1000 -- Fast timeout
 }
 ```
 
@@ -573,7 +573,7 @@ taxii_tls_insecure_skip_verify = false  -- Never disable in production
 1. **Cache Sizing**: Configure Kong shared dictionaries appropriately
 ```nginx
 # In Kong configuration
-lua_shared_dict kong_cache 256m  # Increase for large threat feeds
+lua_shared_dict kong_cache 256m # Increase for large threat feeds
 ```
 
 2. **Indicator Filtering**: Filter indicators at ingestion time
@@ -693,7 +693,7 @@ lua_shared_dict kong_cache 256m  # Increase for large threat feeds
     }
   },
   taxii_score_weights = {
-    ip_blocklist = 0.85,  -- Slightly lower confidence for mixed feeds
+    ip_blocklist = 0.85, -- Slightly lower confidence for mixed feeds
     domain_blocklist = 0.75
   }
 }

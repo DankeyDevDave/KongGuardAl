@@ -1,4 +1,4 @@
-# 🎬 Quick Demo Recording Guide
+# Quick Demo Recording Guide
 
 ## One-Command Demo Recording
 
@@ -7,7 +7,7 @@
 ./hackathon_demo_recorder.py --headed --screenshots --narrator-timing
 ```
 
-## 📋 Pre-Recording Checklist
+## Pre-Recording Checklist
 
 ```bash
 # 1. Start services
@@ -23,14 +23,14 @@ curl http://localhost:8080
 ./hackathon_demo_recorder.py --headed --screenshots
 ```
 
-## ⏱️ Expected Output
+## Expected Output
 
 - **Duration**: 4 minutes 45 seconds
 - **Video**: `demo_recordings/hackathon_demo_TIMESTAMP/video.webm`
 - **Screenshots**: 17 PNG files in `screenshots/` folder
 - **Timing Log**: `timing_log.json` with performance data
 
-## 🎯 Scene Overview
+## Scene Overview
 
 | Scene | Time | Focus |
 |-------|------|-------|
@@ -42,11 +42,11 @@ curl http://localhost:8080
 | 6. Dev Controls | 3:45-4:15 | Dashboard controls |
 | 7. Closing | 4:15-4:45 | Final summary |
 
-## 🎤 Voiceover Script
+## Voiceover Script
 
 Use `demo-voiceover-script.md` for narration text that matches timing exactly.
 
-## 🔧 Quick Troubleshooting
+## Quick Troubleshooting
 
 **Dashboard not loading?**
 ```bash
@@ -63,7 +63,7 @@ docker-compose -f docker-compose-presentation.yml restart
 ./hackathon_demo_recorder.py --scenes 1,2,3
 ```
 
-## 📸 Screenshot List
+## Screenshot List
 
 1. `01_overview_status.png` - Dashboard connected
 2. `01_metrics_tiles.png` - Metrics overview
@@ -83,7 +83,7 @@ docker-compose -f docker-compose-presentation.yml restart
 16. `07_closing_flow.png` - Final flow
 17. `07_closing_overview.png` - Final overview
 
-## 📹 Post-Production
+## Post-Production
 
 1. **Video File**: Convert WebM to MP4 if needed
    ```bash
@@ -94,7 +94,7 @@ docker-compose -f docker-compose-presentation.yml restart
 
 3. **Final Export**: 1920x1080, MP4, 4:30-5:00 duration
 
-## 🏆 Submission Checklist
+## Submission Checklist
 
 - [ ] Video recorded (4:45 duration)
 - [ ] Screenshots captured (17 files)
@@ -103,7 +103,7 @@ docker-compose -f docker-compose-presentation.yml restart
 - [ ] Export as MP4 (1920x1080)
 - [ ] Upload to hackathon platform
 
-## 📚 Full Documentation
+## Full Documentation
 
 - `HACKATHON_DEMO_RECORDER_README.md` - Complete guide
 - `DEMO_RECORDING_IMPLEMENTATION.md` - Technical details
@@ -112,4 +112,4 @@ docker-compose -f docker-compose-presentation.yml restart
 
 ---
 
-**Ready to create your hackathon demo video in minutes!** 🎬✨
+**Ready to create your hackathon demo video in minutes!** 

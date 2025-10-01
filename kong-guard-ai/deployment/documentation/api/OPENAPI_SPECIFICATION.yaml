@@ -10,14 +10,14 @@ info:
     for managing Kong Guard AI in production environments.
   version: 1.0.0
   contact:
-    name: Kong Guard AI Team
-    email: support@kongguardai.com
-    url: https://docs.kongguardai.com
+    name: DankeyDevDave
+    url: https://github.com/DankeyDevDave
+    email: dankeydevdave@users.noreply.github.com
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   x-logo:
-    url: https://docs.kongguardai.com/logo.png
+    url: https://raw.githubusercontent.com/DankeyDevDave/KongGuardAI/main/kong-guard-ai/branding/KongOnlyLogo.png
     altText: Kong Guard AI
 
 servers:

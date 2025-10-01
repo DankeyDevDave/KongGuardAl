@@ -2,7 +2,7 @@ package = "kong-guard-ai"
 version = "1.0.0-1"
 
 source = {
-    url = "git://github.com/yourusername/kong-guard-ai",
+    url = "git://github.com/DankeyDevDave/KongGuardAI",
     tag = "v1.0.0"
 }
 
@@ -13,7 +13,7 @@ description = {
         incident classification, and automated remediation. Features ML-based anomaly detection,
         automatic blocking/rate limiting, and continuous learning from operator feedback.
     ]],
-    homepage = "https://github.com/yourusername/kong-guard-ai",
+    homepage = "https://github.com/DankeyDevDave/KongGuardAI",
     license = "MIT"
 }
 

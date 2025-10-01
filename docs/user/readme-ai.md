@@ -1,10 +1,10 @@
-# Kong Guard AI - Real AI Integration Guide 🤖
+# Kong Guard AI - Real AI Integration Guide 
 
 ## Overview
 
 Kong Guard AI now features **REAL AI-powered threat detection** using industry-leading language models. This is not mock or rule-based detection - it's actual AI analyzing your API traffic in real-time.
 
-## 🚀 Supported AI Providers
+## Supported AI Providers
 
 ### 1. Google Gemini Flash 2.5 (Recommended)
 - **Model**: `gemini-2.0-flash-exp`
@@ -34,7 +34,7 @@ Kong Guard AI now features **REAL AI-powered threat detection** using industry-l
 - **Best for**: Privacy-sensitive environments
 - **Setup**: [https://ollama.ai](https://ollama.ai)
 
-## 🔧 Quick Setup
+## Quick Setup
 
 ### Step 1: Choose Your AI Provider
 
@@ -44,7 +44,7 @@ Edit `.env` file:
 cp .env.example .env
 
 # Edit .env and set your provider
-AI_PROVIDER=gemini  # or openai, groq, ollama
+AI_PROVIDER=gemini # or openai, groq, ollama
 
 # Add your API key
 GEMINI_API_KEY=your_key_here
@@ -70,7 +70,7 @@ ai_model = "gemini-2.0-flash-exp"
 ai_endpoint = "http://ai-service:8000/analyze"
 ```
 
-## 🧪 Testing Real AI Detection
+## Testing Real AI Detection
 
 ### Run Enterprise Tests
 ```bash
@@ -118,7 +118,7 @@ Expected Response:
 }
 ```
 
-## 📊 AI Analysis Features
+## AI Analysis Features
 
 ### What the AI Analyzes
 
@@ -155,7 +155,7 @@ Based on threat analysis, the AI recommends:
 - **rate_limit**: Potential threat (0.6-0.8)
 - **block**: Confirmed threat (> 0.8)
 
-## 🔐 Security Best Practices
+## Security Best Practices
 
 ### API Key Management
 
@@ -193,7 +193,7 @@ Based on threat analysis, the AI recommends:
    - Signature-based detection when AI unavailable
    - Graceful degradation
 
-## 🎯 Use Cases
+## Use Cases
 
 ### E-Commerce Protection
 ```yaml
@@ -223,7 +223,7 @@ AI_PROVIDER: groq
 # Handle millions of requests
 ```
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 ### Latency by Provider
 - **Groq**: 20-50ms
@@ -243,7 +243,7 @@ AI_PROVIDER: groq
 - **Groq**: ~$1.00 (with free tier)
 - **OpenAI GPT-4**: ~$10-30
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### AI Service Not Responding
 ```bash
@@ -267,7 +267,7 @@ echo $GEMINI_API_KEY
 - Use multiple API keys
 - Consider local Ollama for overflow
 
-## 🚀 Production Deployment
+## Production Deployment
 
 ### Docker Compose Production
 ```yaml
@@ -308,7 +308,7 @@ spec:
               key: gemini-key
 ```
 
-## 📊 Monitoring
+## Monitoring
 
 ### Prometheus Metrics
 ```yaml
@@ -324,7 +324,7 @@ spec:
 - `threat_detections_total` - Threats detected
 - `false_positives_total` - Reported false positives
 
-## 🔄 Continuous Improvement
+## Continuous Improvement
 
 ### Feedback Loop
 ```bash
@@ -342,7 +342,7 @@ curl -X POST http://localhost:8000/feedback \
 - GPT models can be changed in config
 - Ollama models: `ollama pull model:latest`
 
-## 🎉 Success Stories
+## Success Stories
 
 > "Switched from rule-based to Gemini Flash 2.5 - detected 3 zero-day attempts in first week" - DevOps Lead
 
@@ -352,4 +352,4 @@ curl -X POST http://localhost:8000/feedback \
 
 ---
 
-**Kong Guard AI** - Real AI Protection for Real Threats 🛡️🤖
+**Kong Guard AI** - Real AI Protection for Real Threats 

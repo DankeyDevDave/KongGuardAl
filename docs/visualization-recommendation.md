@@ -16,7 +16,7 @@ Based on your Kong Guard AI attack metrics data structure and Supabase infrastru
 
 ## Top 3 Recommended Solutions
 
-### 1. 🏆 **Grafana + Supabase** (RECOMMENDED)
+### 1. **Grafana + Supabase** (RECOMMENDED)
 **Best for: Enterprise-grade real-time monitoring and alerting**
 
 #### Pros:
@@ -51,7 +51,7 @@ docker run -d \
 4. **Geographic Threat Map** - Attack origins visualization
 5. **Historical Analysis** - Patterns, peak times, attack evolution
 
-### 2. 🚀 **Metabase** (Open Source Alternative)
+### 2. **Metabase** (Open Source Alternative)
 **Best for: Business intelligence and self-service analytics**
 
 #### Pros:
@@ -71,7 +71,7 @@ docker run -d -p 3001:3000 \
   metabase/metabase
 ```
 
-### 3. ⚡ **Custom React Dashboard + Supabase Realtime**
+### 3. **Custom React Dashboard + Supabase Realtime**
 **Best for: Branded client-facing portal**
 
 #### Architecture:
@@ -359,11 +359,11 @@ Data Pipeline:
 ## Conclusion
 
 **Grafana** offers the best balance of features, cost, and ease of implementation for Kong Guard AI's visualization needs. It provides:
-- ✅ Direct PostgreSQL/Supabase integration
-- ✅ Real-time monitoring with alerts
-- ✅ Professional appearance for demos
-- ✅ Mobile accessibility
-- ✅ Export capabilities for reports
-- ✅ Zero licensing cost
+- Direct PostgreSQL/Supabase integration
+- Real-time monitoring with alerts
+- Professional appearance for demos
+- Mobile accessibility
+- Export capabilities for reports
+- Zero licensing cost
 
 Start with Grafana for immediate monitoring needs, then build a custom React dashboard for client-facing requirements.

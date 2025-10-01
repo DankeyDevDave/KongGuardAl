@@ -1,13 +1,13 @@
 # gRPC Security Guide
 ## Method-Level Protection and Performance Controls for gRPC APIs
 
-### 📋 **Overview**
+### **Overview**
 
 Kong Guard AI provides specialized security controls for gRPC APIs, offering method-level protection, message size validation, and performance-aware rate limiting. This feature automatically detects gRPC endpoints and applies sophisticated analysis to prevent resource exhaustion and malicious method invocations.
 
 ---
 
-## 🎯 **gRPC Security Challenges**
+## **gRPC Security Challenges**
 
 ### **Method Abuse and Resource Exhaustion**
 
@@ -21,19 +21,19 @@ service UserService {
 
 // Attack pattern: Rapid fire requests
 for i in range(10000):
-    stub.GenerateReport(request)  // DoS attempt
+    stub.GenerateReport(request) // DoS attempt
 ```
 
 **Large Message Payloads**
 ```protobuf
 message DataUpload {
-  bytes payload = 1;  // Potential for massive payloads
-  repeated string items = 2;  // Array bombing
+  bytes payload = 1; // Potential for massive payloads
+  repeated string items = 2; // Array bombing
 }
 
 // Attack: Send 100MB+ messages
 request = DataUpload()
-request.payload = b'A' * 100_000_000  // Memory exhaustion
+request.payload = b'A' * 100_000_000 // Memory exhaustion
 ```
 
 **Method Enumeration**
@@ -46,7 +46,7 @@ grpcurl -plaintext server:9090 describe package.Service.Method
 
 ---
 
-## 🔧 **Configuration**
+## **Configuration**
 
 ### **Basic Setup**
 ```yaml
@@ -54,8 +54,8 @@ plugins:
 - name: kong-guard-ai
   config:
     enable_grpc_detection: true
-    grpc_max_message_size: 4194304  # 4MB
-    grpc_default_rate_limit: 100    # requests per minute
+    grpc_max_message_size: 4194304 # 4MB
+    grpc_default_rate_limit: 100 # requests per minute
 ```
 
 ### **Advanced Configuration**
@@ -66,16 +66,16 @@ plugins:
     enable_grpc_detection: true
 
     # Message size controls
-    grpc_max_message_size: 4194304  # 4MB default
+    grpc_max_message_size: 4194304 # 4MB default
     grpc_check_request_size: true
     grpc_check_response_size: true
 
     # Method-specific rate limiting
     grpc_method_rate_limits:
-      "user.UserService/GetUser": 1000        # High frequency allowed
-      "user.UserService/CreateUser": 50       # Moderate frequency
-      "admin.AdminService/DeleteAll": 1       # Very restrictive
-      "report.ReportService/GenerateReport": 10  # Expensive operation
+      "user.UserService/GetUser": 1000 # High frequency allowed
+      "user.UserService/CreateUser": 50 # Moderate frequency
+      "admin.AdminService/DeleteAll": 1 # Very restrictive
+      "report.ReportService/GenerateReport": 10 # Expensive operation
 
     # Performance controls
     grpc_analysis_timeout_ms: 50
@@ -89,7 +89,7 @@ plugins:
 
 ---
 
-## 🔍 **gRPC Detection and Analysis**
+## **gRPC Detection and Analysis**
 
 ### **Automatic gRPC Detection**
 
@@ -124,14 +124,14 @@ grpc-encoding: gzip
 ```yaml
 config:
   grpc_size_analysis:
-    max_request_size: 4194304   # 4MB
+    max_request_size: 4194304 # 4MB
     max_response_size: 10485760 # 10MB
-    warn_threshold: 1048576     # 1MB warning
+    warn_threshold: 1048576 # 1MB warning
 ```
 
 ---
 
-## 📏 **Method-Level Rate Limiting**
+## **Method-Level Rate Limiting**
 
 ### **Per-Method Configuration**
 ```yaml
@@ -158,15 +158,15 @@ config:
 config:
   grpc_dynamic_limits:
     enabled: true
-    base_limit: 100  # Default for unlisted methods
+    base_limit: 100 # Default for unlisted methods
 
     # Adjust limits based on response time
     slow_method_threshold_ms: 1000
-    slow_method_limit_reduction: 0.5  # Reduce by 50%
+    slow_method_limit_reduction: 0.5 # Reduce by 50%
 
     # Adjust based on error rates
-    high_error_threshold: 0.1  # 10% error rate
-    high_error_limit_reduction: 0.3  # Reduce by 30%
+    high_error_threshold: 0.1 # 10% error rate
+    high_error_limit_reduction: 0.3 # Reduce by 30%
 ```
 
 ### **Rate Limiting Scope**
@@ -181,13 +181,13 @@ config:
 
 ---
 
-## 🛡️ **Message Size Protection**
+## **Message Size Protection**
 
 ### **Request Size Validation**
 ```yaml
 config:
   grpc_request_validation:
-    max_message_size: 4194304  # 4MB
+    max_message_size: 4194304 # 4MB
     max_field_count: 1000
     max_array_length: 10000
     max_string_length: 65536
@@ -197,9 +197,9 @@ config:
 ```yaml
 config:
   grpc_response_monitoring:
-    max_response_size: 10485760  # 10MB
+    max_response_size: 10485760 # 10MB
     warn_on_large_response: true
-    warn_threshold: 1048576      # 1MB
+    warn_threshold: 1048576 # 1MB
     track_response_sizes: true
 ```
 
@@ -207,8 +207,8 @@ config:
 ```protobuf
 // Example: This would be blocked
 message LargeUpload {
-  bytes data = 1;  // If > 4MB, blocked
-  repeated string items = 2;  // If > 10k items, blocked
+  bytes data = 1; // If > 4MB, blocked
+  repeated string items = 2; // If > 10k items, blocked
 }
 ```
 
@@ -216,14 +216,14 @@ message LargeUpload {
 ```yaml
 config:
   grpc_size_limits:
-    "file.FileService/Upload": 52428800     # 50MB for file uploads
-    "image.ImageService/ProcessImage": 20971520  # 20MB for images
-    "data.DataService/BulkImport": 104857600    # 100MB for bulk data
+    "file.FileService/Upload": 52428800 # 50MB for file uploads
+    "image.ImageService/ProcessImage": 20971520 # 20MB for images
+    "data.DataService/BulkImport": 104857600 # 100MB for bulk data
 ```
 
 ---
 
-## 🚫 **Method Blocking Examples**
+## **Method Blocking Examples**
 
 ### **Reflection API Blocking**
 ```yaml
@@ -249,11 +249,11 @@ config:
   grpc_admin_methods:
     block_by_default: true
     allowed_methods:
-      - "admin.AdminService/GetStatus"  # Read-only allowed
+      - "admin.AdminService/GetStatus" # Read-only allowed
     blocked_methods:
       - "admin.AdminService/DeleteAll"
       - "admin.AdminService/ResetDatabase"
-      - "debug.DebugService/*"  # Block entire debug service
+      - "debug.DebugService/*" # Block entire debug service
 ```
 
 ### **Rate Limit Exceeded Response**
@@ -267,7 +267,7 @@ config:
 
 ---
 
-## 📊 **Monitoring and Metrics**
+## **Monitoring and Metrics**
 
 ### **gRPC-Specific Metrics**
 ```bash
@@ -324,16 +324,16 @@ curl -s http://localhost:8001/kong-guard-ai/grpc/live-stats | jq '{
 
 ---
 
-## ⚡ **Performance Optimization**
+## **Performance Optimization**
 
 ### **Analysis Optimization**
 ```yaml
 config:
   grpc_performance:
-    analysis_timeout_ms: 50        # Quick analysis timeout
-    cache_method_info: true        # Cache method metadata
-    cache_size_limits: true        # Cache size calculations
-    skip_body_analysis: false      # Analyze message content
+    analysis_timeout_ms: 50 # Quick analysis timeout
+    cache_method_info: true # Cache method metadata
+    cache_size_limits: true # Cache size calculations
+    skip_body_analysis: false # Analyze message content
 
     # Selective analysis
     analyze_only_new_methods: false
@@ -345,9 +345,9 @@ config:
 config:
   grpc_caching:
     cache_method_metadata: true
-    method_cache_ttl: 300          # 5 minutes
-    size_limit_cache_ttl: 600      # 10 minutes
-    rate_limit_cache_ttl: 60       # 1 minute
+    method_cache_ttl: 300 # 5 minutes
+    size_limit_cache_ttl: 600 # 10 minutes
+    rate_limit_cache_ttl: 60 # 1 minute
 ```
 
 ### **Selective Protection**
@@ -371,12 +371,12 @@ routes:
   plugins:
   - name: kong-guard-ai
     config:
-      enable_grpc_detection: false  # Skip protection for internal services
+      enable_grpc_detection: false # Skip protection for internal services
 ```
 
 ---
 
-## 🔧 **Advanced Features**
+## **Advanced Features**
 
 ### **Service-Level Configuration**
 ```yaml
@@ -385,12 +385,12 @@ config:
     "user.UserService":
       max_concurrent_requests: 1000
       max_requests_per_minute: 10000
-      max_message_size: 1048576  # 1MB
+      max_message_size: 1048576 # 1MB
 
     "admin.AdminService":
       max_concurrent_requests: 10
       max_requests_per_minute: 100
-      max_message_size: 65536    # 64KB
+      max_message_size: 65536 # 64KB
       require_authentication: true
 ```
 
@@ -401,12 +401,12 @@ config:
     per_ip_limits:
       max_methods_per_minute: 100
       max_unique_methods: 50
-      max_total_bytes: 10485760  # 10MB per minute
+      max_total_bytes: 10485760 # 10MB per minute
 
     suspicious_behavior:
-      rapid_method_switching: 10  # Max 10 different methods per minute
-      large_message_threshold: 5242880  # 5MB
-      reflection_attempts: 0      # Block any reflection attempts
+      rapid_method_switching: 10 # Max 10 different methods per minute
+      large_message_threshold: 5242880 # 5MB
+      reflection_attempts: 0 # Block any reflection attempts
 ```
 
 ### **Health Check Integration**
@@ -421,7 +421,7 @@ config:
 
 ---
 
-## 🛡️ **Security Best Practices**
+## **Security Best Practices**
 
 ### **Production Configuration**
 ```yaml
@@ -430,7 +430,7 @@ config:
   enable_grpc_detection: true
 
   # Conservative message sizes
-  grpc_max_message_size: 1048576  # 1MB default
+  grpc_max_message_size: 1048576 # 1MB default
   grpc_check_request_size: true
   grpc_check_response_size: true
 
@@ -443,7 +443,7 @@ config:
   grpc_default_rate_limit: 100
   grpc_method_rate_limits:
     "admin.*": 10
-    "debug.*": 0  # Block entirely
+    "debug.*": 0 # Block entirely
     "*.Delete*": 20
     "*.Create*": 50
 
@@ -459,13 +459,13 @@ config:
   enable_grpc_detection: true
 
   # Permissive limits
-  grpc_max_message_size: 10485760  # 10MB
+  grpc_max_message_size: 10485760 # 10MB
   grpc_default_rate_limit: 1000
 
   # Development features
-  grpc_block_reflection: false     # Allow reflection for development
+  grpc_block_reflection: false # Allow reflection for development
   grpc_log_all_methods: true
-  grpc_dry_run: true              # Log only, don't block
+  grpc_dry_run: true # Log only, don't block
 
   # Performance
   grpc_analysis_timeout_ms: 100
@@ -473,7 +473,7 @@ config:
 
 ---
 
-## 🚨 **Incident Response**
+## **Incident Response**
 
 ### **Method Blocking Response**
 ```json
@@ -524,7 +524,7 @@ config:
 
 ---
 
-## 🔍 **Troubleshooting**
+## **Troubleshooting**
 
 ### **Common Issues**
 
@@ -537,7 +537,7 @@ config:
     - "content-type: application/grpc"
     - "content-type: application/grpc+proto"
   grpc_detection_paths:
-    - "*/.*"  # Pattern for service/method paths
+    - "*/.*" # Pattern for service/method paths
 ```
 
 **Rate Limits Too Restrictive**
@@ -545,7 +545,7 @@ config:
 # Solution: Adjust method-specific limits
 config:
   grpc_method_rate_limits:
-    "user.UserService/GetUser": 2000  # Increase from 1000
+    "user.UserService/GetUser": 2000 # Increase from 1000
     "user.UserService/ListUsers": 500 # Increase from 100
 ```
 
@@ -553,9 +553,9 @@ config:
 ```yaml
 # Solution: Optimize analysis settings
 config:
-  grpc_analysis_timeout_ms: 25  # Shorter timeout
+  grpc_analysis_timeout_ms: 25 # Shorter timeout
   grpc_cache_method_info: true
-  grpc_skip_body_analysis: true  # For high-throughput services
+  grpc_skip_body_analysis: true # For high-throughput services
 ```
 
 ### **Debug Mode**
@@ -576,7 +576,7 @@ config:
 
 ---
 
-## 📋 **Configuration Examples**
+## **Configuration Examples**
 
 ### **E-commerce API**
 ```yaml
@@ -603,7 +603,7 @@ config:
     "admin.AdminService/*": 5
   grpc_require_valid_proto: true
   grpc_block_reflection: true
-  grpc_max_message_size: 65536  # 64KB for financial data
+  grpc_max_message_size: 65536 # 64KB for financial data
 ```
 
 ### **Microservices Platform**

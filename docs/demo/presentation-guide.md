@@ -1,10 +1,10 @@
-# 🎯 Kong Guard AI - Live Presentation Guide
+# Kong Guard AI - Live Presentation Guide
 
 ## Overview
 
 This guide explains how to run a compelling live demonstration of Kong Guard AI's real-time AI-powered threat detection capabilities for an audience.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 
@@ -17,7 +17,7 @@ This guide explains how to run a compelling live demonstration of Kong Guard AI'
 
 ```bash
 # Clone the repository (if needed)
-git clone https://github.com/yourusername/kong-guard-ai.git
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 
 # Copy and configure environment
@@ -42,7 +42,7 @@ Open these in separate browser tabs/windows:
 2. **AI Service Dashboard**: http://localhost:8000/dashboard
 3. **Kong Dashboard** (optional): http://localhost:1337
 
-## 🎬 Presentation Flow
+## Presentation Flow
 
 ### Act 1: Introduction (2 minutes)
 
@@ -124,7 +124,7 @@ Let audience suggest attacks:
 - Use the attack simulator buttons
 - Or craft custom attacks using curl
 
-## 📊 Key Visuals to Highlight
+## Key Visuals to Highlight
 
 ### 1. AI Thinking Animation
 When attacks occur, point out the spinning gear icon showing AI processing.
@@ -140,12 +140,12 @@ Shows breakdown of detected threat types - proves AI is working.
 
 ### 4. Live Event Feed
 Color-coded by severity:
-- 🟢 Green = Safe (score < 0.2)
-- 🟡 Yellow = Suspicious (0.2-0.5)
-- 🟠 Orange = Threat (0.5-0.8)
-- 🔴 Red = Critical (> 0.8)
+- Green = Safe (score < 0.2)
+- Yellow = Suspicious (0.2-0.5)
+- Orange = Threat (0.5-0.8)
+- Red = Critical (> 0.8)
 
-## 🎯 Demo Scenarios
+## Demo Scenarios
 
 ### Scenario 1: E-Commerce Protection
 ```bash
@@ -176,7 +176,7 @@ for i in {1..10}; do
 done
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### WebSocket Not Connecting
 - Check if AI service is running: `docker ps | grep ai-service`
@@ -193,7 +193,7 @@ done
 - Check nginx is running: `docker ps | grep visualization`
 - Try different browser
 
-## 📈 Performance Metrics to Emphasize
+## Performance Metrics to Emphasize
 
 During the demo, highlight these achievements:
 
@@ -203,7 +203,7 @@ During the demo, highlight these achievements:
 4. **Scalability**: Handles 1000+ RPS
 5. **Cost Efficiency**: ~$0.50 per million requests
 
-## 🎤 Talking Points
+## Talking Points
 
 ### Why AI Over Rules?
 
@@ -221,7 +221,7 @@ During the demo, highlight these achievements:
 
 "One prevented breach saves more than years of AI API costs. At $0.50 per million requests, protection is essentially free."
 
-## 🏆 Closing Impact
+## Closing Impact
 
 End with the automated demo showing all attack types being blocked:
 
@@ -233,7 +233,7 @@ End with the automated demo showing all attack types being blocked:
 Final message:
 > "Kong Guard AI - Where AI meets API Security. Real protection, real-time, really working."
 
-## 📸 Screenshots for Slides
+## Screenshots for Slides
 
 Best moments to capture:
 1. Dashboard with high threat score event
@@ -242,9 +242,9 @@ Best moments to capture:
 4. DDoS burst visualization
 5. Green "Connected" status showing real-time updates
 
-## 🔗 Additional Resources
+## Additional Resources
 
-- **GitHub**: https://github.com/yourusername/kong-guard-ai
+- **GitHub**: https://github.com/DankeyDevDave/KongGuardAI
 - **Gemini API**: https://aistudio.google.com/app/apikey
 - **Kong Gateway**: https://konghq.com
 - **Documentation**: See readme-ai.md

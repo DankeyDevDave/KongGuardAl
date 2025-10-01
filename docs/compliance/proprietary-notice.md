@@ -1,10 +1,10 @@
-# ⚠️ PROPRIETARY SOFTWARE NOTICE
+# PROPRIETARY SOFTWARE NOTICE
 
 ## Kong Guard AI - Intellectual Property Protection
 
 This repository contains **PROPRIETARY AND CONFIDENTIAL** software developed for the Kong Agentic AI Hackathon 2024/2025.
 
-### 🔒 Protected Components
+### Protected Components
 
 The following components are proprietary and protected by copyright:
 
@@ -31,7 +31,7 @@ The following components are proprietary and protected by copyright:
 
 **Protection Level**: HIGHEST - Core competitive advantage
 
-### ✅ Open Source Components
+### Open Source Components
 
 The following may be used under MIT License:
 - Basic Kong plugin structure
@@ -39,7 +39,7 @@ The following may be used under MIT License:
 - Docker configuration files
 - Basic test scripts
 
-### 🚫 Strictly Prohibited
+### Strictly Prohibited
 
 Without explicit written permission, the following is PROHIBITED:
 
@@ -50,7 +50,7 @@ Without explicit written permission, the following is PROHIBITED:
 5. **Production Deployment** - Using in live environments
 6. **Sublicensing** - Granting rights to third parties
 
-### 📋 Hackathon Judge Access
+### Hackathon Judge Access
 
 Hackathon judges and organizers are granted LIMITED access to:
 - Review code for evaluation purposes
@@ -60,7 +60,7 @@ Hackathon judges and organizers are granted LIMITED access to:
 
 This access does NOT grant any ownership rights or commercial licenses.
 
-### 🛡️ Security Measures Implemented
+### Security Measures Implemented
 
 1. **Credential Protection**
    - All API keys removed from repository
@@ -77,7 +77,7 @@ This access does NOT grant any ownership rights or commercial licenses.
    - Proprietary license clearly stated
    - Audit trail via git history
 
-### 📝 Attribution Requirements
+### Attribution Requirements
 
 If permission is granted to use any component:
 - Include original copyright notice
@@ -85,7 +85,7 @@ If permission is granted to use any component:
 - Link back to original repository
 - State modifications made
 
-### 🤝 Licensing Inquiries
+### Licensing Inquiries
 
 For commercial licensing, collaboration, or permission requests:
 
@@ -99,7 +99,7 @@ Available licensing models:
 - **OEM Licensing** - Integration into your products
 - **Custom Terms** - Tailored to your needs
 
-### ⚖️ Legal Notice
+### Legal Notice
 
 This software is protected by copyright law and international treaties. Unauthorized reproduction or distribution of this program, or any portion of it, may result in severe civil and criminal penalties, and will be prosecuted to the maximum extent possible under law.
 

@@ -2,6 +2,7 @@
 """
 Kong Guard AI - Hackathon Demo Recorder
 Professional Playwright-based demo recording with visual indicators and screenshots
+WITH REAL-TIME AI VOICE NARRATION
 """
 
 import asyncio
@@ -11,6 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 from typing import Optional
+
+from audio_manager import AudioManager
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -27,7 +30,7 @@ except ImportError:
 class HackathonDemoRecorder:
     """Records professional demos with visual indicators and screenshots"""
 
-    def __init__(self, config_path: str = "narrator_timing.json"):
+    def __init__(self, config_path: str = "narrator_timing.json", enable_audio: bool = True):
         self.config_path = Path(config_path)
         self.config = self._load_config()
         self.browser: Optional[Browser] = None
@@ -36,6 +39,12 @@ class HackathonDemoRecorder:
         self.screenshots_path: Optional[Path] = None
         self.visual_effects_loaded = False
         self.timing_log: list[dict[str, Any]] = []
+        
+        # Initialize audio manager for real-time narration
+        self.enable_audio = enable_audio
+        self.audio_manager = AudioManager() if enable_audio else None
+        if self.audio_manager:
+            logger.info("🎤 Real-time audio narration enabled")
 
     def _load_config(self) -> dict[str, Any]:
         """Load narrator timing configuration"""
@@ -96,7 +105,9 @@ class HackathonDemoRecorder:
 
         try:
             await self.page.goto(dashboard_url, wait_until="networkidle", timeout=30000)
-            await self.page.wait_for_selector("h1", timeout=10000)
+            # Wait for main dashboard content (metrics bar or body)
+            await self.page.wait_for_selector("body", timeout=10000)
+            await asyncio.sleep(2)  # Give React time to hydrate
             logger.info("Dashboard loaded successfully")
 
             # Inject visual effects
@@ -274,7 +285,7 @@ class HackathonDemoRecorder:
             logger.warning(f"Unknown action type: {action_type}")
 
     async def execute_scene(self, scene: dict[str, Any]):
-        """Execute a complete scene"""
+        """Execute a complete scene with real-time audio narration"""
         scene_number = scene["number"]
         scene_title = scene["title"]
         scene_duration = scene["duration"]
@@ -289,7 +300,14 @@ class HackathonDemoRecorder:
         # Update scene badge
         await self.update_scene_progress(scene, 0)
 
-        # Execute all actions in the scene
+        # START AUDIO NARRATION (non-blocking)
+        audio_duration = 0
+        if self.audio_manager:
+            audio_duration = await self.audio_manager.play_scene_audio(scene_number)
+            if audio_duration > 0:
+                logger.info(f"🎙️ Audio narration started ({audio_duration:.1f}s)")
+
+        # Execute all actions in the scene (while audio plays)
         total_actions = len(scene["actions"])
         for idx, action in enumerate(scene["actions"]):
             progress = (idx / total_actions) * 100
@@ -301,6 +319,13 @@ class HackathonDemoRecorder:
 
         scene_elapsed = (datetime.now() - scene_start_time).total_seconds()
 
+        # Wait for audio to finish if needed
+        if audio_duration > 0 and scene_elapsed < audio_duration:
+            remaining = audio_duration - scene_elapsed
+            logger.info(f"⏳ Waiting {remaining:.1f}s for audio to complete...")
+            await asyncio.sleep(remaining)
+            scene_elapsed = (datetime.now() - scene_start_time).total_seconds()
+
         # Log timing
         timing_entry = {
             "scene_number": scene_number,
@@ -308,10 +333,11 @@ class HackathonDemoRecorder:
             "planned_duration": scene_duration,
             "actual_duration": scene_elapsed,
             "variance": scene_elapsed - scene_duration,
+            "audio_duration": audio_duration,
         }
         self.timing_log.append(timing_entry)
 
-        logger.info(f"Scene completed in {scene_elapsed:.1f}s (planned: {scene_duration}s)")
+        logger.info(f"Scene completed in {scene_elapsed:.1f}s (planned: {scene_duration}s, audio: {audio_duration:.1f}s)")
 
     async def run_full_demo(self):
         """Execute the complete demo recording"""
@@ -359,7 +385,11 @@ class HackathonDemoRecorder:
         logger.info(f"Timing log saved: {timing_log_path}")
 
     async def close(self):
-        """Clean up browser resources"""
+        """Clean up browser resources and audio"""
+        # Stop audio if playing
+        if self.audio_manager:
+            self.audio_manager.cleanup()
+        
         if self.context:
             await self.context.close()
         if self.browser:
@@ -367,7 +397,7 @@ class HackathonDemoRecorder:
         if hasattr(self, "playwright"):
             await self.playwright.stop()
 
-        logger.info("Browser resources cleaned up")
+        logger.info("Browser and audio resources cleaned up")
 
         # Find and report video file
         if self.recording_path:

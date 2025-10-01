@@ -28,8 +28,8 @@ AVAILABLE_VOICES = {
     "Kore": "Warm female",
     "Fenrir": "Confident male",
     "Aoede": "Bright female",
-    "Gacrux": "Professional male (default)",
-    "Algieba": "Energetic, exciting voice",
+    "Gacrux": "Professional male",
+    "Algieba": "Energetic, exciting voice (DEFAULT for demo)",
 }
 
 
@@ -126,7 +126,7 @@ def load_narrator_config(config_path="narrator_timing.json"):
         sys.exit(1)
 
 
-def generate_scene_voice(scene_number, narration_text, voice_name="Gacrux", output_dir="demo_recordings/voiceovers"):
+def generate_scene_voice(scene_number, narration_text, voice_name="Algieba", output_dir="demo_recordings/voiceovers"):
     """Generate voice narration for a scene using Gemini TTS"""
 
     # Get API key
@@ -158,11 +158,12 @@ def generate_scene_voice(scene_number, narration_text, voice_name="Gacrux", outp
     ]
 
     generate_content_config = types.GenerateContentConfig(
-        temperature=1,
+        temperature=1.2,
         response_modalities=["audio"],
         speech_config=types.SpeechConfig(
             voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name))
         ),
+        system_instruction="You are an energetic demo presenter showcasing innovative AI security technology. Speak with excitement and clarity, like you're presenting at a hackathon. Be engaging, enthusiastic, and professional - this is cutting-edge tech that protects APIs!",
     )
 
     # Generate audio
@@ -301,9 +302,9 @@ Examples:
 
     parser.add_argument(
         "--voice",
-        default="Gacrux",
+        default="Algieba",
         choices=list(AVAILABLE_VOICES.keys()),
-        help="Voice to use for narration (default: Gacrux)",
+        help="Voice to use for narration (default: Algieba - Energetic)",
     )
 
     parser.add_argument("--output-dir", default="demo_recordings/voiceovers", help="Output directory for voice files")
