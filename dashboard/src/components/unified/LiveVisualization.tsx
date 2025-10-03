@@ -12,6 +12,7 @@ interface AttackResult {
   reasoning: string
   confidence?: number
   processing_time?: number
+  ai_model?: string
 }
 
 interface AttackMetrics {
@@ -33,15 +34,24 @@ interface LiveVisualizationProps {
     }
     attackResults: Record<string, Record<string, AttackResult>>
   }
+  activeModels?: Partial<Record<'unprotected' | 'cloud' | 'local', string | null>>
   fullWidth?: boolean
   className?: string
 }
 
-export function LiveVisualization({ data, fullWidth = false, className = "" }: LiveVisualizationProps) {
+export function LiveVisualization({ data, activeModels = {}, fullWidth = false, className = "" }: LiveVisualizationProps) {
+  const resolveTitle = (tierId: string, baseTitle: string) => {
+    const activeModel = activeModels[tierId as keyof typeof activeModels]
+    if (!activeModel) {
+      return baseTitle
+    }
+    return `${baseTitle} (${activeModel})`
+  }
+
   const protectionTiers = [
     {
       id: 'unprotected',
-      title: 'Unprotected Kong Gateway',
+      title: resolveTitle('unprotected', 'Unprotected Kong Gateway'),
       description: 'No AI Protection',
       icon: AlertTriangle,
       statusColor: 'text-kong-critical',
@@ -49,7 +59,7 @@ export function LiveVisualization({ data, fullWidth = false, className = "" }: L
     },
     {
       id: 'cloud',
-      title: 'Cloud AI Protection',
+      title: resolveTitle('cloud', 'Cloud AI Protection'),
       description: 'Gemini/GPT Analysis',
       icon: Shield,
       statusColor: 'text-kong-steel',
@@ -58,7 +68,7 @@ export function LiveVisualization({ data, fullWidth = false, className = "" }: L
     {
       id: 'local',
       title: 'Local AI Protection',
-      description: 'Private Mistral/Llama',
+      description: activeModels.local || 'Private Local AI',
       icon: ShieldCheck,
       statusColor: 'text-kong-normal',
       borderColor: 'border-kong-normal',

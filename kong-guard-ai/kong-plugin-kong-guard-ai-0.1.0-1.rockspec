@@ -4,7 +4,7 @@ package = "kong-plugin-kong-guard-ai"
 version = "0.1.0-1"
 
 source = {
-    url = "git://github.com/yourorg/kong-guard-ai",
+    url = "git://github.com/DankeyDevDave/KongGuardAI",
     tag = "0.1.0"
 }
 
@@ -15,7 +15,7 @@ description = {
         incident classification, and automated remediation. Leverages Kong's
         plugin system, Admin API, and AI Gateway for comprehensive security.
     ]],
-    homepage = "https://github.com/yourorg/kong-guard-ai",
+    homepage = "https://github.com/DankeyDevDave/KongGuardAI",
     license = "Apache 2.0"
 }
 

@@ -1,6 +1,6 @@
 # Kong Guard AI + Claude-Flow v2.0.0 Alpha Operational Runbook
 
-## 🚀 Production Deployment Guide
+## Production Deployment Guide
 
 ### **Prerequisites**
 - Docker and Docker Compose installed
@@ -11,7 +11,7 @@
 ### **Quick Start**
 ```bash
 # 1. Deploy via GitHub Actions (automatic)
-git push origin main  # Triggers Proxmox deployment
+git push origin main # Triggers Proxmox deployment
 
 # 2. Manual deployment (if needed)
 npx claude-flow@alpha init --force --hive-mind
@@ -19,7 +19,7 @@ docker-compose up -d --build
 ./scripts/validate-all.sh
 ```
 
-## 🧠 Claude-Flow v2.0.0 Alpha Operations
+## Claude-Flow v2.0.0 Alpha Operations
 
 ### **Neural Threat Prediction Management**
 ```bash
@@ -63,7 +63,7 @@ npx claude-flow@alpha memory query "attack-patterns" \
 npx claude-flow@alpha memory export security-backup.json
 ```
 
-## 🛡️ Security Operations
+## Security Operations
 
 ### **Threat Detection Monitoring**
 ```bash
@@ -99,7 +99,7 @@ npx claude-flow@alpha monitoring system-health
    npx claude-flow@alpha topology optimize
    ```
 
-## 📊 Monitoring and Alerting
+## Monitoring and Alerting
 
 ### **Key Metrics to Monitor**
 - **Kong Gateway**: Response time, error rates, throughput
@@ -116,7 +116,7 @@ npx claude-flow@alpha monitoring system-health
 - **Performance**: >10ms latency or >70% resource usage
 - **Neural Model**: <60% accuracy requires retraining
 
-## 🔧 Maintenance Procedures
+## Maintenance Procedures
 
 ### **Daily Operations**
 ```bash
@@ -148,7 +148,7 @@ npx claude-flow@alpha security scan --comprehensive
 - Update threat intelligence feeds and patterns
 - Performance optimization based on usage patterns
 
-## 🚨 Emergency Procedures
+## Emergency Procedures
 
 ### **System Failure Recovery**
 ```bash
@@ -174,7 +174,7 @@ npx claude-flow@alpha memory store "breach-response" \
   "Timeline and actions taken" --namespace incidents
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### **Common Issues**
 
@@ -210,14 +210,14 @@ docker logs $(docker ps --filter name=kong --format '{{.ID}}')
 docker-compose restart kong
 ```
 
-## 📞 Support Contacts
+## Support Contacts
 
 - **Primary On-Call**: Security Operations Team
 - **Claude-Flow Support**: GitHub Issues (ruvnet/claude-flow)
 - **Kong Support**: Kong Enterprise Support Portal
 - **Emergency Escalation**: DevOps Team Lead
 
-## 📋 Change Management
+## Change Management
 
 ### **Deployment Process**
 1. **Development**: Test in local environment with Claude-Flow
@@ -233,4 +233,4 @@ docker-compose restart kong
 
 ---
 
-**🌊 Powered by Claude-Flow v2.0.0 Alpha + Kong Guard AI Enterprise Security**
+** Powered by Claude-Flow v2.0.0 Alpha + Kong Guard AI Enterprise Security**

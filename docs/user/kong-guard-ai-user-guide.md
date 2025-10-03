@@ -1,34 +1,34 @@
 # Kong Guard AI User Guide
 ## Comprehensive Security Platform for Kong Gateway
 
-### 🎯 **Overview**
+### **Overview**
 
 Kong Guard AI transforms your Kong Gateway into an intelligent, multi-layered security platform that provides:
 
-- **🔍 Real-time Threat Detection** - ML-powered anomaly detection with static rules and dynamic thresholds
-- **🤖 Autonomous Response** - Automatic blocking, rate limiting, and traffic rerouting
-- **🧠 Continuous Learning** - Operator feedback loop to adapt thresholds and reduce false positives
-- **🛡️ Multi-Protocol Protection** - HTTP/S, GraphQL, gRPC, and WebSocket security
-- **🌐 Threat Intelligence** - TAXII/STIX feed integration for real-time threat data
-- **🔒 Advanced Fingerprinting** - TLS (JA3/JA4) and service mesh metadata analysis
-- **📊 Comprehensive Monitoring** - Detailed metrics and alerting capabilities
+- ** Real-time Threat Detection** - ML-powered anomaly detection with static rules and dynamic thresholds
+- ** Autonomous Response** - Automatic blocking, rate limiting, and traffic rerouting
+- ** Continuous Learning** - Operator feedback loop to adapt thresholds and reduce false positives
+- ** Multi-Protocol Protection** - HTTP/S, GraphQL, gRPC, and WebSocket security
+- ** Threat Intelligence** - TAXII/STIX feed integration for real-time threat data
+- ** Advanced Fingerprinting** - TLS (JA3/JA4) and service mesh metadata analysis
+- ** Comprehensive Monitoring** - Detailed metrics and alerting capabilities
 
 ---
 
-## 🚀 **Quick Start**
+## **Quick Start**
 
 ### **Basic Installation**
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/kong-guard-ai.git
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 
 # Start Kong with Guard AI plugin
 docker-compose -f docker-compose-simple.yml up -d
 
 # Test basic functionality
-curl "http://localhost:8000/demo/get?q='; DROP TABLE users;"  # Should be blocked
+curl "http://localhost:8000/demo/get?q='; DROP TABLE users;" # Should be blocked
 ```
 
 ### **Essential Configuration**
@@ -40,7 +40,7 @@ plugins:
     # Core settings
     block_threshold: 0.8
     rate_limit_threshold: 0.6
-    dry_run: false  # Set to true for testing
+    dry_run: false # Set to true for testing
 
     # Enable key features
     enable_ml_detection: true
@@ -50,7 +50,7 @@ plugins:
 
 ---
 
-## 🛡️ **Core Security Features**
+## **Core Security Features**
 
 ### **1. Traditional Threat Detection**
 
@@ -112,7 +112,7 @@ Provides advanced threat analysis using large language models for complex attack
 
 ---
 
-## 🌐 **Advanced Protocol Protection**
+## **Advanced Protocol Protection**
 
 ### **GraphQL Security**
 
@@ -152,7 +152,7 @@ Secure gRPC services with method-level controls:
 ```yaml
 config:
   enable_grpc_detection: true
-  grpc_max_message_size: 4194304  # 4MB
+  grpc_max_message_size: 4194304 # 4MB
   grpc_blocked_methods:
     - "admin.*"
     - "*.DeleteUser"
@@ -173,7 +173,7 @@ Standardize requests before analysis to improve detection accuracy:
 config:
   normalize_url: true
   normalize_body: false
-  normalization_profile: "lenient"  # or "strict"
+  normalization_profile: "lenient" # or "strict"
 ```
 
 **URL Normalization:**
@@ -189,7 +189,7 @@ config:
 
 ---
 
-## 🔒 **Advanced Security Features**
+## **Advanced Security Features**
 
 ### **TLS Fingerprinting**
 
@@ -266,7 +266,7 @@ config:
 
 ---
 
-## 📊 **Monitoring and Alerting**
+## **Monitoring and Alerting**
 
 ### **Metrics Collection**
 
@@ -324,38 +324,38 @@ open http://localhost:3000
 
 ---
 
-## 🔧 **Configuration Reference**
+## **Configuration Reference**
 
 ### **Threat Thresholds**
 
 ```yaml
 config:
-  block_threshold: 0.8          # Block requests above this score
-  rate_limit_threshold: 0.6     # Rate limit suspicious requests
-  anomaly_threshold: 0.7        # ML anomaly detection sensitivity
+  block_threshold: 0.8 # Block requests above this score
+  rate_limit_threshold: 0.6 # Rate limit suspicious requests
+  anomaly_threshold: 0.7 # ML anomaly detection sensitivity
 ```
 
 ### **Performance Tuning**
 
 ```yaml
 config:
-  ai_service_timeout: 500       # AI analysis timeout (ms)
-  mesh_cache_ttl_seconds: 300   # Mesh metadata cache TTL
-  taxii_poll_interval_seconds: 300  # Threat intel refresh rate
+  ai_service_timeout: 500 # AI analysis timeout (ms)
+  mesh_cache_ttl_seconds: 300 # Mesh metadata cache TTL
+  taxii_poll_interval_seconds: 300 # Threat intel refresh rate
 ```
 
 ### **Security Policies**
 
 ```yaml
 config:
-  blocked_countries: ["XX", "YY"]  # ISO country codes
-  blocked_ips: ["192.168.1.100"]  # Specific IP addresses
-  whitelist_ips: ["10.0.0.0/8"]   # Trusted IP ranges
+  blocked_countries: ["XX", "YY"] # ISO country codes
+  blocked_ips: ["192.168.1.100"] # Specific IP addresses
+  whitelist_ips: ["10.0.0.0/8"] # Trusted IP ranges
 ```
 
 ---
 
-## 🚨 **Incident Response**
+## **Incident Response**
 
 ### **High-Severity Threats**
 
@@ -398,7 +398,7 @@ curl -X POST http://localhost:8001/kong-guard-ai/feedback \
 
 ---
 
-## 🔄 **Operational Procedures**
+## **Operational Procedures**
 
 ### **Daily Operations**
 
@@ -436,7 +436,7 @@ curl http://localhost:8001/kong-guard-ai/mesh/pairs
 
 ---
 
-## 🛠️ **Troubleshooting**
+## **Troubleshooting**
 
 ### **Common Issues**
 
@@ -462,7 +462,7 @@ curl http://localhost:8001/kong-guard-ai/mesh/pairs
 config:
   log_level: "debug"
   log_requests: true
-  dry_run: true  # Test without blocking
+  dry_run: true # Test without blocking
 ```
 
 **Log Analysis:**
@@ -479,7 +479,7 @@ watch -n 5 'curl -s http://localhost:8001/kong-guard-ai/metrics'
 
 ---
 
-## 📚 **Additional Resources**
+## **Additional Resources**
 
 ### **Documentation Links**
 - [Configuration Reference](docs/CONFIGURATION_REFERENCE.md)
@@ -502,7 +502,7 @@ watch -n 5 'curl -s http://localhost:8001/kong-guard-ai/metrics'
 
 ---
 
-## 🔐 **Security Considerations**
+## **Security Considerations**
 
 ### **Data Privacy**
 - Configure log sanitization for PII

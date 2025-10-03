@@ -20,6 +20,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app.py .
 
+# Default logging configuration
+ENV ENABLE_FILE_LOGGING=1 LOG_DIR=/app/logs
+
 # Create non-root user for security
 RUN useradd -m -u 1000 aiservice && chown -R aiservice:aiservice /app
 

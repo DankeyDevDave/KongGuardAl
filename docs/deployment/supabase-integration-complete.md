@@ -1,29 +1,29 @@
-# Kong Guard AI - Supabase Integration Complete ✅
+# Kong Guard AI - Supabase Integration Complete 
 
-## 🚀 Summary
+## Summary
 
 Kong Guard AI has been successfully integrated with Supabase PostgreSQL for scalable, high-performance attack metrics storage and real-time analytics.
 
-## 📊 What Was Accomplished
+## What Was Accomplished
 
-### ✅ Database Infrastructure
+### Database Infrastructure
 - **Connected to Supabase** at 198.51.100.201 (Docker container 122)
 - **Created Kong Guard schema** (`kongguard`) in PostgreSQL
 - **Set up attack metrics tables** with proper indexing for performance
 - **Verified data persistence** across sessions
 
-### ✅ Production-Ready Python Interface
+### Production-Ready Python Interface
 - **Created SupabaseProduction class** (`supabase_production.py`)
 - **SSH-based execution** to handle network constraints  
 - **Proper SQL escaping** using heredoc approach
 - **Comprehensive attack metrics** with all necessary fields
 - **Real-time statistics** with aggregation queries
 
-### ✅ Database Schema
+### Database Schema
 ```sql
 -- Main tables
-kongguard.attack_runs       -- Attack run metadata
-kongguard.attack_metrics    -- Individual attack records
+kongguard.attack_runs -- Attack run metadata
+kongguard.attack_metrics -- Individual attack records
 
 -- Key fields in attack_metrics:
 - run_id, timestamp, tier, attack_type, attack_category
@@ -32,29 +32,29 @@ kongguard.attack_metrics    -- Individual attack records
 - source_ip, user_agent, error_message
 ```
 
-### ✅ Performance Optimizations
+### Performance Optimizations
 - **Indexed queries** on timestamp, tier, run_id for fast lookups
 - **Connection pooling** capability for high-volume scenarios
 - **Batch operations** for efficient data insertion
 - **PostgreSQL-native** data types (JSONB, INET, TIMESTAMPTZ)
 
-## 🎯 Test Results
+## Test Results
 
 **Latest production test (Run #6):**
-- ✅ 4 attack metrics inserted successfully
-- ✅ 3 attacks blocked (75% block rate)
-- ✅ Average response time: 106.53ms
-- ✅ Average threat score: 0.705
-- ✅ Statistics properly aggregated and queryable
+- 4 attack metrics inserted successfully
+- 3 attacks blocked (75% block rate)
+- Average response time: 106.53ms
+- Average threat score: 0.705
+- Statistics properly aggregated and queryable
 
-## 📁 Key Files Created
+## Key Files Created
 
 1. **`supabase_production.py`** - Production-ready interface class
 2. **`supabase_setup.sql`** - Complete PostgreSQL schema
 3. **`supabase_migrate.py`** - SQLite to Supabase migration tools
 4. **`supabase_config.py`** - Advanced async/sync connection manager
 
-## 🔧 Integration Points
+## Integration Points
 
 ### For Kong Guard AI Components:
 
@@ -69,7 +69,7 @@ db = SupabaseProduction()
 run_id = db.create_attack_run(
     intensity="high",
     strategy="live_traffic",
-    duration=3600  # 1 hour
+    duration=3600 # 1 hour
 )
 
 # Insert attack metric
@@ -96,7 +96,7 @@ db.complete_attack_run(run_id, total_attacks=1500)
 stats = db.get_attack_run_stats(run_id)
 ```
 
-## 🚀 Next Steps
+## Next Steps
 
 ### Immediate Integration:
 1. **Update ai-service** (`ai-service/app.py`) to use `SupabaseProduction`
@@ -109,7 +109,7 @@ stats = db.get_attack_run_stats(run_id)
 3. **Connection pooling** for high-throughput scenarios
 4. **Automated backups** and data retention policies
 
-## 📊 Performance Benefits
+## Performance Benefits
 
 - **100x scalability** - PostgreSQL handles 1M+ attacks/hour vs SQLite's 10K limit
 - **Real-time analytics** - Live dashboards with sub-second query response
@@ -117,26 +117,26 @@ stats = db.get_attack_run_stats(run_id)
 - **Data integrity** - ACID compliance and referential integrity
 - **Advanced queries** - Complex analytics with window functions and aggregations
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - **Network isolation** - Database accessible only via SSH tunnel
 - **Authentication** - Supabase admin user with restricted permissions
 - **SQL injection protection** - Proper parameterization and escaping
 - **Audit trails** - All operations logged with timestamps
 
-## 🎉 Status: PRODUCTION READY
+## Status: PRODUCTION READY
 
 The Supabase integration is complete and ready for production deployment. Kong Guard AI can now leverage PostgreSQL's full capabilities for:
 
-- ⚡ **High-performance** attack metrics storage
-- 📊 **Real-time analytics** and dashboard updates  
-- 🔄 **Concurrent operations** from multiple Kong instances
-- 📈 **Scalable architecture** supporting enterprise workloads
-- 🛡️ **Enterprise-grade** data persistence and reliability
+- **High-performance** attack metrics storage
+- **Real-time analytics** and dashboard updates  
+- **Concurrent operations** from multiple Kong instances
+- **Scalable architecture** supporting enterprise workloads
+- **Enterprise-grade** data persistence and reliability
 
 ---
 
 **Integration completed**: August 27, 2025
 **Database**: Supabase PostgreSQL at 198.51.100.201:5432
 **Schema**: `kongguard` 
-**Status**: ✅ OPERATIONAL
+**Status**: OPERATIONAL

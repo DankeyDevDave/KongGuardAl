@@ -1,32 +1,32 @@
-# 🎬 Kong Guard AI - Comprehensive Three-Tier Demo System
+# Kong Guard AI - Comprehensive Three-Tier Demo System
 
 ## Overview
 
 This comprehensive demonstration system showcases Kong Guard AI's superior threat protection through three distinct tiers, allowing viewers to clearly understand the value proposition without requiring a live presenter.
 
-## 🛡️ Three-Tier Protection System
+## Three-Tier Protection System
 
-### 🔓 Tier 1: Unprotected Kong Gateway
+### Tier 1: Unprotected Kong Gateway
 - **Purpose**: Shows baseline vulnerability without AI protection
 - **Port**: 8000 (proxy), 8001 (admin)
 - **Behavior**: Allows all attacks through unchanged
 - **Demo Value**: Demonstrates critical need for protection
 
-### ☁️ Tier 2: Cloud AI Protection  
+### Tier 2: Cloud AI Protection  
 - **Purpose**: Enterprise-grade AI protection with cloud models
 - **Port**: 8004 (proxy), 8003 (admin)
 - **AI Models**: GPT-4, Gemini, Claude
 - **Features**: Global threat intelligence, maximum accuracy
 - **Response Time**: ~250ms
 
-### 🏠 Tier 3: Local AI Protection
+### Tier 3: Local AI Protection
 - **Purpose**: Privacy-focused local AI protection
 - **Port**: 8006 (proxy), 8005 (admin) 
 - **AI Models**: Mistral 7B, Llama 3.2 3B
 - **Features**: Complete privacy, faster response, no data sharing
 - **Response Time**: ~45ms
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 ```bash
@@ -66,7 +66,7 @@ sleep 60
 - **Cloud AI Service**: http://localhost:18002
 - **Local AI Service**: http://localhost:18003
 
-## 🎯 Attack Testing System
+## Attack Testing System
 
 ### Available Attack Types
 
@@ -110,11 +110,11 @@ python3 attack_comparison_engine.py
 python3 attack_comparison_engine.py --export-results
 ```
 
-## 🎬 Video Presentation System
+## Video Presentation System
 
 ### Create Professional Demo Videos
 
-#### 🆕 Hackathon Demo Recorder (Recommended for Submission)
+#### Hackathon Demo Recorder (Recommended for Submission)
 The new **Hackathon Demo Recorder** provides professional demo recording with visual click indicators, automatic screenshots, and perfect narrator timing alignment:
 
 ```bash
@@ -129,26 +129,26 @@ python3 hackathon_demo_recorder.py --headless
 ```
 
 **Features:**
-- ✨ **Visual Click Indicators**: Animated ripple effects on all clicks (Kong Guard AI branded)
-- 🎯 **Element Highlighting**: Pulsing glow effects before interactions
-- 📸 **Auto Screenshots**: Captures every stage automatically (~15-20 screenshots)
-- ⏱️ **Narrator Timing**: Precise wait times aligned with voiceover script
-- 📊 **Progress Indicators**: On-screen scene badges and progress bars
-- 📋 **Timing Logs**: JSON report comparing planned vs actual timing
+- **Visual Click Indicators**: Animated ripple effects on all clicks (Kong Guard AI branded)
+- **Element Highlighting**: Pulsing glow effects before interactions
+- **Auto Screenshots**: Captures every stage automatically (~15-20 screenshots)
+- **Narrator Timing**: Precise wait times aligned with voiceover script
+- **Progress Indicators**: On-screen scene badges and progress bars
+- **Timing Logs**: JSON report comparing planned vs actual timing
 
 **Output Structure:**
 ```
 demo_recordings/hackathon_demo_YYYYMMDD_HHMMSS/
-├── video.webm                    # Main recording (4:30-5:00 mins)
+├── video.webm # Main recording (4:30-5:00 mins)
 ├── screenshots/
-│   ├── 01_overview_status.png
-│   ├── 01_metrics_tiles.png
-│   ├── 02_architecture_flow.png
-│   ├── 03_attack_simulator.png
-│   ├── 03_sql_injection_result.png
-│   ├── ... (15-20 total screenshots)
-│   └── 07_closing_overview.png
-└── timing_log.json               # Timing analysis
+│ ├── 01_overview_status.png
+│ ├── 01_metrics_tiles.png
+│ ├── 02_architecture_flow.png
+│ ├── 03_attack_simulator.png
+│ ├── 03_sql_injection_result.png
+│ ├── ... (15-20 total screenshots)
+│ └── 07_closing_overview.png
+└── timing_log.json # Timing analysis
 ```
 
 **Configuration:**
@@ -179,7 +179,7 @@ python3 demo_narrator.py --mode executive --export
 - **Duration**: 4:30-5:00 minutes (hackathon spec) or 6-8 minutes (comprehensive)
 - **Features**: On-screen narration, visual highlights, progress indicators
 
-## 📊 Comprehensive Testing Results
+## Comprehensive Testing Results
 
 ### Expected Detection Rates
 - **Unprotected Kong**: 0% (allows all attacks)
@@ -196,7 +196,7 @@ python3 demo_narrator.py --mode executive --export
 - **Kong Guard AI Cost**: ~$100K annually
 - **ROI Multiplier**: 680x return on investment
 
-## 🏢 Enterprise Value Proposition
+## Enterprise Value Proposition
 
 ### Key Differentiators
 1. **AI vs Rules**: Contextual understanding vs pattern matching
@@ -212,50 +212,50 @@ python3 demo_narrator.py --mode executive --export
 - **Privacy Options**: Choose cloud accuracy or local privacy
 - **Easy Integration**: Works with existing Kong deployments
 
-## 🛠️ Technical Architecture
+## Technical Architecture
 
 ### System Components
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Demo Architecture                     │
+│ Demo Architecture │
 ├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │ Unprotected │  │   Cloud AI  │  │  Local AI   │     │
-│  │   Kong:8000 │  │  Kong:8004  │  │ Kong:8006   │     │
-│  │             │  │      │      │  │      │      │     │
-│  │      ✗      │  │      ▼      │  │      ▼      │     │
-│  │             │  │ Cloud AI    │  │ Local AI    │     │
-│  │             │  │ :18002      │  │ :18003      │     │
-│  │             │  │             │  │      │      │     │
-│  └─────────────┘  └─────────────┘  │      ▼      │     │
-│                                    │   Ollama    │     │
-│                                    │   :11434    │     │
-│                                    └─────────────┘     │
-│                                                         │
+│ │
+│ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│ │ Unprotected │ │ Cloud AI │ │ Local AI │ │
+│ │ Kong:8000 │ │ Kong:8004 │ │ Kong:8006 │ │
+│ │ │ │ │ │ │ │ │ │
+│ │ │ │ ▼ │ │ ▼ │ │
+│ │ │ │ Cloud AI │ │ Local AI │ │
+│ │ │ │ :18002 │ │ :18003 │ │
+│ │ │ │ │ │ │ │ │
+│ └─────────────┘ └─────────────┘ │ ▼ │ │
+│ │ Ollama │ │
+│ │ :11434 │ │
+│ └─────────────┘ │
+│ │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ### File Structure
 ```
 Kong-Guard-AI/
-├── docker-compose-demo.yml          # Complete demo stack
-├── configure_three_tier.sh          # Kong configuration script
-├── enterprise_demo_dashboard.html   # Main demo interface
-├── ollama_service.py                # Local AI service
-├── attack_comparison_engine.py      # Testing automation
-├── video_presentation.py            # Video creation system
-├── demo_narrator.py                 # Presentation automation
+├── docker-compose-demo.yml # Complete demo stack
+├── configure_three_tier.sh # Kong configuration script
+├── enterprise_demo_dashboard.html # Main demo interface
+├── ollama_service.py # Local AI service
+├── attack_comparison_engine.py # Testing automation
+├── video_presentation.py # Video creation system
+├── demo_narrator.py # Presentation automation
 ├── visualization/
-│   ├── simple-ai-dashboard.html     # Original dashboard
-│   └── fixed-dashboard.html         # Fixed dashboard version
-├── demo_videos/                     # Generated video output
-├── presentation_materials/          # Exported scripts & notes
-└── demo-results/                    # Test results & reports
+│ ├── simple-ai-dashboard.html # Original dashboard
+│ └── fixed-dashboard.html # Fixed dashboard version
+├── demo_videos/ # Generated video output
+├── presentation_materials/ # Exported scripts & notes
+└── demo-results/ # Test results & reports
 ```
 
-## 📈 Demo Execution Workflows
+## Demo Execution Workflows
 
 ### 1. Live Presentation (Interactive)
 ```bash
@@ -303,7 +303,7 @@ python3 attack_comparison_engine.py --export-results
 # Review results in demo-results/ directory
 ```
 
-## 🎯 Success Metrics
+## Success Metrics
 
 ### Demonstration Effectiveness
 - **Visual Impact**: Clear before/after comparison
@@ -317,7 +317,7 @@ python3 attack_comparison_engine.py --export-results
 - **Security**: Threat analysis, detection capabilities
 - **Procurement**: Cost justification, competitive advantages
 
-## 🚨 Important Notes
+## Important Notes
 
 ### Service Dependencies
 1. **All services must be running** for full demo functionality
@@ -334,11 +334,11 @@ python3 attack_comparison_engine.py --export-results
 ### Troubleshooting
 ```bash
 # Check service health
-curl http://localhost:18002/health    # Cloud AI
-curl http://localhost:18003/health    # Local AI
-curl http://localhost:8001/status     # Unprotected Kong
-curl http://localhost:8003/status     # Protected Kong  
-curl http://localhost:8005/status     # Local AI Kong
+curl http://localhost:18002/health # Cloud AI
+curl http://localhost:18003/health # Local AI
+curl http://localhost:8001/status # Unprotected Kong
+curl http://localhost:8003/status # Protected Kong  
+curl http://localhost:8005/status # Local AI Kong
 
 # Restart services if needed
 docker-compose -f docker-compose-demo.yml restart
@@ -347,14 +347,14 @@ docker-compose -f docker-compose-demo.yml restart
 docker-compose -f docker-compose-demo.yml logs -f
 ```
 
-## 🎉 Ready for Enterprise Demonstrations!
+## Ready for Enterprise Demonstrations!
 
 This comprehensive three-tier demo system provides:
 
-✅ **Clear Value Demonstration**: Shows vulnerability without protection  
-✅ **Multiple AI Options**: Cloud accuracy vs local privacy  
-✅ **Professional Presentation**: Automated narration and video creation  
-✅ **Technical Validation**: Comprehensive testing and reporting  
-✅ **Flexible Delivery**: Live demo, automated presentation, or video distribution  
+ **Clear Value Demonstration**: Shows vulnerability without protection  
+ **Multiple AI Options**: Cloud accuracy vs local privacy  
+ **Professional Presentation**: Automated narration and video creation  
+ **Technical Validation**: Comprehensive testing and reporting  
+ **Flexible Delivery**: Live demo, automated presentation, or video distribution  
 
 The system is now ready for enterprise client demonstrations, sales presentations, and technical evaluations!

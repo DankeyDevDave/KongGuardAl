@@ -31,6 +31,14 @@
         "git *",
         "curl *",
         "task-master *",
+        "python ai-service/agents/run_security_triage.py *",
+        "python3 ai-service/agents/run_security_triage.py *",
+        "python ai-service/agents/tools/get_incidents.py",
+        "python ai-service/agents/tools/get_incidents.py *",
+        "python3 ai-service/agents/tools/get_incidents.py",
+        "python3 ai-service/agents/tools/get_incidents.py *",
+        "python ai-service/agents/tools/propose_policy_diffs.py *",
+        "python3 ai-service/agents/tools/propose_policy_diffs.py *",
         "kong *",
         "luac *"
       ]

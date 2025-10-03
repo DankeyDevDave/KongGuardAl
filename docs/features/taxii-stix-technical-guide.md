@@ -6,15 +6,15 @@
 
 ```
 kong/plugins/kong-guard-ai/
-├── handler.lua              # Main plugin handler with TAXII integration
-├── schema.lua               # Configuration schema with TAXII fields
-├── taxii_client.lua         # TAXII 2.x HTTP client implementation
-├── stix_normalizer.lua      # STIX indicator parsing and normalization
-├── taxii_cache.lua          # Shared memory cache management
-├── taxii_scheduler.lua      # Background polling and state management
+├── handler.lua # Main plugin handler with TAXII integration
+├── schema.lua # Configuration schema with TAXII fields
+├── taxii_client.lua # TAXII 2.x HTTP client implementation
+├── stix_normalizer.lua # STIX indicator parsing and normalization
+├── taxii_cache.lua # Shared memory cache management
+├── taxii_scheduler.lua # Background polling and state management
 └── tests/
-    ├── unit/               # Unit tests for each module
-    └── integration/        # Integration tests with Kong Pongo
+    ├── unit/ # Unit tests for each module
+    └── integration/ # Integration tests with Kong Pongo
 ```
 
 ### Component Interactions
@@ -254,7 +254,7 @@ function TaxiiCache:atomic_swap_version(new_version)
     end
 
     -- Schedule cleanup of old version
-    ngx.timer.at(30, function()  -- 30 second grace period
+    ngx.timer.at(30, function() -- 30 second grace period
         self:cleanup_version(current_version)
     end)
 
@@ -394,7 +394,7 @@ function TaxiiScheduler:poll_server_with_backoff(server_config)
         local last_attempt = self:get_last_attempt_time(server_url)
 
         if ngx.time() - last_attempt < backoff_delay then
-            return 0, 0  -- Skip this attempt
+            return 0, 0 -- Skip this attempt
         end
     end
 
@@ -440,7 +440,7 @@ function TaxiiScheduler:poll_collection(server_config, api_root_url, collection)
         )
 
         if not result then
-            return 0, 1  -- Error occurred
+            return 0, 1 -- Error occurred
         end
 
         -- Process this batch
@@ -659,11 +659,11 @@ describe("Kong Guard AI TAXII Integration", function()
     it("should block requests from known malicious IPs", function()
         local res = client:get("/test", {
             headers = {
-                ["X-Forwarded-For"] = "1.2.3.4"  -- Malicious IP from mock feed
+                ["X-Forwarded-For"] = "1.2.3.4" -- Malicious IP from mock feed
             }
         })
 
-        assert.res_status(403, res)  -- Should be blocked
+        assert.res_status(403, res) -- Should be blocked
     end)
 end)
 ```

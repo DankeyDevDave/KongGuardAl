@@ -40,26 +40,26 @@ plugins:
 
     # Threat intelligence lists
     tls_blocklist:
-      - "e7d705a3286e19ea42f587b344ee6865"  # Known malicious JA3
-      - "malicious*"                         # Wildcard pattern
-      - "*bot*fingerprint*"                  # Pattern matching
+      - "e7d705a3286e19ea42f587b344ee6865" # Known malicious JA3
+      - "malicious*" # Wildcard pattern
+      - "*bot*fingerprint*" # Pattern matching
 
     tls_allowlist:
-      - "a0e9f5d64349fb13191bc781f81f42e1"  # Known good JA3
-      - "chrome*"                            # Chrome fingerprints
-      - "*legitimate*"                       # Trusted patterns
+      - "a0e9f5d64349fb13191bc781f81f42e1" # Known good JA3
+      - "chrome*" # Chrome fingerprints
+      - "*legitimate*" # Trusted patterns
 
     # Scoring weights
     tls_score_weights:
-      match_blocklist: 0.7     # Increase threat score by 0.7 for blocklist matches
-      match_allowlist: -0.4    # Decrease threat score by 0.4 for allowlist matches
-      ua_mismatch: 0.2         # User-Agent mismatch with fingerprint
-      rare_fingerprint: 0.2    # Fingerprint seen from few unique IPs
-      velocity: 0.3            # High request rate from single fingerprint
+      match_blocklist: 0.7 # Increase threat score by 0.7 for blocklist matches
+      match_allowlist: -0.4 # Decrease threat score by 0.4 for allowlist matches
+      ua_mismatch: 0.2 # User-Agent mismatch with fingerprint
+      rare_fingerprint: 0.2 # Fingerprint seen from few unique IPs
+      velocity: 0.3 # High request rate from single fingerprint
 
     # Behavioral thresholds
-    tls_rare_fp_min_ips: 5              # Minimum IPs before fingerprint is "common"
-    tls_rate_limit_per_fp: 120          # Requests per minute per fingerprint
+    tls_rare_fp_min_ips: 5 # Minimum IPs before fingerprint is "common"
+    tls_rate_limit_per_fp: 120 # Requests per minute per fingerprint
 ```
 
 ### Advanced Configuration
@@ -83,9 +83,9 @@ tls_blocklist:
 
 tls_allowlist:
   # Major browser fingerprints
-  - "a0e9f5d64349fb13191bc781f81f42e1"  # Chrome 91
-  - "b1e8f5d74359fb13191bc781f81f43f2"  # Firefox 89
-  - "c2f9g6e85460gc24202cd892g92g54g3"  # Safari 14
+  - "a0e9f5d64349fb13191bc781f81f42e1" # Chrome 91
+  - "b1e8f5d74359fb13191bc781f81f43f2" # Firefox 89
+  - "c2f9g6e85460gc24202cd892g92g54g3" # Safari 14
 
   # Mobile browsers
   - "mobile*chrome*"
@@ -238,14 +238,14 @@ Kong Guard AI exposes the following TLS-related metrics via `ngx.shared.kong_cac
 
 ```lua
 -- Request metrics
-tls_requests_with_fingerprints    -- Total requests with valid TLS fingerprints
-tls_ja3_fingerprints             -- Requests with JA3 fingerprints
-tls_ja4_fingerprints             -- Requests with JA4 fingerprints
-tls_ja3s_fingerprints            -- Requests with JA3S fingerprints
-tls_ja4s_fingerprints            -- Requests with JA4S fingerprints
+tls_requests_with_fingerprints -- Total requests with valid TLS fingerprints
+tls_ja3_fingerprints -- Requests with JA3 fingerprints
+tls_ja4_fingerprints -- Requests with JA4 fingerprints
+tls_ja3s_fingerprints -- Requests with JA3S fingerprints
+tls_ja4s_fingerprints -- Requests with JA4S fingerprints
 
 -- Threat metrics
-tls_threats_detected             -- Threats detected via TLS fingerprinting
+tls_threats_detected -- Threats detected via TLS fingerprinting
 ```
 
 ### Monitoring Dashboard
@@ -314,9 +314,9 @@ TLS fingerprint data is included in threat logs:
 
 ```yaml
 enable_tls_fingerprints: true
-dry_run: true                    # Log only, no enforcement
+dry_run: true # Log only, no enforcement
 tls_score_weights:
-  match_blocklist: 0.1          # Low weights for observation
+  match_blocklist: 0.1 # Low weights for observation
   match_allowlist: -0.05
   ua_mismatch: 0.05
   rare_fingerprint: 0.05
@@ -333,10 +333,10 @@ Monitor logs and metrics to:
 
 ```yaml
 dry_run: false
-rate_limit_threshold: 0.4        # Enable rate limiting
+rate_limit_threshold: 0.4 # Enable rate limiting
 tls_score_weights:
-  match_blocklist: 0.3          # Moderate weights
-  velocity: 0.2                 # Focus on high-velocity threats
+  match_blocklist: 0.3 # Moderate weights
+  velocity: 0.2 # Focus on high-velocity threats
 ```
 
 Start enforcing rate limits for suspicious fingerprints while continuing to observe blocking scenarios.
@@ -344,9 +344,9 @@ Start enforcing rate limits for suspicious fingerprints while continuing to obse
 ### Phase 3: Full Enforcement
 
 ```yaml
-block_threshold: 0.8             # Enable blocking
+block_threshold: 0.8 # Enable blocking
 tls_score_weights:
-  match_blocklist: 0.7          # Production weights
+  match_blocklist: 0.7 # Production weights
   match_allowlist: -0.4
   ua_mismatch: 0.2
   rare_fingerprint: 0.2

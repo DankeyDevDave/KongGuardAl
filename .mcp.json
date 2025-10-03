@@ -7,6 +7,10 @@
         "-y",
         "@upstash/context7-mcp"
       ]
+    },
+    "grafana": {
+      "type": "sse",
+      "url": "http://localhost:38000/sse"
     }
   }
 }

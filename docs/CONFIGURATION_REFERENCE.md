@@ -1,13 +1,13 @@
 # Kong Guard AI Configuration Reference
 ## Complete Guide to All Configuration Options
 
-### 📋 **Overview**
+### **Overview**
 
 This document provides comprehensive documentation for all Kong Guard AI configuration options, including default values, valid ranges, and practical use cases.
 
 ---
 
-## 🎯 **Core Threat Detection Settings**
+## **Core Threat Detection Settings**
 
 ### **Threat Thresholds**
 
@@ -34,12 +34,12 @@ config:
 **Example:**
 ```yaml
 config:
-  dry_run: true  # Test mode - log threats but don't block
+  dry_run: true # Test mode - log threats but don't block
 ```
 
 ---
 
-## 🤖 **Machine Learning Configuration**
+## **Machine Learning Configuration**
 
 ### **ML Detection Settings**
 
@@ -73,7 +73,7 @@ config:
 
 ---
 
-## 🧠 **AI Gateway Integration**
+## **AI Gateway Integration**
 
 ### **AI Service Configuration**
 
@@ -95,7 +95,7 @@ config:
 
 ---
 
-## 📢 **Notifications Configuration**
+## **Notifications Configuration**
 
 ### **Notification Settings**
 
@@ -115,7 +115,7 @@ config:
 
 ---
 
-## 🔄 **Response Actions**
+## **Response Actions**
 
 ### **Action Configuration**
 
@@ -128,14 +128,14 @@ config:
 **Example:**
 ```yaml
 config:
-  auto_block_duration: 3600  # 1 hour
-  rate_limit_duration: 300   # 5 minutes
-  rate_limit_requests: 10    # 10 requests per period
+  auto_block_duration: 3600 # 1 hour
+  rate_limit_duration: 300 # 5 minutes
+  rate_limit_requests: 10 # 10 requests per period
 ```
 
 ---
 
-## 🏗️ **Admin API Integration**
+## **Admin API Integration**
 
 ### **Admin API Settings**
 
@@ -153,7 +153,7 @@ config:
 
 ---
 
-## 📝 **Logging and Monitoring**
+## **Logging and Monitoring**
 
 ### **Log Configuration**
 
@@ -177,7 +177,7 @@ config:
 
 ---
 
-## 🔧 **Request Normalization**
+## **Request Normalization**
 
 ### **Normalization Settings**
 
@@ -201,7 +201,7 @@ config:
 
 ---
 
-## 🕸️ **GraphQL Protection**
+## **GraphQL Protection**
 
 ### **GraphQL Configuration**
 
@@ -226,7 +226,7 @@ config:
 
 ---
 
-## 🔌 **gRPC Protection**
+## **gRPC Protection**
 
 ### **gRPC Configuration**
 
@@ -241,7 +241,7 @@ config:
 ```yaml
 config:
   enable_grpc_detection: true
-  grpc_max_message_size: 4194304  # 4MB
+  grpc_max_message_size: 4194304 # 4MB
   grpc_blocked_methods:
     - "admin.*"
     - "*.DeleteUser"
@@ -256,7 +256,7 @@ config:
 
 ---
 
-## 🔒 **TLS Fingerprinting**
+## **TLS Fingerprinting**
 
 ### **TLS Configuration**
 
@@ -317,15 +317,15 @@ config:
     ua_mismatch: 0.2
     rare_fingerprint: 0.2
   tls_blocklist:
-    - "d4f0b8e4f8b4d4a4f8e4f8b4d4a4f8e4"  # Known malicious JA3
-    - "malicious-tool-*"  # Pattern match
+    - "d4f0b8e4f8b4d4a4f8e4f8b4d4a4f8e4" # Known malicious JA3
+    - "malicious-tool-*" # Pattern match
   tls_allowlist:
-    - "chrome-*"  # Allow Chrome variants
+    - "chrome-*" # Allow Chrome variants
 ```
 
 ---
 
-## 🌐 **TAXII/STIX Threat Intelligence**
+## **TAXII/STIX Threat Intelligence**
 
 ### **TAXII Configuration**
 
@@ -351,12 +351,12 @@ config:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `url` | string | ✅ | TAXII server base URL |
-| `collections` | array | ❌ | Collection IDs to poll |
-| `auth_type` | string | ❌ | Authentication type (none, basic, bearer) |
-| `username` | string | ❌ | Username for basic auth |
-| `password` | string | ❌ | Password for basic auth |
-| `token` | string | ❌ | Bearer token for auth |
+| `url` | string | | TAXII server base URL |
+| `collections` | array | | Collection IDs to poll |
+| `auth_type` | string | | Authentication type (none, basic, bearer) |
+| `username` | string | | Username for basic auth |
+| `password` | string | | Password for basic auth |
+| `token` | string | | Bearer token for auth |
 
 **Example:**
 ```yaml
@@ -414,7 +414,7 @@ config:
 
 ---
 
-## 🕸️ **Kubernetes/Service Mesh Integration**
+## **Kubernetes/Service Mesh Integration**
 
 ### **Mesh Configuration**
 
@@ -480,7 +480,7 @@ config:
 
 ---
 
-## 🔍 **Pattern Detection Rules**
+## **Pattern Detection Rules**
 
 ### **SQL Injection Patterns**
 
@@ -513,7 +513,7 @@ config:
 
 ---
 
-## 🌍 **Geographic & IP Configuration**
+## **Geographic & IP Configuration**
 
 ### **IP Controls**
 
@@ -526,19 +526,19 @@ config:
 **Example:**
 ```yaml
 config:
-  blocked_countries: ["XX", "YY"]  # ISO country codes
+  blocked_countries: ["XX", "YY"] # ISO country codes
   blocked_ips:
     - "192.168.1.100"
     - "10.0.0.0/8"
     - "2001:db8::/32"
   whitelist_ips:
     - "172.16.0.0/12"
-    - "trusted.example.com"  # Resolved to IP
+    - "trusted.example.com" # Resolved to IP
 ```
 
 ---
 
-## ⚙️ **Complete Configuration Example**
+## **Complete Configuration Example**
 
 ```yaml
 plugins:
@@ -632,12 +632,12 @@ plugins:
 
 ---
 
-## 🎯 **Use Case Configurations**
+## **Use Case Configurations**
 
 ### **High Security Environment**
 ```yaml
 config:
-  block_threshold: 0.6          # Lower threshold
+  block_threshold: 0.6 # Lower threshold
   enable_tls_fingerprints: true
   enable_mesh_enricher: true
   enable_taxii_ingestion: true
@@ -647,19 +647,19 @@ config:
 ### **Performance Optimized**
 ```yaml
 config:
-  enable_ml_detection: false    # Disable ML for speed
-  enable_ai_gateway: false      # No AI analysis
-  normalize_body: false         # Skip body normalization
-  log_requests: false           # Reduce logging
+  enable_ml_detection: false # Disable ML for speed
+  enable_ai_gateway: false # No AI analysis
+  normalize_body: false # Skip body normalization
+  log_requests: false # Reduce logging
 ```
 
 ### **Development Environment**
 ```yaml
 config:
-  dry_run: true                 # Log only, don't block
-  log_level: "debug"           # Verbose logging
-  enable_learning: false       # No learning
-  block_threshold: 0.9         # High threshold
+  dry_run: true # Log only, don't block
+  log_level: "debug" # Verbose logging
+  enable_learning: false # No learning
+  block_threshold: 0.9 # High threshold
 ```
 
 This configuration reference provides complete documentation for all Kong Guard AI options with practical examples for different deployment scenarios.

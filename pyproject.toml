@@ -197,6 +197,7 @@ addopts = """
     --strict-markers
     --strict-config
     --cov=src/kongguard
+    --cov=ai-service/agents
     --cov-report=term-missing:skip-covered
     --cov-report=html:htmlcov
     --cov-report=xml
@@ -220,13 +221,15 @@ filterwarnings = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["src/kongguard"]
+source = ["src/kongguard", "ai-service/agents"]
 branch = true
 omit = [
     "*/tests/*",
     "*/test_*",
     "*/__init__.py",
-    "*/cli.py"
+    "*/cli.py",
+    "ai-service/agents/tools/*.py",
+    "ai-service/agents/run_*.py"
 ]
 
 [tool.coverage.report]

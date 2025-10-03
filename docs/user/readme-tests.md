@@ -126,7 +126,7 @@ GitHub Actions workflow:
 tests/
 └── e2e/
     ├── utils/
-    │   └── test-helpers.ts      # Shared helper functions
+    │ └── test-helpers.ts # Shared helper functions
     ├── 01-status-checks.spec.ts # Service status tests
     ├── 02-normal-traffic.spec.ts # Normal request tests
     ├── 03-attack-simulations.spec.ts # Security tests

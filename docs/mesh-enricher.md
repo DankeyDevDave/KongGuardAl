@@ -28,13 +28,13 @@ Configure which HTTP headers contain mesh metadata:
 
 ```yaml
 mesh_header_map:
-  trace_id: "X-Request-ID"           # Trace/correlation ID
-  namespace: "X-K8s-Namespace"       # Kubernetes namespace
-  workload: "X-K8s-Workload"         # Workload/deployment name
-  service: "X-K8s-Service"           # Service name
-  pod: "X-K8s-Pod"                   # Pod name
-  zone: "X-K8s-Zone"                 # Availability zone
-  mesh_source: "X-Mesh-Source"       # Source service identity
+  trace_id: "X-Request-ID" # Trace/correlation ID
+  namespace: "X-K8s-Namespace" # Kubernetes namespace
+  workload: "X-K8s-Workload" # Workload/deployment name
+  service: "X-K8s-Service" # Service name
+  pod: "X-K8s-Pod" # Pod name
+  zone: "X-K8s-Zone" # Availability zone
+  mesh_source: "X-Mesh-Source" # Source service identity
 ```
 
 ### Risk Configuration
@@ -55,10 +55,10 @@ Adjust threat scoring for different mesh scenarios:
 
 ```yaml
 mesh_score_weights:
-  cross_namespace: 0.3      # Cross-namespace communication
-  risky_namespace: 0.3      # Risky namespace involvement
-  unusual_pair: 0.3         # Unusual service communication pair
-  missing_headers: 0.1      # Missing mesh metadata
+  cross_namespace: 0.3 # Cross-namespace communication
+  risky_namespace: 0.3 # Risky namespace involvement
+  unusual_pair: 0.3 # Unusual service communication pair
+  missing_headers: 0.1 # Missing mesh metadata
 ```
 
 ### Cache and Tracking
@@ -66,8 +66,8 @@ mesh_score_weights:
 Configure caching and historical tracking:
 
 ```yaml
-mesh_cache_ttl_seconds: 300         # Metadata cache TTL
-mesh_pair_window_seconds: 3600      # Service pair tracking window
+mesh_cache_ttl_seconds: 300 # Metadata cache TTL
+mesh_pair_window_seconds: 3600 # Service pair tracking window
 ```
 
 ## Header Contract
@@ -412,17 +412,17 @@ plugins:
       - "monitoring"
 
     mesh_score_weights:
-      cross_namespace: 0.2      # Lower for microservices
-      risky_namespace: 0.8      # High for admin access
-      unusual_pair: 0.3         # Moderate for new services
-      missing_headers: 0.1      # Low for external traffic
+      cross_namespace: 0.2 # Lower for microservices
+      risky_namespace: 0.8 # High for admin access
+      unusual_pair: 0.3 # Moderate for new services
+      missing_headers: 0.1 # Low for external traffic
 
     # Threat thresholds
-    block_threshold: 0.8        # Block high-confidence threats
-    rate_limit_threshold: 0.4   # Rate limit suspicious activity
+    block_threshold: 0.8 # Block high-confidence threats
+    rate_limit_threshold: 0.4 # Rate limit suspicious activity
 
     # General configuration
-    dry_run: false             # Enable enforcement
+    dry_run: false # Enable enforcement
     log_level: "info"
     enable_notifications: true
     metrics_enabled: true

@@ -1,10 +1,10 @@
 # Kong Guard AI - Unified Stack
 
-## 🎯 Everything in One Location
+## Everything in One Location
 
 All Kong Guard AI components are now managed through a single Docker Compose stack for easier management and maintenance.
 
-## 📦 Complete Stack Components
+## Complete Stack Components
 
 | Service | Port | Purpose |
 |---------|------|---------|
@@ -19,7 +19,7 @@ All Kong Guard AI components are now managed through a single Docker Compose sta
 | **PostgreSQL** | 15432 | Kong database |
 | **Redis** | 16379 | Cache and state |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Start Everything
 ```bash
@@ -52,7 +52,7 @@ This single command:
 ./manage-stack.sh logs grafana
 ```
 
-## 📊 Access Points
+## Access Points
 
 ### Monitoring & Dashboards
 - **Grafana**: http://localhost:3000
@@ -80,7 +80,7 @@ This single command:
   - Direct metrics queries
   - Target health monitoring
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 Create a `.env` file for API keys:
@@ -100,7 +100,7 @@ The Ollama service connects to your local Ollama installation:
 - Default model: `llama3.2:3b`
 - Host: `http://host.docker.internal:11434`
 
-## 📈 Metrics & Monitoring
+## Metrics & Monitoring
 
 ### Prometheus Targets
 - `ai-service-cloud:8000/metrics` - Cloud AI metrics
@@ -114,7 +114,7 @@ Pre-configured datasources:
 2. Direct AI metrics - http://ai-service-cloud:8000
 3. Production Prometheus - http://192.168.0.225:9090 (optional)
 
-## 🛠️ Management Commands
+## Management Commands
 
 ```bash
 # Start the stack
@@ -142,36 +142,36 @@ Pre-configured datasources:
 ./manage-stack.sh build
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   Docker Network: kong-net               │
+│ Docker Network: kong-net │
 ├─────────────────────────────────────────────────────────┤
-│                                                           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │  Kong    │  │  Cloud   │  │  Ollama  │  │  Web    │ │
-│  │ Gateway  │──│    AI    │  │    AI    │  │Dashboard│ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-│       │              │              │            │       │
-│       └──────────────┴──────────────┴────────────┘       │
-│                           │                              │
-│                   ┌───────────────┐                      │
-│                   │  Prometheus   │                      │
-│                   └───────────────┘                      │
-│                           │                              │
-│                   ┌───────────────┐                      │
-│                   │    Grafana    │                      │
-│                   └───────────────┘                      │
-│                                                           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │PostgreSQL│  │  Redis   │  │  Konga   │  │  Demo   │ │
-│  │    x2    │  │          │  │          │  │   API   │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+│ │
+│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐ │
+│ │ Kong │ │ Cloud │ │ Ollama │ │ Web │ │
+│ │ Gateway │──│ AI │ │ AI │ │Dashboard│ │
+│ └──────────┘ └──────────┘ └──────────┘ └─────────┘ │
+│ │ │ │ │ │
+│ └──────────────┴──────────────┴────────────┘ │
+│ │ │
+│ ┌───────────────┐ │
+│ │ Prometheus │ │
+│ └───────────────┘ │
+│ │ │
+│ ┌───────────────┐ │
+│ │ Grafana │ │
+│ └───────────────┘ │
+│ │
+│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐ │
+│ │PostgreSQL│ │ Redis │ │ Konga │ │ Demo │ │
+│ │ x2 │ │ │ │ │ │ API │ │
+│ └──────────┘ └──────────┘ └──────────┘ └─────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Services Not Starting
 ```bash
@@ -179,7 +179,7 @@ Pre-configured datasources:
 docker-compose logs [service-name]
 
 # Verify port availability
-lsof -i :3000  # Check if Grafana port is free
+lsof -i :3000 # Check if Grafana port is free
 ```
 
 ### Metrics Not Showing
@@ -201,7 +201,7 @@ ollama list
 curl http://localhost:11434/api/tags
 ```
 
-## 🚨 Security Notes
+## Security Notes
 
 - Change default passwords in production
 - Use environment variables for API keys
@@ -209,7 +209,7 @@ curl http://localhost:11434/api/tags
 - Enable TLS/SSL for external access
 - Regularly update Docker images
 
-## 📝 Notes
+## Notes
 
 - All services restart automatically on failure
 - Data persists in Docker volumes

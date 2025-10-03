@@ -336,10 +336,11 @@ Apache License 2.0 - See LICENSE file for details
 
 ## Support
 
-- Documentation: https://docs.kongguard.ai
-- Issues: https://github.com/your-org/kong-guard-ai/issues
-- Discord: https://discord.gg/kongguard
-- Email: support@kongguard.ai
+Maintained by DankeyDevDave (https://github.com/DankeyDevDave)
+
+- Documentation: https://github.com/DankeyDevDave/KongGuardAI/tree/main/docs
+- Issues: https://github.com/DankeyDevDave/KongGuardAI/issues
+- Contact: Open an issue or reach out via the GitHub profile above
 
 ## Acknowledgments
 

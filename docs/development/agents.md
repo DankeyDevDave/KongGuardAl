@@ -39,10 +39,10 @@ npm install
 npm test
 
 # Run specific test suite
-./run-tests.sh status    # Status checks
-./run-tests.sh normal    # Normal traffic tests
-./run-tests.sh attack    # Attack simulations
-./run-tests.sh quick     # Smoke tests
+./run-tests.sh status # Status checks
+./run-tests.sh normal # Normal traffic tests
+./run-tests.sh attack # Attack simulations
+./run-tests.sh quick # Smoke tests
 
 # Run tests in UI mode
 npm run test:ui
@@ -272,11 +272,11 @@ def process_with_logging(data: Dict) -> Dict:
 ### Test Organization
 ```
 tests/
-├── unit/           # Unit tests
-├── integration/   # Integration tests
-└── e2e/          # End-to-end tests
-    ├── utils/     # Test helpers
-    └── *.spec.ts  # Playwright test files
+├── unit/ # Unit tests
+├── integration/ # Integration tests
+└── e2e/ # End-to-end tests
+    ├── utils/ # Test helpers
+    └── *.spec.ts # Playwright test files
 ```
 
 ## Security Considerations

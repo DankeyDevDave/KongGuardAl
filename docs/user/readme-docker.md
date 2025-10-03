@@ -2,7 +2,7 @@
 
 This directory contains the Docker Compose stack for local development of the Kong Guard AI plugin.
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Start the development stack:**
    ```bash
@@ -26,7 +26,7 @@ This directory contains the Docker Compose stack for local development of the Ko
    curl http://localhost:8000/attack/health
    ```
 
-## 📊 Services Overview
+## Services Overview
 
 | Service | Port | URL | Description |
 |---------|------|-----|-------------|
@@ -39,35 +39,35 @@ This directory contains the Docker Compose stack for local development of the Ko
 | PostgreSQL | 5432 | localhost:5432 | Kong database |
 | Redis | 6379 | localhost:6379 | Plugin state storage |
 
-## 🔧 Management Scripts
+## Management Scripts
 
 - **`./docker-start.sh`** - Start the complete development stack
 - **`./docker-stop.sh`** - Stop all services (preserves data)
 - **`./docker-reset.sh`** - Stop and remove all data (complete reset)
 - **`./setup-kong.sh`** - Configure Kong services, routes, and plugins
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 .
-├── docker-compose.yml          # Main Docker Compose configuration
-├── kong.conf                   # Kong Gateway configuration
-├── .env.docker                 # Environment variables
+├── docker-compose.yml # Main Docker Compose configuration
+├── kong.conf # Kong Gateway configuration
+├── .env.docker # Environment variables
 ├── plugins/
-│   └── kong-guard-ai/          # Plugin development directory
-│       ├── handler.lua         # Plugin handler (placeholder)
-│       └── schema.lua          # Plugin configuration schema
-├── mock-attacker/              # Mock malicious service
-│   ├── nginx.conf              # Nginx configuration
-│   └── html/
-│       └── index.html          # Attack simulation endpoints
-├── docker-start.sh             # Start script
-├── docker-stop.sh              # Stop script
-├── docker-reset.sh             # Reset script
-└── setup-kong.sh               # Kong configuration script
+│ └── kong-guard-ai/ # Plugin development directory
+│ ├── handler.lua # Plugin handler (placeholder)
+│ └── schema.lua # Plugin configuration schema
+├── mock-attacker/ # Mock malicious service
+│ ├── nginx.conf # Nginx configuration
+│ └── html/
+│ └── index.html # Attack simulation endpoints
+├── docker-start.sh # Start script
+├── docker-stop.sh # Stop script
+├── docker-reset.sh # Reset script
+└── setup-kong.sh # Kong configuration script
 ```
 
-## 🛡️ Plugin Development
+## Plugin Development
 
 The Kong Guard AI plugin files are located in `plugins/kong-guard-ai/`:
 
@@ -92,7 +92,7 @@ The plugin supports various configuration options defined in `schema.lua`:
 - **Notifications**: notifications_enabled, slack_webhook_url
 - **Payload Analysis**: payload_analysis_enabled, suspicious_patterns
 
-## 🧪 Testing Scenarios
+## Testing Scenarios
 
 ### 1. Rate Limiting Test
 ```bash
@@ -128,7 +128,7 @@ curl -X POST http://localhost:8000/attack/api/upload \
      -d '{"data": "'$(head -c 1000000 /dev/zero | base64)'"}'
 ```
 
-## 📊 Monitoring and Logs
+## Monitoring and Logs
 
 ### View Service Logs
 ```bash
@@ -160,7 +160,7 @@ curl http://localhost:8001/consumers
 curl http://localhost:8001/status
 ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -187,7 +187,7 @@ curl http://localhost:8001/status
 ./setup-kong.sh
 ```
 
-## 🌐 External Dependencies
+## External Dependencies
 
 - **Docker & Docker Compose** - Container orchestration
 - **Kong Gateway 3.8.0** - API Gateway
@@ -196,7 +196,7 @@ curl http://localhost:8001/status
 - **httpbin** - Demo API service
 - **Nginx** - Mock attacker service
 
-## 📚 Useful Resources
+## Useful Resources
 
 - [Kong Gateway Documentation](https://docs.konghq.com/gateway/)
 - [Kong Plugin Development Guide](https://docs.konghq.com/gateway/latest/plugin-development/)

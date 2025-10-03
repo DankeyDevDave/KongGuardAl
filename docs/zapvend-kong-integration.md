@@ -24,7 +24,7 @@ If ZapVend is running directly on your machine (not in Docker):
    ```bash
    cd /Users/jacques/DevFolder/zapvend_new/elec-token-vending-original
    # Start your FastAPI backend
-   python main.py  # or uvicorn main:app --reload --port 8000
+   python main.py # or uvicorn main:app --reload --port 8000
    ```
 
 2. **Configure Kong to route to local ZapVend:**

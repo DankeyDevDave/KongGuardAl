@@ -2,9 +2,9 @@
 ## Autonomous API Threat Response Agent for Kong Gateway
 
 [![Kong Version](https://img.shields.io/badge/Kong-3.8.0-blue)](https://konghq.com)
-[![Plugin Version](https://img.shields.io/badge/Plugin-3.0.0-green)](https://github.com/yourusername/kong-guard-ai)
+[![Plugin Version](https://img.shields.io/badge/Plugin-3.0.0-green)](https://github.com/DankeyDevDave/KongGuardAI)
 [![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production_Ready-success)](https://github.com/yourusername/kong-guard-ai)
+[![Status](https://img.shields.io/badge/Status-Production_Ready-success)](https://github.com/DankeyDevDave/KongGuardAI)
 
 > Transform your Kong Gateway into an intelligent, self-healing security system that autonomously detects, classifies, and responds to API threats in real-time.
 
@@ -18,7 +18,7 @@ This is proprietary software developed for the Kong Agentic AI Hackathon 2025. T
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/kong-guard-ai.git
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 
 # Start Kong with Guard AI plugin
@@ -565,7 +565,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/kong-guard-ai.git
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 
 # Install dependencies
 luarocks install busted
@@ -589,15 +589,16 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - OWASP for threat detection patterns
 - The security research community
 
-## 📞 Support
+## Support
 
-- 📧 Email: support@kongguardai.com
-- 💬 Slack: [Join our community](https://kongguardai.slack.com)
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/kong-guard-ai/issues)
-- 📖 Docs: [Full Documentation](https://docs.kongguardai.com)
+Maintained by DankeyDevDave (https://github.com/DankeyDevDave)
+
+- Issues: https://github.com/DankeyDevDave/KongGuardAI/issues
+- Documentation: https://github.com/DankeyDevDave/KongGuardAI/tree/main/docs
+- Contact: Open an issue or reach out via the GitHub profile above
 
 ---
 
-**Kong Guard AI** - Autonomous API Security for the Modern Web 🛡️🤖
+Kong Guard AI is maintained by DankeyDevDave.
 
 <!-- Smoke test: 2025-09-30 17:16:46 UTC -->

@@ -1,6 +1,6 @@
 # Kong Guard AI - Network Access Configuration
 
-## 🌐 Network Architecture
+## Network Architecture
 
 Your Kong Guard AI stack needs to be accessible from your network, not just localhost.
 
@@ -9,7 +9,7 @@ Your Kong Guard AI stack needs to be accessible from your network, not just loca
 - **Your Mac (Dev)**: 192.168.0.84 (with Ollama)
 - **Network Range**: 192.168.0.0/24
 
-## 📡 Access URLs from Network
+## Access URLs from Network
 
 When deployed on production server (192.168.0.228), access services from ANY device on your network:
 
@@ -33,23 +33,23 @@ When deployed on production server (192.168.0.228), access services from ANY dev
 | **Cloud AI** | http://192.168.0.228:18002 | Cloud-based AI protection |
 | **Ollama AI** | http://192.168.0.228:18003 | Local Ollama (via your Mac) |
 
-## 🔧 Docker Compose Configuration
+## Docker Compose Configuration
 
 The key difference for network access is using `0.0.0.0` instead of default binding:
 
 ### Development (localhost only):
 ```yaml
 ports:
-  - "3000:3000"  # Only accessible on localhost
+  - "3000:3000" # Only accessible on localhost
 ```
 
 ### Production (network accessible):
 ```yaml
 ports:
-  - "0.0.0.0:3000:3000"  # Accessible from entire network
+  - "0.0.0.0:3000:3000" # Accessible from entire network
 ```
 
-## 🚀 Deployment Steps
+## Deployment Steps
 
 ### 1. On Production Server (192.168.0.228)
 
@@ -83,7 +83,7 @@ ai-service-ollama:
 OLLAMA_HOST=0.0.0.0:11434 ollama serve
 ```
 
-## 📊 Grafana Dashboard Configuration
+## Grafana Dashboard Configuration
 
 Update Grafana datasources for network access:
 
@@ -92,18 +92,18 @@ Update Grafana datasources for network access:
 datasources:
   - name: Prometheus
     type: prometheus
-    url: http://prometheus:9090  # Internal Docker network
+    url: http://prometheus:9090 # Internal Docker network
     
   - name: Kong-AI-Cloud
     type: prometheus
-    url: http://ai-service-cloud:8000  # Internal Docker network
+    url: http://ai-service-cloud:8000 # Internal Docker network
     
   - name: Kong-AI-Ollama
     type: prometheus
-    url: http://ai-service-ollama:8000  # Internal Docker network
+    url: http://ai-service-ollama:8000 # Internal Docker network
 ```
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### Firewall Rules (Production Server)
 ```bash
@@ -125,7 +125,7 @@ sudo ufw allow from 192.168.0.0/24 to any port 9090
 # Add rule: Allow connections from 192.168.0.0/24 to port 11434
 ```
 
-## 🖥️ Access from Different Devices
+## Access from Different Devices
 
 ### From your Mac (192.168.0.84):
 - Grafana: http://192.168.0.228:3000
@@ -139,7 +139,7 @@ sudo ufw allow from 192.168.0.0/24 to any port 9090
 ### From another computer on network:
 - All services accessible via http://192.168.0.228:PORT
 
-## 📱 Mobile Dashboard Access
+## Mobile Dashboard Access
 
 The web dashboard at http://192.168.0.228:8080 is mobile-responsive and provides:
 - Real-time threat detection status
@@ -147,7 +147,7 @@ The web dashboard at http://192.168.0.228:8080 is mobile-responsive and provides
 - Attack statistics
 - WebSocket updates
 
-## 🔄 Environment Variables
+## Environment Variables
 
 Create `.env` file on production server:
 
@@ -168,7 +168,7 @@ KONGA_DB_PASSWORD=strongpassword
 GF_SECURITY_ADMIN_PASSWORD=StrongPassword2024!
 ```
 
-## 🎯 Quick Test Commands
+## Quick Test Commands
 
 ### From any machine on network:
 ```bash
@@ -198,7 +198,7 @@ docker-compose -f docker-compose.production.yml logs -f grafana
 curl http://192.168.0.84:11434/api/tags
 ```
 
-## 📋 Troubleshooting Network Access
+## Troubleshooting Network Access
 
 ### Can't access from network?
 

@@ -1,12 +1,12 @@
 # Kong Guard AI - Playwright Test Suite Summary
 
-## ✅ Test Suite Successfully Created and Working
+## Test Suite Successfully Created and Working
 
 ### Test Results
 - **3 smoke tests passed** successfully
-- **Dashboard loading** ✓
-- **Normal requests** ✓ 
-- **Attack simulations** ✓ (with known limitations noted)
+- **Dashboard loading** 
+- **Normal requests**  
+- **Attack simulations** (with known limitations noted)
 
 ### Known Issues & Limitations
 
@@ -82,10 +82,10 @@ To improve the test suite:
 
 ## Success Metrics
 
-✅ **Dashboard Fixed** - All JavaScript errors resolved
-✅ **60+ Tests Created** - Comprehensive coverage
-✅ **Tests Passing** - 100% pass rate on smoke tests
-✅ **CI/CD Ready** - GitHub Actions workflow configured
-✅ **Documentation** - Complete README and test guides
+ **Dashboard Fixed** - All JavaScript errors resolved
+ **60+ Tests Created** - Comprehensive coverage
+ **Tests Passing** - 100% pass rate on smoke tests
+ **CI/CD Ready** - GitHub Actions workflow configured
+ **Documentation** - Complete README and test guides
 
 The Kong Guard AI dashboard now has a robust, maintainable test suite that ensures reliability and catches regressions early.

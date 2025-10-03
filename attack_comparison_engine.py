@@ -229,18 +229,18 @@ class AttackComparisonEngine:
                     result_data = response.json()
                     processing_time = time.time() - start_time
 
-                    # Determine if attack was blocked
-                    threat_score = result_data.get("threat_score", 0.0)
-                    blocked = threat_score >= 0.7 or result_data.get("recommended_action") == "block"
+                    # Determine if attack was blocked based on recommended_action
+                    recommended_action = result_data.get("recommended_action", "allow")
+                    blocked = recommended_action in ["block", "rate_limit"]
 
                     return AttackResult(
                         tier=tier,
                         attack_type=pattern.attack_type,
-                        threat_score=threat_score,
+                        threat_score=result_data.get("threat_score", 0.0),
                         threat_type=result_data.get("threat_type", "unknown"),
                         confidence=result_data.get("confidence", 0.0),
                         reasoning=result_data.get("reasoning", "AI analysis completed"),
-                        recommended_action=result_data.get("recommended_action", "unknown"),
+                        recommended_action=recommended_action,
                         processing_time=processing_time,
                         blocked=blocked,
                     )

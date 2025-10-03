@@ -1,13 +1,13 @@
 # GraphQL Protection Guide
 ## Query Depth and Complexity Analysis for GraphQL Security
 
-### 📋 **Overview**
+### **Overview**
 
 GraphQL Protection in Kong Guard AI provides specialized security controls for GraphQL APIs, preventing resource exhaustion attacks through query depth limiting and complexity analysis. This feature automatically detects GraphQL endpoints and applies sophisticated query analysis to block malicious queries while allowing legitimate operations.
 
 ---
 
-## 🎯 **GraphQL Security Challenges**
+## **GraphQL Security Challenges**
 
 ### **Resource Exhaustion Attacks**
 
@@ -37,11 +37,11 @@ query MaliciousDepth {
 **High Complexity Queries**
 ```graphql
 query MaliciousComplexity {
-  users(first: 1000) {  # Large dataset
+  users(first: 1000) { # Large dataset
     id
-    posts(first: 1000) {  # Multiplied load
+    posts(first: 1000) { # Multiplied load
       id
-      comments(first: 1000) {  # Exponential growth
+      comments(first: 1000) { # Exponential growth
         id
         content
       }
@@ -67,7 +67,7 @@ query CircularReference {
 
 ---
 
-## 🔧 **Configuration**
+## **Configuration**
 
 ### **Basic Setup**
 ```yaml
@@ -106,14 +106,14 @@ plugins:
 
 ---
 
-## 📏 **Query Depth Analysis**
+## **Query Depth Analysis**
 
 ### **How Depth is Calculated**
 
 ```graphql
 # Depth: 1
 query SimpleQuery {
-  user {  # Depth 1
+  user { # Depth 1
     name
     email
   }
@@ -121,21 +121,21 @@ query SimpleQuery {
 
 # Depth: 3
 query ModerateDepth {
-  user {        # Depth 1
-    posts {     # Depth 2
-      title     # Depth 3
-      content   # Depth 3
+  user { # Depth 1
+    posts { # Depth 2
+      title # Depth 3
+      content # Depth 3
     }
   }
 }
 
 # Depth: 5
 query DeepQuery {
-  user {           # Depth 1
-    posts {        # Depth 2
-      comments {   # Depth 3
-        replies {  # Depth 4
-          content  # Depth 5
+  user { # Depth 1
+    posts { # Depth 2
+      comments { # Depth 3
+        replies { # Depth 4
+          content # Depth 5
         }
       }
     }
@@ -173,7 +173,7 @@ config:
 
 ---
 
-## 🧮 **Query Complexity Analysis**
+## **Query Complexity Analysis**
 
 ### **Complexity Scoring Algorithm**
 
@@ -189,29 +189,29 @@ config:
 ```graphql
 # Complexity: 3 (1 + 1 + 1)
 query Simple {
-  user {     # 1 point
-    name     # 1 point
-    email    # 1 point
+  user { # 1 point
+    name # 1 point
+    email # 1 point
   }
 }
 
 # Complexity: 12 (1 + (1 + 1) * 2 * 3)
 query WithLists {
-  user {           # 1 point
-    posts(first: 10) {  # List multiplier: 2, estimated items: 3
-      title          # 1 point each
-      content        # 1 point each
+  user { # 1 point
+    posts(first: 10) { # List multiplier: 2, estimated items: 3
+      title # 1 point each
+      content # 1 point each
     }
   }
 }
 
 # Complexity: 60 (1 + (1 + (1 + 1) * 2 * 3) * 2 * 3)
 query Nested {
-  users(first: 10) {        # List: 2x, items: 3
-    posts(first: 10) {      # List: 2x, items: 3
-      comments(first: 5) {  # List: 2x, items: 3
-        content             # 1 point each
-        author              # 1 point each
+  users(first: 10) { # List: 2x, items: 3
+    posts(first: 10) { # List: 2x, items: 3
+      comments(first: 5) { # List: 2x, items: 3
+        content # 1 point each
+        author # 1 point each
       }
     }
   }
@@ -223,7 +223,7 @@ query Nested {
 ```graphql
 # Complexity varies by arguments
 query DynamicComplexity($limit: Int!) {
-  users(first: $limit) {  # Complexity scales with $limit
+  users(first: $limit) { # Complexity scales with $limit
     posts {
       comments {
         content
@@ -237,31 +237,31 @@ query DynamicComplexity($limit: Int!) {
 ```yaml
 config:
   graphql_complexity_analysis: "dynamic"
-  graphql_max_list_size: 100  # Assume max 100 items if not specified
-  graphql_default_list_size: 10  # Default assumption
+  graphql_max_list_size: 100 # Assume max 100 items if not specified
+  graphql_default_list_size: 10 # Default assumption
 ```
 
 ---
 
-## 🚫 **Query Blocking Examples**
+## **Query Blocking Examples**
 
 ### **Depth Violation**
 ```graphql
 # This query would be blocked with max_depth: 12
 query TooDeep {
-  user {                    # 1
-    posts {                 # 2
-      comments {            # 3
-        replies {           # 4
-          user {            # 5
-            posts {         # 6
-              comments {    # 7
-                replies {   # 8
-                  user {    # 9
+  user { # 1
+    posts { # 2
+      comments { # 3
+        replies { # 4
+          user { # 5
+            posts { # 6
+              comments { # 7
+                replies { # 8
+                  user { # 9
                     posts { # 10
                       comments { # 11
-                        replies {  # 12
-                          content  # 13 - BLOCKED!
+                        replies { # 12
+                          content # 13 - BLOCKED!
                         }
                       }
                     }
@@ -281,10 +281,10 @@ query TooDeep {
 ```graphql
 # This query would be blocked with max_complexity: 2000
 query TooComplex {
-  users(first: 1000) {      # Base: 2000 complexity points
-    posts(first: 100) {     # Multiplied by 100
+  users(first: 1000) { # Base: 2000 complexity points
+    posts(first: 100) { # Multiplied by 100
       comments(first: 50) { # Multiplied by 50
-        content             # Total: > 10,000,000 points
+        content # Total: > 10,000,000 points
       }
     }
   }
@@ -310,7 +310,7 @@ query TooComplex {
 
 ---
 
-## 🔍 **Detection and Analysis**
+## **Detection and Analysis**
 
 ### **Automatic GraphQL Detection**
 
@@ -326,7 +326,7 @@ Kong Guard AI automatically detects GraphQL endpoints using:
 ```yaml
 config:
   graphql_strict_parsing: true
-  graphql_allow_introspection: false  # Block introspection in production
+  graphql_allow_introspection: false # Block introspection in production
   graphql_allow_unknown_fields: false
 ```
 
@@ -337,7 +337,7 @@ config:
   graphql_detection_rules:
     content_types:
       - "application/graphql"
-      - "application/json"  # For POST with JSON body
+      - "application/json" # For POST with JSON body
     path_patterns:
       - "/graphql"
       - "/api/graphql"
@@ -349,7 +349,7 @@ config:
 
 ---
 
-## 📊 **Monitoring and Metrics**
+## **Monitoring and Metrics**
 
 ### **GraphQL-Specific Metrics**
 
@@ -396,7 +396,7 @@ curl -s http://localhost:8001/kong-guard-ai/graphql/patterns | jq '{
 
 ---
 
-## ⚡ **Performance Optimization**
+## **Performance Optimization**
 
 ### **Query Caching**
 
@@ -416,8 +416,8 @@ config:
 
 ```yaml
 config:
-  graphql_analysis_timeout_ms: 100  # Fail-safe timeout
-  graphql_timeout_action: "allow"   # or "block"
+  graphql_analysis_timeout_ms: 100 # Fail-safe timeout
+  graphql_timeout_action: "allow" # or "block"
 ```
 
 ### **Selective Analysis**
@@ -437,12 +437,12 @@ routes:
   plugins:
   - name: kong-guard-ai
     config:
-      enable_graphql_detection: false  # Skip GraphQL analysis
+      enable_graphql_detection: false # Skip GraphQL analysis
 ```
 
 ---
 
-## 🔧 **Advanced Features**
+## **Advanced Features**
 
 ### **Operation-Specific Limits**
 
@@ -453,10 +453,10 @@ config:
       max_depth: 12
       max_complexity: 2000
     mutation:
-      max_depth: 8   # More restrictive for mutations
+      max_depth: 8 # More restrictive for mutations
       max_complexity: 1000
     subscription:
-      max_depth: 6   # Very restrictive for subscriptions
+      max_depth: 6 # Very restrictive for subscriptions
       max_complexity: 500
 ```
 
@@ -465,10 +465,10 @@ config:
 ```yaml
 config:
   graphql_field_complexity:
-    "User.posts": 5        # High complexity field
-    "Post.comments": 3     # Medium complexity
-    "Comment.replies": 10  # Very high complexity
-    "User.profile": 1      # Low complexity
+    "User.posts": 5 # High complexity field
+    "Post.comments": 3 # Medium complexity
+    "Comment.replies": 10 # Very high complexity
+    "User.profile": 1 # Low complexity
 ```
 
 ### **Rate Limiting by Complexity**
@@ -484,7 +484,7 @@ config:
 
 ---
 
-## 🛡️ **Security Best Practices**
+## **Security Best Practices**
 
 ### **Production Configuration**
 
@@ -525,7 +525,7 @@ config:
   # Development features
   graphql_allow_introspection: true
   graphql_log_all_queries: true
-  graphql_dry_run: true  # Log only, don't block
+  graphql_dry_run: true # Log only, don't block
 
   # Performance
   graphql_analysis_timeout_ms: 200
@@ -533,7 +533,7 @@ config:
 
 ---
 
-## 🚨 **Incident Response**
+## **Incident Response**
 
 ### **Query Blocking Response**
 
@@ -577,7 +577,7 @@ curl -s "http://localhost:8001/kong-guard-ai/graphql/analyze" \
 
 ---
 
-## 🔍 **Troubleshooting**
+## **Troubleshooting**
 
 ### **Common Issues**
 
@@ -585,18 +585,18 @@ curl -s "http://localhost:8001/kong-guard-ai/graphql/analyze" \
 ```yaml
 # Solution: Increase limits or use field-specific complexity
 config:
-  graphql_max_depth: 15  # Increase if too restrictive
+  graphql_max_depth: 15 # Increase if too restrictive
   graphql_field_complexity:
-    "User.posts": 2  # Reduce complexity for specific fields
+    "User.posts": 2 # Reduce complexity for specific fields
 ```
 
 **Performance Issues**
 ```yaml
 # Solution: Optimize analysis settings
 config:
-  graphql_analysis_timeout_ms: 50  # Shorter timeout
+  graphql_analysis_timeout_ms: 50 # Shorter timeout
   graphql_cache_parsed_queries: true
-  graphql_simple_complexity_analysis: true  # Faster algorithm
+  graphql_simple_complexity_analysis: true # Faster algorithm
 ```
 
 **False Positives**
@@ -604,8 +604,8 @@ config:
 # Solution: Tune complexity multipliers
 config:
   graphql_complexity_multipliers:
-    list: 1.5  # Reduce from default 2
-    connection: 2  # Reduce from default 3
+    list: 1.5 # Reduce from default 2
+    connection: 2 # Reduce from default 3
 ```
 
 ### **Debug Mode**

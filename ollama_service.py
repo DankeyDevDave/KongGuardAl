@@ -247,6 +247,9 @@ class OllamaService:
             "threat_score": threat_score,
             "threat_type": threat_type if threat_score > 0.3 else "none",
             "confidence": min(0.85, threat_score + 0.1),
+            "reasoning": f"Pattern-based analysis detected {len(indicators)} suspicious indicators"
+            if indicators
+            else "No suspicious patterns detected",
             "indicators": indicators[:5],  # Limit indicators
         }
 
@@ -390,6 +393,10 @@ async def analyze_threat(request: ThreatAnalysisRequest):
         else:
             recommended_action = "allow"
 
+        # Determine actual AI model being used
+        is_fallback = not await ollama_service.check_ollama_health()
+        actual_model = "pattern-based/regex" if is_fallback else f"ollama/{ollama_service.model}"
+
         # Build response
         response = ThreatAnalysisResponse(
             threat_score=threat_score,
@@ -398,13 +405,13 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             reasoning=analysis["reasoning"],
             recommended_action=recommended_action,
             indicators=analysis["indicators"],
-            ai_model=f"ollama/{ollama_service.model}",
+            ai_model=actual_model,
             processing_time=processing_time,
             detailed_analysis={
                 "local_processing": True,
                 "privacy_preserved": True,
-                "model_used": ollama_service.model,
-                "fallback_mode": not await ollama_service.check_ollama_health(),
+                "model_used": ollama_service.model if not is_fallback else "pattern-based",
+                "fallback_mode": is_fallback,
             },
         )
 

@@ -1,13 +1,13 @@
 # Request Normalization Guide
 ## URL and Body Canonicalization for Enhanced Threat Detection
 
-### 📋 **Overview**
+### **Overview**
 
 Request normalization standardizes incoming HTTP requests before threat analysis, significantly improving detection accuracy by preventing evasion techniques that rely on encoding variations, formatting differences, and structural inconsistencies.
 
 ---
 
-## 🎯 **Why Normalization Matters**
+## **Why Normalization Matters**
 
 ### **Evasion Techniques Prevented**
 
@@ -48,38 +48,38 @@ Evasion attempts:
 
 ---
 
-## 🔧 **URL Normalization**
+## **URL Normalization**
 
 ### **Configuration**
 ```yaml
 config:
   normalize_url: true
-  normalization_profile: "lenient"  # or "strict"
+  normalization_profile: "lenient" # or "strict"
 ```
 
 ### **Normalization Process**
 
 #### **1. Percent Decoding**
 ```
-Input:  /api%2Fusers?q=%27union%20select%27
+Input: /api%2Fusers?q=%27union%20select%27
 Output: /api/users?q='union select'
 ```
 
 #### **2. Path Canonicalization**
 ```
-Input:  /api/../admin/./users//
+Input: /api/../admin/./users//
 Output: /admin/users/
 ```
 
 #### **3. Query Parameter Normalization**
 ```
-Input:  /api?b=2&a=1&c=3
+Input: /api?b=2&a=1&c=3
 Output: /api?a=1&b=2&c=3
 ```
 
 #### **4. Case Normalization**
 ```
-Input:  /API/Users
+Input: /API/Users
 Output: /api/users
 ```
 
@@ -135,7 +135,7 @@ normalization_profile: "strict"
 
 # Case normalization (paths only)
 "/API/Users" → "/api/users"
-"?Query=VALUE" → "?Query=VALUE"  # Query preserved
+"?Query=VALUE" → "?Query=VALUE" # Query preserved
 
 # Complex example
 "/API/../admin%2F%2Fusers?b=2&a=1"
@@ -144,7 +144,7 @@ normalization_profile: "strict"
 
 ---
 
-## 📄 **Body Normalization**
+## **Body Normalization**
 
 ### **Configuration**
 ```yaml
@@ -153,14 +153,14 @@ config:
   normalization_profile: "lenient"
 ```
 
-⚠️ **Performance Note**: Body normalization has higher computational cost and should be enabled selectively.
+ **Performance Note**: Body normalization has higher computational cost and should be enabled selectively.
 
 ### **Supported Content Types**
 
 #### **JSON Normalization**
 ```json
 // Input (formatted irregularly)
-{"user": "admin","query"   :   "'OR 1=1--"}
+{"user": "admin","query" : "'OR 1=1--"}
 
 // Output (standardized)
 {"query": "'OR 1=1--", "user": "admin"}
@@ -169,7 +169,7 @@ config:
 #### **XML Normalization**
 ```xml
 <!-- Input -->
-<query   user="admin"  >  'OR 1=1--  </query>
+<query user="admin" > 'OR 1=1-- </query>
 
 <!-- Output -->
 <query user="admin">'OR 1=1--</query>
@@ -177,7 +177,7 @@ config:
 
 #### **Form Data Normalization**
 ```
-Input:  user=admin&query=%27OR%201%3D1--&submit=true
+Input: user=admin&query=%27OR%201%3D1--&submit=true
 Output: query='OR 1=1--&submit=true&user=admin
 ```
 
@@ -203,7 +203,7 @@ Output: query='OR 1=1--&submit=true&user=admin
 
 ---
 
-## ⚡ **Performance Considerations**
+## **Performance Considerations**
 
 ### **Processing Overhead**
 
@@ -222,7 +222,7 @@ config:
   normalize_body: true
 
   # Performance optimizations
-  max_body_size_for_normalization: 1048576  # 1MB limit
+  max_body_size_for_normalization: 1048576 # 1MB limit
   skip_normalization_content_types:
     - "image/*"
     - "video/*"
@@ -250,12 +250,12 @@ routes:
   plugins:
   - name: kong-guard-ai
     config:
-      normalize_body: false  # Skip for static content
+      normalize_body: false # Skip for static content
 ```
 
 ---
 
-## 🔍 **Advanced Configuration**
+## **Advanced Configuration**
 
 ### **Custom Normalization Rules**
 
@@ -266,7 +266,7 @@ config:
 
   # Custom URL normalization
   url_normalization_rules:
-    decode_levels: 2  # Double decode
+    decode_levels: 2 # Double decode
     preserve_query_order: false
     case_sensitive_paths: false
     remove_empty_params: true
@@ -300,12 +300,12 @@ config:
       decode_values: true
 
     "multipart/form-data":
-      enabled: false  # Skip for file uploads
+      enabled: false # Skip for file uploads
 ```
 
 ---
 
-## 🛡️ **Security Implications**
+## **Security Implications**
 
 ### **Attack Detection Improvement**
 
@@ -328,21 +328,21 @@ curl "/API?q='/**/OR/**/1=1--"
 
 **Path Traversal Prevention:**
 ```
-Input:  /../../../etc/passwd
+Input: /../../../etc/passwd
 Output: /etc/passwd
 Result: Detected as path traversal
 ```
 
 **SQL Injection Normalization:**
 ```
-Input:  ' UNION/*comment*/SELECT/**/password/**/FROM/**/users--
+Input: ' UNION/*comment*/SELECT/**/password/**/FROM/**/users--
 Output: ' UNION SELECT password FROM users--
 Result: Detected as SQL injection
 ```
 
 **XSS Payload Normalization:**
 ```
-Input:  <script>alert('xss')</script>
+Input: <script>alert('xss')</script>
 Encoded: %3Cscript%3Ealert%28%27xss%27%29%3C%2Fscript%3E
 Output: <script>alert('xss')</script>
 Result: Detected as XSS
@@ -350,7 +350,7 @@ Result: Detected as XSS
 
 ---
 
-## 📊 **Monitoring Normalization**
+## **Monitoring Normalization**
 
 ### **Metrics to Track**
 
@@ -396,7 +396,7 @@ curl -s http://localhost:8001/kong-guard-ai/normalization-stats | jq '{
 
 ---
 
-## 🔧 **Troubleshooting**
+## **Troubleshooting**
 
 ### **Common Issues**
 
@@ -420,7 +420,7 @@ routes:
 ```yaml
 # Solution: Optimize normalization settings
 config:
-  max_body_size_for_normalization: 524288  # 512KB
+  max_body_size_for_normalization: 524288 # 512KB
   normalization_cache_enabled: true
   skip_normalization_content_types:
     - "image/*"
@@ -435,8 +435,8 @@ config:
   normalization_profile: "lenient"
   # Review and update detection patterns
   sql_injection_patterns:
-    - "union select"  # Normalized pattern
-    - "drop table"    # Normalized pattern
+    - "union select" # Normalized pattern
+    - "drop table" # Normalized pattern
 ```
 
 ### **Debug Mode**
@@ -456,7 +456,7 @@ config:
 
 ---
 
-## 📋 **Best Practices**
+## **Best Practices**
 
 ### **Deployment Strategy**
 
@@ -490,7 +490,7 @@ config:
   normalization_profile: "lenient"
 
   # Size limits
-  max_body_size_for_normalization: 1048576  # 1MB
+  max_body_size_for_normalization: 1048576 # 1MB
 
   # Content type filtering
   skip_normalization_content_types:
@@ -523,7 +523,7 @@ config:
 
   # Enhanced detection after normalization
   enable_ml_detection: true
-  anomaly_threshold: 0.6  # More sensitive with normalized input
+  anomaly_threshold: 0.6 # More sensitive with normalized input
 ```
 
 ---

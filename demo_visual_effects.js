@@ -36,27 +36,32 @@ function initializeVisualEffects() {
 function injectVisualEffectsCSS() {
   const style = document.createElement('style');
   style.textContent = `
-    /* Click Ripple Effect */
+    /* Click Ripple Effect - ENHANCED VISIBILITY */
     .kg-click-ripple {
       position: fixed;
       border-radius: 50%;
-      background: ${BRAND_COLORS.accent};
+      background: radial-gradient(circle, ${BRAND_COLORS.accent}, transparent);
+      border: 3px solid ${BRAND_COLORS.accent};
       pointer-events: none;
       z-index: 999999;
-      opacity: 0.6;
-      animation: kg-ripple-expand 0.8s ease-out forwards;
+      opacity: 0.9;
+      animation: kg-ripple-expand 1s ease-out forwards;
+      box-shadow: 0 0 20px ${BRAND_COLORS.accent};
     }
 
     @keyframes kg-ripple-expand {
       0% {
         transform: scale(0);
+        opacity: 0.9;
+      }
+      30% {
         opacity: 0.8;
       }
-      50% {
-        opacity: 0.6;
+      70% {
+        opacity: 0.4;
       }
       100% {
-        transform: scale(20);
+        transform: scale(15);
         opacity: 0;
       }
     }
@@ -83,7 +88,7 @@ function injectVisualEffectsCSS() {
       }
     }
 
-    /* Progress Indicator */
+    /* Progress Indicator - HIDDEN FROM VIDEO */
     .kg-progress-indicator {
       position: fixed;
       bottom: 20px;
@@ -98,6 +103,7 @@ function injectVisualEffectsCSS() {
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
       min-width: 300px;
+      display: none !important; /* Hidden from video recording */
     }
 
     .kg-progress-header {
@@ -153,7 +159,7 @@ function injectVisualEffectsCSS() {
       font-weight: 500;
     }
 
-    /* Scene Badge */
+    /* Scene Badge - HIDDEN FROM VIDEO */
     .kg-scene-badge {
       position: fixed;
       top: 20px;
@@ -169,6 +175,7 @@ function injectVisualEffectsCSS() {
       font-weight: 600;
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: none !important; /* Hidden from video recording */
     }
 
     .kg-scene-number {
@@ -201,7 +208,7 @@ function injectVisualEffectsCSS() {
       }
     }
 
-    /* Screenshot Flash */
+    /* Screenshot Flash - HIDDEN FROM VIDEO */
     .kg-screenshot-flash {
       position: fixed;
       top: 0;
@@ -213,6 +220,7 @@ function injectVisualEffectsCSS() {
       z-index: 999999;
       opacity: 0;
       animation: kg-flash 0.3s ease-out;
+      display: none !important; /* Hidden from video recording */
     }
 
     @keyframes kg-flash {
@@ -247,16 +255,16 @@ function showClickRipple(x, y) {
   ripple.className = 'kg-click-ripple';
   ripple.style.left = `${x}px`;
   ripple.style.top = `${y}px`;
-  ripple.style.width = '40px';
-  ripple.style.height = '40px';
-  ripple.style.marginLeft = '-20px';
-  ripple.style.marginTop = '-20px';
+  ripple.style.width = '80px';
+  ripple.style.height = '80px';
+  ripple.style.marginLeft = '-40px';
+  ripple.style.marginTop = '-40px';
 
   document.body.appendChild(ripple);
 
   setTimeout(() => {
     ripple.remove();
-  }, 800);
+  }, 1000);
 }
 
 /**

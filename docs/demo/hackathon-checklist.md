@@ -1,15 +1,15 @@
 # Kong Agentic AI Hackathon 2025 - Submission Checklist
 
-## 📋 Submission Requirements
+## Submission Requirements
 
-### ✅ Eligibility
-- [x] Team size: 1-5 members ✅ *(Solo entry – Jacques Francois Coetzee, remote)*
+### Eligibility
+- [x] Team size: 1-5 members *(Solo entry – Jacques Francois Coetzee, remote)*
 - [x] Project created during hackathon period (Aug 1 - Sep 30, 2025) *(confirmed via internal development log & git history review)*
 - [x] Original work, not previously published *(see `INTELLECTUAL_PROPERTY.md` ownership section)*
-- [x] Falls under Agentic AI theme ✅
+- [x] Falls under Agentic AI theme 
 
-### ✅ Required Components
-- [x] **Project Description** ✅ *(documented in `HACKATHON_SUBMISSION.md` and `README.md`)
+### Required Components
+- [x] **Project Description** *(documented in `HACKATHON_SUBMISSION.md` and `README.md`)
   - Problem it solves
   - Agentic AI theme alignment
   - Clear and concise
@@ -26,43 +26,43 @@
   - [ ] Demonstrates Kong integration
   - [ ] Clear narration
 
-- [x] **Documentation** ✅ *(see `README.md`, `PRESENTATION_GUIDE.md`, `ARCHITECTURE` docs)*
+- [x] **Documentation** *(see `README.md`, `PRESENTATION_GUIDE.md`, `ARCHITECTURE` docs)*
   - [x] Installation instructions
   - [x] Usage guide
   - [x] Architecture explanation
   - [x] Testing instructions
 
-- [x] **Kong Products Used** ✅
-  - [x] Kong Gateway ✅ *(plugin deployed via docker-compose stack)*
-  - [x] Plugin architecture ✅ *(Lua plugin in `kong-plugin/`)*
+- [x] **Kong Products Used** 
+  - [x] Kong Gateway *(plugin deployed via docker-compose stack)*
+  - [x] Plugin architecture *(Lua plugin in `kong-plugin/`)*
   - [x] Clear integration shown *(demo + docs reference kong admin workflows)*
 
-## 🎯 Evaluation Criteria Alignment
+## Evaluation Criteria Alignment
 
-### Creativity & Originality ✅
+### Creativity & Originality 
 - [x] First Kong plugin using real AI for security
 - [x] Live AI thinking visualization
 - [x] Unique autonomous threat detection approach
 
-### Technical Depth ✅
+### Technical Depth 
 - [x] Complex multi-service architecture
 - [x] WebSocket real-time streaming
 - [x] Multiple AI provider support
 - [x] Sophisticated threat scoring
 
-### Practical Impact ✅
+### Practical Impact 
 - [x] Solves real API security problem
 - [x] Production-ready solution
 - [x] Cost-effective implementation
 - [x] Enterprise scalable
 
-### Use of Kong ✅
+### Use of Kong 
 - [x] Native Kong plugin
 - [x] Deep PDK integration
 - [x] Admin API usage
 - [x] Kong-specific features
 
-## 🏆 Special Categories
+## Special Categories
 
 ### Best Agentic AI Solution
 - [x] Autonomous decision making
@@ -82,13 +82,13 @@
 - [x] Unexpected solution
 - [x] Original implementation
 
-## 📅 Timeline Compliance
+## Timeline Compliance
 
 - [x] Code written between Aug 1 - Sep 30, 2025 *(see commit history notes)*
 - [ ] Submission between Sep 15-30, 2025 *(pending – submit via official portal)*
 - [x] Only one submission per team
 
-## 📝 Submission Format
+## Submission Format
 
 ### GitHub Repository Must Include:
 - [x] README.md with:
@@ -111,7 +111,7 @@
   - [x] `docker-compose.yml` for easy setup *(see multiple compose profiles)*
   - [x] Kong configuration examples *(e.g., `kong-config.yml`, `kong-simple.yml`)
 
-## 🎥 Demo Video Requirements
+## Demo Video Requirements
 
 ### Content (3-5 minutes):
 - [ ] 0:00-0:30 - Problem introduction
@@ -129,7 +129,7 @@
 - [ ] Demonstrate autonomous decisions
 - [ ] Highlight Kong features used
 
-## 🔧 Final Preparation
+## Final Preparation
 
 ### Before Submission:
 - [ ] Test complete setup from scratch *(pending final rehearsal)*
@@ -146,7 +146,7 @@
 - [ ] Provide GitHub repository link
 - [ ] Submit before Sep 30, 2025 deadline
 
-## 💡 Kong Guard AI Strengths
+## Kong Guard AI Strengths
 
 ### Why We'll Win:
 1. **True Agentic AI** - Real autonomous decisions, not scripted
@@ -158,7 +158,7 @@
 7. **Cost Effective** - $0.50 per million requests
 8. **Zero-Day Protection** - Catches unknown attacks
 
-## 📊 Metrics to Highlight
+## Metrics to Highlight
 
 - **Performance**: <100ms detection time
 - **Accuracy**: 95%+ threat detection
@@ -167,7 +167,7 @@
 - **Coverage**: SQL, XSS, DDoS, zero-day
 - **Integration**: Native Kong plugin
 
-## 🚀 Action Items
+## Action Items
 
 ### Immediate:
 - [x] Polish GitHub repository *(codebase refactored & linted on feature branch)*
@@ -181,7 +181,7 @@
 - [ ] Final code review
 - [ ] Documentation review
 
-## 📞 Support Resources
+## Support Resources
 
 - **Kong Slack**: Join for guidance
 - **API Summit**: Oct 14-15, 2025
@@ -192,7 +192,7 @@
 
 **Ready to Submit?** Check all boxes above and submit by September 30, 2025!
 
-## 🔄 Outstanding Items To Complete
+## Outstanding Items To Complete
 - Finalize and record the 3-5 minute demo video (follow `DEMO_RECORDING_SCRIPT.md`).
 - Perform fresh environment deployment test and update links/documentation if discrepancies appear.
 - Complete submission portal steps: account, project form, video upload, GitHub link, and final submission.

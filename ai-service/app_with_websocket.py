@@ -25,9 +25,12 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from pydantic import Field
 
+from logging_utils import setup_logging
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+metrics_logger = setup_logging(service_name="websocket-ai-service")
 logger = logging.getLogger(__name__)
+
 
 app = FastAPI(
     title="Kong Guard AI - Real-Time Threat Analysis",
@@ -150,6 +153,16 @@ class ConnectionManager:
             "client_ip": analysis_data.get("client_ip", "unknown"),
         }
         self.threat_history.append(threat_event)
+
+        metrics_logger.info(
+            "metrics_update",
+            extra={
+                "event": "metrics_update",
+                "service": "websocket-ai",
+                "metrics": dict(self.metrics),
+                "threat_event": threat_event,
+            },
+        )
 
         # Broadcast to all clients
         await self.broadcast(

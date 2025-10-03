@@ -27,13 +27,42 @@ from fastapi import HTTPException
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from logging_utils import setup_logging
+from prometheus_client import Counter
+from prometheus_client import Gauge
+from prometheus_client import Histogram
+from prometheus_client import make_asgi_app
 from pydantic import BaseModel
 from pydantic import Field
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+metrics_logger = setup_logging(service_name="cloud-ai-service")
 logger = logging.getLogger(__name__)
+
+# Prometheus metrics
+REQUESTS_TOTAL = Counter(
+    "kong_guard_requests_total",
+    "Total requests processed",
+    ["attack_type", "action", "blocked"],
+)
+THREAT_SCORE_HISTOGRAM = Histogram(
+    "kong_guard_threat_score",
+    "Distribution of threat scores",
+    buckets=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+)
+RESPONSE_TIME_HISTOGRAM = Histogram(
+    "kong_guard_response_time_seconds",
+    "Response time in seconds",
+    buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
+)
+BLOCKED_IPS_GAUGE = Gauge(
+    "kong_guard_blocked_ips",
+    "Number of currently blocked IPs",
+)
+ACTIVE_CONNECTIONS = Gauge(
+    "kong_guard_active_connections",
+    "Number of active WebSocket connections",
+)
 
 # Add parent directory to path to import ML models
 sys.path.append(str(Path(__file__).parent.parent))
@@ -85,6 +114,10 @@ app = FastAPI(
     version="2.0.0",
 )
 
+# Mount Prometheus metrics endpoint
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
@@ -117,12 +150,56 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_text(message)
-            except:
+            except Exception:
                 # Remove dead connections
-                self.active_connections.remove(connection)
+                pass
 
 
+# Initialize connection manager
 manager = ConnectionManager()
+
+
+# ============================================================================
+# Agent endpoints (read-only triage)
+# ============================================================================
+@app.get("/api/agents/triage", tags=["agents"])  # lightweight, read-only
+async def get_triage(include_agent: bool = False):
+    """Return recent incident summary; optionally include agent suggestions if enabled.
+    Never applies changes. Safe for staging.
+    """
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    tool = Path(__file__).parent / "agents" / "tools" / "get_incidents.py"
+    try:
+        out = subprocess.check_output([sys.executable, str(tool), "--since-hours", "24"], text=True)
+        summary = json.loads(out)
+    except Exception as e:
+        logger.warning(f"triage summary failed: {e}")
+        summary = {"error": "unable to compute summary"}
+
+    if not include_agent:
+        return {"summary": summary}
+
+    try:
+        import importlib.util
+
+        sdk_path = Path(__file__).parent / "agents" / "sdk_client.py"
+        spec = importlib.util.spec_from_file_location("sdk_client", sdk_path)
+        suggestions = None
+        if spec and spec.loader:
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)  # type: ignore[attr-defined]
+            if hasattr(mod, "run_security_triage_agent"):
+                suggestions = mod.run_security_triage_agent(summary)  # type: ignore[attr-defined]
+    except Exception as e:
+        logger.warning(f"agent invocation failed: {e}")
+        suggestions = None
+
+    return {"summary": summary, "agent_suggestions": suggestions}
+
 
 # ============================================================================
 # Configuration
@@ -238,6 +315,16 @@ class ThreatIntelligence:
 
 
 threat_intel = ThreatIntelligence()
+
+# Initialize Metrics Exporter
+try:
+    from metrics_exporter import AttackMetricsExporter
+
+    metrics_exporter = AttackMetricsExporter()
+    logger.info("Attack Metrics Exporter initialized")
+except ImportError as e:
+    logger.warning(f"Metrics exporter not available: {e}")
+    metrics_exporter = None
 
 # Initialize ML Model Manager
 if ML_ENABLED:
@@ -919,6 +1006,7 @@ async def analyze_threat(request: ThreatAnalysisRequest):
                 await broadcast_threat_analysis(
                     {
                         "type": "cached_threat_analysis",
+                        "tier": "cloud",
                         "threat_score": cached_result.threat_score,
                         "threat_type": cached_result.threat_type,
                         "confidence": cached_result.confidence,
@@ -927,6 +1015,7 @@ async def analyze_threat(request: ThreatAnalysisRequest):
                         "method": request.features.method,
                         "path": request.features.path,
                         "client_ip": request.features.client_ip,
+                        "ai_model": f"cache/{cached_result.provider_used}",
                         "cache_hit_type": cached_result.cache_hit_type,
                         "processing_time_ms": processing_time * 1000,
                         "timestamp": datetime.now().isoformat(),
@@ -980,6 +1069,7 @@ async def analyze_threat(request: ThreatAnalysisRequest):
                 await broadcast_threat_analysis(
                     {
                         "type": "ml_threat_analysis",
+                        "tier": "cloud",
                         "threat_score": ml_result["threat_score"],
                         "threat_type": ml_result["classification"]["attack_type"],
                         "confidence": ml_result["classification"]["confidence"],
@@ -988,6 +1078,7 @@ async def analyze_threat(request: ThreatAnalysisRequest):
                         "method": request.features.method,
                         "path": request.features.path,
                         "client_ip": request.features.client_ip,
+                        "ai_model": "ml/ensemble",
                         "processing_time_ms": ml_result["processing_time_ms"],
                         "timestamp": datetime.now().isoformat(),
                     }
@@ -1129,6 +1220,7 @@ async def analyze_threat(request: ThreatAnalysisRequest):
             await broadcast_threat_analysis(
                 {
                     "type": "threat_analysis",
+                    "tier": "cloud",
                     "threat_score": response.threat_score,
                     "threat_type": response.threat_type,
                     "confidence": response.confidence,
@@ -1137,6 +1229,7 @@ async def analyze_threat(request: ThreatAnalysisRequest):
                     "method": request.features.method,
                     "path": request.features.path,
                     "client_ip": request.features.client_ip,
+                    "ai_model": response.ai_model,
                     "query": request.features.query,
                     "processing_time_ms": response.processing_time * 1000,
                     "timestamp": datetime.now().isoformat(),
@@ -1333,46 +1426,11 @@ async def get_provider_analytics(hours: int = 1):
     }
 
 
-@app.get("/metrics", response_class=PlainTextResponse)
-async def get_metrics():
-    """Prometheus metrics endpoint"""
-    metrics = []
-
-    # Service status
-    metrics.append("# HELP kong_guard_ai_up Kong Guard AI service status")
-    metrics.append("# TYPE kong_guard_ai_up gauge")
-    metrics.append("kong_guard_ai_up 1")
-
-    # Threat metrics
-    total_threats = sum(threat_intel.known_attacks.values())
-    metrics.append("# HELP kong_guard_threats_detected_total Total threats detected")
-    metrics.append("# TYPE kong_guard_threats_detected_total counter")
-    metrics.append(f"kong_guard_threats_detected_total {total_threats}")
-
-    # Threat by type
-    metrics.append("# HELP kong_guard_threats_by_type Threats by type")
-    metrics.append("# TYPE kong_guard_threats_by_type gauge")
-    for threat_type, count in threat_intel.known_attacks.items():
-        metrics.append(f'kong_guard_threats_by_type{{threat_type="{threat_type}"}} {count}')
-
-    # Blocked IPs
-    metrics.append("# HELP kong_guard_blocked_ips_total Total blocked IPs")
-    metrics.append("# TYPE kong_guard_blocked_ips_total gauge")
-    metrics.append(f"kong_guard_blocked_ips_total {len(threat_intel.blocked_ips)}")
-
-    # False positives
-    metrics.append("# HELP kong_guard_false_positives_total Total false positives")
-    metrics.append("# TYPE kong_guard_false_positives_total gauge")
-    metrics.append(f"kong_guard_false_positives_total {len(threat_intel.false_positives)}")
-
-    # ML model metrics if available
-    if ML_ENABLED and model_manager:
-        model_status = model_manager.get_model_status()
-        metrics.append("# HELP kong_guard_ml_models_loaded ML models loaded")
-        metrics.append("# TYPE kong_guard_ml_models_loaded gauge")
-        metrics.append(f"kong_guard_ml_models_loaded {1 if model_status.get('models_loaded') else 0}")
-
-    return "\n".join(metrics)
+# NOTE: /metrics endpoint is now handled by make_asgi_app() mount at line 117
+# The Prometheus client automatically collects all registered metrics including:
+# - Database metrics from metrics_exporter.py (kong_guard_db_*)
+# - Request metrics from REQUESTS_TOTAL, THREAT_SCORE_HISTOGRAM, etc.
+# - Custom metrics from AI service logic
 
 
 @app.get("/stats")
@@ -1817,12 +1875,61 @@ async def websocket_endpoint(websocket: WebSocket):
 # Function to broadcast threat analysis results
 async def broadcast_threat_analysis(analysis_result: dict):
     """Broadcast threat analysis results to all connected WebSocket clients"""
+    metrics_payload = analysis_result.get("metrics")
+    if metrics_payload:
+        metrics_logger.info(
+            "metrics_update",
+            extra={
+                "event": "metrics_update",
+                "service": "cloud-ai",
+                "metrics": metrics_payload,
+                "threat_event": analysis_result.get("event"),
+            },
+        )
+
     message = json.dumps(analysis_result)
     logger.info(f"Broadcasting to {len(manager.active_connections)} WebSocket clients: {message[:100]}...")
     if len(manager.active_connections) == 0:
         logger.warning("No active WebSocket connections to broadcast to!")
     else:
         await manager.broadcast(message)
+
+
+# ============================================================================
+# Background Tasks
+# ============================================================================
+
+
+async def export_database_metrics():
+    """Periodically export metrics from SQLite database"""
+    while True:
+        try:
+            if metrics_exporter:
+                result = metrics_exporter.export_metrics()
+                logger.debug(f"Exported database metrics: {result.get('total_attacks', 0)} attacks")
+
+                # Update blocked IPs gauge
+                BLOCKED_IPS_GAUGE.set(len(threat_intel.blocked_ips))
+        except Exception as e:
+            logger.error(f"Error exporting database metrics: {e}")
+
+        # Export every 30 seconds
+        await asyncio.sleep(30)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize background tasks on startup"""
+    logger.info("Starting background tasks...")
+
+    # Start metrics export task
+    asyncio.create_task(export_database_metrics())
+
+    # Warm cache if enabled
+    if CACHE_ENABLED and threat_cache:
+        asyncio.create_task(warm_cache_on_startup())
+
+    logger.info("Background tasks started")
 
 
 # ============================================================================

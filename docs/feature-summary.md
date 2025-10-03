@@ -1,6 +1,6 @@
 # Kong Guard AI - Feature Implementation Summary
 
-## ✅ Configurable Logging Verbosity
+## Configurable Logging Verbosity
 
 ### What Was Added
 
@@ -79,10 +79,10 @@ curl -X PATCH http://localhost:18001/plugins/{plugin-id} \
 ### Testing
 
 Verified with different log levels:
-- ✅ Debug level shows all events
-- ✅ Info level shows normal operations
-- ✅ Warn level only shows warnings and errors
-- ✅ Error level minimal output
-- ✅ Granular controls work independently
+- Debug level shows all events
+- Info level shows normal operations
+- Warn level only shows warnings and errors
+- Error level minimal output
+- Granular controls work independently
 
 The logging system is now production-ready with full control over verbosity!

@@ -1,65 +1,65 @@
-# 🔥 Kong Guard AI - Enterprise Vicious Attack Demonstration
+# Kong Guard AI - Enterprise Vicious Attack Demonstration
 
-## 🎯 Overview
+## Overview
 
 This comprehensive demonstration showcases Kong Guard AI's ability to detect and prevent the most sophisticated and dangerous attacks that enterprises face today. The simulation includes **65+ unique attack patterns** across **12 categories** targeting **5 major industries**.
 
-## 🚨 WARNING: ENTERPRISE-LEVEL THREAT SIMULATION
+## WARNING: ENTERPRISE-LEVEL THREAT SIMULATION
 
-**⚠️ This demonstration simulates real attack patterns that have caused billions in damages:**
+** This demonstration simulates real attack patterns that have caused billions in damages:**
 - Financial losses exceeding $50M per incident
 - Complete hospital shutdowns threatening patient lives  
 - Nation-state level espionage and data theft
 - Zero-day exploits affecting millions of systems
 - Ransomware attacks demanding millions in ransom
 
-## 📊 Attack Categories Covered
+## Attack Categories Covered
 
-### 🔴 Critical Threats
+### Critical Threats
 - **Advanced SQL Injection** - Time-based blind, second-order, WAF bypass
 - **Zero-Day Exploits** - Log4Shell, Spring4Shell, ProxyLogon patterns
 - **Ransomware Chains** - C2 communication, lateral movement, encryption
 - **Command Injection** - PowerShell encoded, DNS exfiltration, LOLBins
 
-### 🟡 High-Risk Threats  
+### High-Risk Threats  
 - **Sophisticated XSS** - Polyglot, DOM clobbering, template injection
 - **Business Logic Attacks** - Race conditions, integer overflows, TOCTOU
 - **API Manipulation** - JWT confusion, GraphQL depth attacks, mass assignment
 - **File Upload Exploits** - XXE with SSRF, path traversal, polyglot files
 
-### 🟠 Industry-Specific Threats
+### Industry-Specific Threats
 - **Supply Chain Attacks** - Dependency confusion, typosquatting
 - **Session Attacks** - Fixation, replay, SAML manipulation
 - **NoSQL Injection** - MongoDB bypasses, JavaScript injection
 
-## 🏢 Industry-Specific Scenarios
+## Industry-Specific Scenarios
 
-### 🏦 Financial Services
+### Financial Services
 - **SWIFT Wire Transfer Manipulation** ($50M+ potential loss)
 - **High-Frequency Trading Manipulation** (Market disruption)
 - **Credit Score Manipulation** (Identity fraud)
 - **Cryptocurrency Exchange Attacks** ($500M+ potential loss)
 
-### 🏥 Healthcare  
+### Healthcare  
 - **EHR Mass Data Extraction** (HIPAA violations)
 - **Medical Device Ransomware** (Life-threatening)
 - **Prescription Drug Diversion** (Opioid crisis contribution)
 - **Clinical Trial Data Falsification** (Unsafe drug approval)
 
-### 🛒 Retail/E-commerce
+### Retail/E-commerce
 - **Inventory Manipulation** (Market dominance attacks)
 - **Payment Card Skimming** (Mass credit card theft)
 - **Supply Chain Poisoning** (Product safety threats)
 
-### 🏛️ Government
+### Government
 - **Classified Document Exfiltration** (National security)
 - **Election System Manipulation** (Democracy threats)
 
-### ⚡ Energy/Utilities
+### Energy/Utilities
 - **Power Grid Manipulation** (Regional blackouts)
 - **Nuclear Facility Sabotage** (Stuxnet-style attacks)
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### 1. Prerequisites
 ```bash
@@ -92,42 +92,42 @@ python3 automated_presentation_demo.py
 - **Simple Real-Time Dashboard**: `http://localhost:8080/simple-ai-dashboard.html`
 - **Built-in AI Service Dashboard**: `http://localhost:18002/dashboard`
 
-## 📁 File Structure
+## File Structure
 
 ```
 enterprise-attack-demos/
-├── enterprise_attacks_demo.py          # Main attack simulation engine
-├── industry_attack_scenarios.py        # Industry-specific attack scenarios  
-├── automated_presentation_demo.py      # Narrative presentation script
-├── vicious_attack_patterns.json        # 65+ attack patterns database
-├── enterprise_attack_dashboard.html    # Enhanced visualization dashboard
-└── ENTERPRISE_ATTACK_DEMO_README.md   # This file
+├── enterprise_attacks_demo.py # Main attack simulation engine
+├── industry_attack_scenarios.py # Industry-specific attack scenarios  
+├── automated_presentation_demo.py # Narrative presentation script
+├── vicious_attack_patterns.json # 65+ attack patterns database
+├── enterprise_attack_dashboard.html # Enhanced visualization dashboard
+└── ENTERPRISE_ATTACK_DEMO_README.md # This file
 ```
 
-## 🎭 Demo Scenarios by Use Case
+## Demo Scenarios by Use Case
 
-### 💼 Executive/Board Presentation
+### Executive/Board Presentation
 **Use**: `automated_presentation_demo.py`
 - Professional narrative explanations
 - Financial impact calculations  
 - ROI analysis and justification
 - Real-time threat progression display
 
-### 🛡️ Security Team Demonstration  
+### Security Team Demonstration  
 **Use**: `enterprise_attacks_demo.py`
 - Technical attack details
 - All 65+ attack patterns
 - Comprehensive threat coverage
 - Performance metrics and analysis
 
-### 🏢 Industry-Specific Pitch
+### Industry-Specific Pitch
 **Use**: `industry_attack_scenarios.py`
 - Tailored attacks for specific industries
 - Regulatory compliance focus
 - Industry-specific financial impacts
 - Targeted threat scenarios
 
-## 📊 Expected Results
+## Expected Results
 
 ### Detection Performance
 - **99%+ Detection Rate** across all attack types
@@ -147,7 +147,7 @@ enterprise-attack-demos/
 - **SOX** - Financial reporting security  
 - **GDPR** - Data privacy protection
 
-## 🔍 Attack Pattern Examples
+## Attack Pattern Examples
 
 ### SQL Injection (Time-Based Blind)
 ```sql
@@ -169,7 +169,7 @@ id=1' AND IF((ASCII(SUBSTRING((SELECT password FROM users WHERE id=1),1,1))>64),
 {"host_id": "VICTIM-001", "encryption_status": "COMPLETE", "btc_address": "1ABC..."}
 ```
 
-## 🎯 Presentation Tips
+## Presentation Tips
 
 ### For Technical Audiences
 1. Focus on **attack sophistication** and **evasion techniques**
@@ -189,7 +189,7 @@ id=1' AND IF((ASCII(SUBSTRING((SELECT password FROM users WHERE id=1),1,1))>64),
 3. Discuss **regulatory requirements** specific to the industry
 4. Show **competitive advantages** of advanced AI protection
 
-## 🔧 Customization Options
+## Customization Options
 
 ### Modify Attack Patterns
 Edit `vicious_attack_patterns.json` to:
@@ -212,7 +212,7 @@ Extend attack engines to:
 - Develop compliance-focused demos
 - Build customer-specific scenarios
 
-## 📈 Success Metrics
+## Success Metrics
 
 ### Technical Metrics
 - **Threat Detection Rate**: >99%
@@ -226,7 +226,7 @@ Extend attack engines to:
 - **Industry Scenarios**: 5 major verticals
 - **Attack Sophistication**: Nation-state level
 
-## 🛡️ Kong Guard AI Advantages Demonstrated
+## Kong Guard AI Advantages Demonstrated
 
 1. **AI-Powered Detection** - Behavioral analysis vs signature-based
 2. **Real-Time Response** - Sub-second analysis vs hours/days  
@@ -236,7 +236,7 @@ Extend attack engines to:
 6. **Scalable Architecture** - Enterprise-grade performance
 7. **Comprehensive Coverage** - 65+ attack types detected
 
-## 🎬 Live Demonstration Script
+## Live Demonstration Script
 
 ### Opening (2 minutes)
 - Introduce Kong Guard AI and the threat landscape
@@ -258,12 +258,12 @@ Extend attack engines to:
 - Calculate prevented financial damages
 - Provide ROI analysis and business justification
 
-## 🔥 Ready to Demonstrate?
+## Ready to Demonstrate?
 
 This enterprise attack demonstration proves Kong Guard AI's superior capability against the most dangerous threats facing organizations today. 
 
-**🎯 Launch your demonstration now and show enterprise clients why Kong Guard AI is their essential security shield against vicious cyber attacks!**
+** Launch your demonstration now and show enterprise clients why Kong Guard AI is their essential security shield against vicious cyber attacks!**
 
 ---
 
-*⚠️ LEGAL DISCLAIMER: This demonstration uses simulated attacks for educational and sales purposes only. All attack patterns are based on publicly documented vulnerabilities and threat intelligence. No actual malicious activity is performed.*
+* LEGAL DISCLAIMER: This demonstration uses simulated attacks for educational and sales purposes only. All attack patterns are based on publicly documented vulnerabilities and threat intelligence. No actual malicious activity is performed.*

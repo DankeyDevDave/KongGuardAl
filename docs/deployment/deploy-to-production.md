@@ -1,4 +1,4 @@
-# 🚀 Deploy Kong Guard AI to Production (192.168.0.228)
+# Deploy Kong Guard AI to Production (192.168.0.228)
 
 ## Step-by-Step Deployment Guide
 
@@ -52,7 +52,7 @@ ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
 docker-compose -f docker-compose.production.yml restart
 ```
 
-## ✅ Deployment Complete!
+## Deployment Complete!
 
 ### Access Your Services:
 
@@ -79,7 +79,7 @@ docker-compose -f docker-compose.production.yml restart
    - Include: Your email or domain
    - Session duration: 24 hours
 
-## 🔍 Verify Everything is Working
+## Verify Everything is Working
 
 ### Check Services:
 ```bash
@@ -104,7 +104,7 @@ curl https://kong.yourdomain.com
 # Should redirect to Cloudflare Access login
 ```
 
-## 📊 Monitor Your Deployment
+## Monitor Your Deployment
 
 ### View Logs:
 ```bash
@@ -123,7 +123,7 @@ sudo journalctl -u cloudflared -f
 - Login: admin / KongGuard2024!
 - View Kong Guard AI dashboard
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Services not starting?
 ```bash
@@ -156,7 +156,7 @@ OLLAMA_HOST=0.0.0.0:11434 ollama serve
 curl http://192.168.0.84:11434/api/tags
 ```
 
-## 🔐 Security Checklist
+## Security Checklist
 
 - [ ] Changed default passwords in `.env`
 - [ ] Configured Zero Trust policies for all endpoints
@@ -167,4 +167,4 @@ curl http://192.168.0.84:11434/api/tags
 
 ---
 
-**That's it!** Your Kong Guard AI is now deployed on production with secure global access via Cloudflare Zero Trust! 🎉
+**That's it!** Your Kong Guard AI is now deployed on production with secure global access via Cloudflare Zero Trust! 

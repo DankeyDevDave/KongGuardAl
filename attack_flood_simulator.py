@@ -344,6 +344,10 @@ class AttackFloodSimulator:
                 if response.status == 200:
                     result_data = await response.json()
 
+                    # Determine blocked status based on recommended_action, not just threat_score
+                    recommended_action = result_data.get("recommended_action", "unknown")
+                    is_blocked = recommended_action in ["block", "rate_limit"]
+
                     return AttackResult(
                         timestamp=datetime.now(),
                         tier=tier,
@@ -353,8 +357,8 @@ class AttackFloodSimulator:
                         response_time_ms=response_time,
                         threat_score=result_data.get("threat_score", 0.0),
                         confidence=result_data.get("confidence", 0.0),
-                        action_taken=result_data.get("recommended_action", "unknown"),
-                        blocked=result_data.get("threat_score", 0.0) >= 0.7,
+                        action_taken=recommended_action,
+                        blocked=is_blocked,
                         status_code=response.status,
                         source_ip=request_data["source_ip"],
                         user_agent=request_data["user_agent"],

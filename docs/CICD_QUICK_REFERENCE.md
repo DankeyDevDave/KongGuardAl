@@ -2,7 +2,7 @@
 
 Quick access guide for common CI/CD operations and troubleshooting.
 
-## 🚨 Emergency Response
+## Emergency Response
 
 ### Workflow Failures
 ```bash
@@ -25,7 +25,7 @@ gh run cancel {run_id}
 gh run list --workflow=deploy.yml | awk '{print $7}' | xargs -I {} gh run cancel {}
 ```
 
-## 🔍 Common Fixes
+## Common Fixes
 
 ### Fix #1: Missing Test Directories
 ```yaml
@@ -39,7 +39,7 @@ fi
 ### Fix #2: Upgrade Deprecated Actions
 ```yaml
 # CodeQL v2 → v3
-- uses: github/codeql-action/upload-sarif@v3  # was @v2
+- uses: github/codeql-action/upload-sarif@v3 # was @v2
 ```
 
 ### Fix #3: Add Security Permissions
@@ -48,10 +48,10 @@ jobs:
   security-scan:
     permissions:
       contents: read
-      security-events: write  # Add this
+      security-events: write # Add this
 ```
 
-## 📊 Status Checks
+## Status Checks
 
 ### Check Workflow Health
 ```bash
@@ -74,7 +74,7 @@ gh run watch
 gh run view {run_id}
 ```
 
-## 🛠️ Local Testing
+## Local Testing
 
 ### Validate Workflows
 ```bash
@@ -97,7 +97,7 @@ act push -j test
 act push --secret-file .secrets
 ```
 
-## 📝 Quick Commands
+## Quick Commands
 
 ### Workflow Management
 | Command | Description |
@@ -123,13 +123,13 @@ act push --secret-file .secrets
 | `gh secret set NAME` | Set secret |
 | `gh secret remove NAME` | Delete secret |
 
-## 🔗 Quick Links
+## Quick Links
 
 - **Full Guide:** [CICD_WORKFLOW_TROUBLESHOOTING.md](./CICD_WORKFLOW_TROUBLESHOOTING.md)
 - **GitHub Actions Docs:** https://docs.github.com/en/actions
 - **Organization Runners:** Settings → Actions → Runners
 
-## 🎯 Issue Lookup Table
+## Issue Lookup Table
 
 | Symptom | Issue # | Fix |
 |---------|---------|-----|
@@ -139,7 +139,7 @@ act push --secret-file .secrets
 | "168 warnings / 1 error" | #4 | Fix luacheck issues |
 | "No runner matching labels" | #6 | Check runner config |
 
-## 🚀 Common Workflows
+## Common Workflows
 
 ### Deploy to Production
 ```bash
@@ -166,7 +166,7 @@ gh run list --workflow=deploy.yml --json conclusion,databaseId,displayTitle | \
   jq '.[] | select(.displayTitle | contains("security"))'
 ```
 
-## 💡 Pro Tips
+## Pro Tips
 
 1. **Enable Debug Mode:**
    ```bash
@@ -196,7 +196,7 @@ gh run list --workflow=deploy.yml --json conclusion,databaseId,displayTitle | \
    gh workflow view deploy.yml --yaml
    ```
 
-## 📞 Escalation
+## Escalation
 
 If issues persist after trying these fixes:
 1. Check full troubleshooting guide: `docs/CICD_WORKFLOW_TROUBLESHOOTING.md`

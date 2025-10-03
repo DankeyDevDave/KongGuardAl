@@ -161,7 +161,7 @@ The plugin supports comprehensive configuration through Kong's standard schema s
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourorg/kong-guard-ai
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 
 # Start all services (Kong, Plugin, FastAPI, Monitoring)
@@ -381,7 +381,7 @@ Kong Guard AI provides comprehensive monitoring through multiple channels:
 
 ```bash
 # Clone repository
-git clone https://github.com/yourorg/kong-guard-ai
+git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
 cd kong-guard-ai
 
 # Install development dependencies
@@ -736,12 +736,13 @@ Apache 2.0 License - see [LICENSE](LICENSE) file for details.
 - OpenAPI Initiative for API specification standards
 - FastAPI framework for modern Python APIs
 
-## 📞 Support
+## Support
 
-- **Documentation**: [https://docs.kongguard.ai](https://docs.kongguard.ai)
-- **Issues**: [GitHub Issues](https://github.com/yourorg/kong-guard-ai/issues)
-- **Discord**: [Join our Discord](https://discord.gg/kongguard)
-- **Email**: support@kongguard.ai
+Maintained by DankeyDevDave (https://github.com/DankeyDevDave)
+
+- Documentation: https://github.com/DankeyDevDave/KongGuardAI/tree/main/docs
+- Issues: https://github.com/DankeyDevDave/KongGuardAI/issues
+- Contact: Open an issue or reach out via the GitHub profile above
 
 ## 🗺️ Roadmap
 

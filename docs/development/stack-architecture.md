@@ -1,9 +1,9 @@
 # Kong Guard AI - Complete Stack Architecture
 
-## 🏗️ Infrastructure Overview
+## Infrastructure Overview
 
 ### Production Stack Consolidation
-✅ **All services can run on a single LXC container (122)**
+ **All services can run on a single LXC container (122)**
 
 ```
 Proxmox Host (198.51.100.201)
@@ -17,23 +17,23 @@ Proxmox Host (198.51.100.201)
         └── Kong Guard AI App
 ```
 
-## 📦 Complete Service Stack
+## Complete Service Stack
 
 ### 1. **Supabase Components** (Port Mappings)
 ```yaml
-PostgreSQL Database:      5432 (Internal: supabase-db)
-Kong API Gateway:         8000, 8443 (HTTPS)
-Supabase Studio:          3000 (Internal only)
-Supabase Auth:           (Internal)
-Supabase Storage:        (Internal)
-Supabase Realtime:       (Internal)
-Analytics (Logflare):     4000
-Connection Pooler:        5432, 6543
+PostgreSQL Database: 5432 (Internal: supabase-db)
+Kong API Gateway: 8000, 8443 (HTTPS)
+Supabase Studio: 3000 (Internal only)
+Supabase Auth: (Internal)
+Supabase Storage: (Internal)
+Supabase Realtime: (Internal)
+Analytics (Logflare): 4000
+Connection Pooler: 5432, 6543
 ```
 
 ### 2. **Grafana Monitoring** (New Addition)
 ```yaml
-Grafana Dashboard:        3333
+Grafana Dashboard: 3333
   - Real-time monitoring
   - Attack analytics
   - Performance metrics
@@ -42,13 +42,13 @@ Grafana Dashboard:        3333
 
 ### 3. **Kong Guard AI Services**
 ```yaml
-AI Service (FastAPI):     8000 (via Kong)
+AI Service (FastAPI): 8000 (via Kong)
   - Threat detection
   - Attack classification
   - Response automation
 ```
 
-## 🔄 Data Flow Architecture
+## Data Flow Architecture
 
 ```mermaid
 graph LR
@@ -63,21 +63,21 @@ graph LR
     H --> I[WebSocket Clients]
 ```
 
-## 💾 Resource Requirements
+## Resource Requirements
 
 ### Current Usage (Container 122)
 ```
-Component          | RAM Usage | CPU Usage | Status
+Component | RAM Usage | CPU Usage | Status
 -------------------|-----------|-----------|--------
-Supabase DB        | 270 MB    | 4.7%      | ✅ Running
-Kong Gateway       | 380 MB    | 7.2%      | ✅ Running
-Supabase Studio    | 133 MB    | 0.01%     | ✅ Running
-Supabase Auth      | 79 MB     | 4.3%      | ✅ Running
-Storage/Realtime   | 400 MB    | <1%       | ✅ Running
-Grafana           | 93 MB     | 0.13%     | ✅ Running
+Supabase DB | 270 MB | 4.7% | Running
+Kong Gateway | 380 MB | 7.2% | Running
+Supabase Studio | 133 MB | 0.01% | Running
+Supabase Auth | 79 MB | 4.3% | Running
+Storage/Realtime | 400 MB | <1% | Running
+Grafana | 93 MB | 0.13% | Running
 -------------------------------------------|
-Total Used         | ~2.5 GB   | ~20%      | 
-Available          | 5.5 GB    | 80%       | 
+Total Used | ~2.5 GB | ~20% | 
+Available | 5.5 GB | 80% | 
 ```
 
 ### Scalability Headroom
@@ -85,7 +85,7 @@ Available          | 5.5 GB    | 80%       |
 - **5.5GB RAM available** for scaling
 - **CPU utilization at 20%** - plenty of capacity
 
-## 🚀 Why This Stack is Lightweight
+## Why This Stack is Lightweight
 
 ### Supabase Resource Efficiency
 1. **PostgreSQL**: Highly optimized, uses ~270MB for thousands of operations/sec
@@ -100,21 +100,21 @@ Available          | 5.5 GB    | 80%       |
 - **Lazy loading** of dashboard panels
 - **Efficient time-series aggregation**
 
-## 📊 Performance Capabilities
+## Performance Capabilities
 
 ### With Current Resources (8GB RAM, 6 CPU)
 ```
-Metric                  | Capacity
+Metric | Capacity
 ------------------------|------------------
-Concurrent Users        | 10,000+
-Attacks/Hour           | 1,000,000+
-Dashboard Viewers      | 500+
-API Requests/Sec       | 5,000+
-Database Connections   | 200 (pooled)
-Real-time Subscribers  | 1,000+
+Concurrent Users | 10,000+
+Attacks/Hour | 1,000,000+
+Dashboard Viewers | 500+
+API Requests/Sec | 5,000+
+Database Connections | 200 (pooled)
+Real-time Subscribers | 1,000+
 ```
 
-## 🔧 Deployment Commands
+## Deployment Commands
 
 ### Access Services
 ```bash
@@ -151,9 +151,9 @@ docker logs supabase-kong
 docker logs supabase-db
 ```
 
-## 🎯 Optimization Recommendations
+## Optimization Recommendations
 
-### Current State: ✅ Excellent
+### Current State: Excellent
 - All services running smoothly
 - Low resource utilization
 - High performance headroom
@@ -192,23 +192,23 @@ docker logs supabase-db
    cache_ttl = 60s
    ```
 
-## 🌐 Network Architecture
+## Network Architecture
 
 ```
 External Access:
-├── 198.51.100.225:8000  → Kong API Gateway
-├── 198.51.100.225:3333  → Grafana Dashboard
-├── 198.51.100.225:5432  → PostgreSQL (Supabase)
-└── 198.51.100.225:4000  → Analytics
+├── 198.51.100.225:8000 → Kong API Gateway
+├── 198.51.100.225:3333 → Grafana Dashboard
+├── 198.51.100.225:5432 → PostgreSQL (Supabase)
+└── 198.51.100.225:4000 → Analytics
 
 Internal Docker Network (supabase_default):
-├── supabase-db:5432    → PostgreSQL
-├── kong:8000           → Kong Gateway
-├── grafana:3000        → Grafana (internal)
-└── studio:3000         → Supabase Studio
+├── supabase-db:5432 → PostgreSQL
+├── kong:8000 → Kong Gateway
+├── grafana:3000 → Grafana (internal)
+└── studio:3000 → Supabase Studio
 ```
 
-## 📈 Monitoring & Alerts
+## Monitoring & Alerts
 
 ### Grafana Dashboards Available
 1. **Security Operations Center** - Main attack monitoring
@@ -223,28 +223,28 @@ Internal Docker Network (supabase_default):
 - Protection rate < 95%
 - Unusual attack patterns detected
 
-## 🚦 Service Health Checks
+## Service Health Checks
 
 ```bash
 #!/bin/bash
 # Quick health check script
 
-echo "🔍 Checking Kong Guard AI Stack Health..."
+echo " Checking Kong Guard AI Stack Health..."
 
 # PostgreSQL
 curl -s http://198.51.100.225:8000/rest/v1/ > /dev/null 2>&1 && 
-  echo "✅ Supabase API: Healthy" || echo "❌ Supabase API: Down"
+  echo " Supabase API: Healthy" || echo " Supabase API: Down"
 
 # Grafana
 curl -s http://198.51.100.225:3333/api/health > /dev/null 2>&1 && 
-  echo "✅ Grafana: Healthy" || echo "❌ Grafana: Down"
+  echo " Grafana: Healthy" || echo " Grafana: Down"
 
 # Database
 ssh root@198.51.100.201 'pct exec 122 -- docker exec supabase-db pg_isready' > /dev/null 2>&1 && 
-  echo "✅ PostgreSQL: Healthy" || echo "❌ PostgreSQL: Down"
+  echo " PostgreSQL: Healthy" || echo " PostgreSQL: Down"
 ```
 
-## 💡 Key Advantages of Consolidated Stack
+## Key Advantages of Consolidated Stack
 
 1. **Single Point of Management** - One LXC to monitor/backup
 2. **Reduced Network Latency** - All services communicate internally
@@ -253,7 +253,7 @@ ssh root@198.51.100.201 'pct exec 122 -- docker exec supabase-db pg_isready' > /
 5. **Cost Effective** - One VM/container instead of multiple
 6. **Easy Scaling** - Vertical scaling up to 64GB RAM possible
 
-## 🎉 Summary
+## Summary
 
 The entire Kong Guard AI stack including:
 - Supabase (PostgreSQL, Auth, Storage, Realtime)

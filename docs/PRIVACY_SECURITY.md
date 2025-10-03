@@ -1,13 +1,13 @@
 # Privacy and Security Guide
 ## Data Protection, Compliance, and Security Considerations for Kong Guard AI
 
-### 📋 **Overview**
+### **Overview**
 
 This document outlines Kong Guard AI's approach to data privacy, security handling, compliance requirements, and best practices for protecting sensitive information during threat detection and analysis.
 
 ---
 
-## 🔒 **Data Privacy Principles**
+## **Data Privacy Principles**
 
 ### **Privacy by Design**
 
@@ -55,7 +55,7 @@ data_classification:
 
 ---
 
-## 🛡️ **Data Protection Measures**
+## **Data Protection Measures**
 
 ### **Data Encryption**
 
@@ -96,8 +96,8 @@ anonymization:
   methods:
     ip_addresses:
       method: "prefix_preservation"
-      ipv4_bits: 24  # Keep /24 network
-      ipv6_bits: 64  # Keep /64 network
+      ipv4_bits: 24 # Keep /24 network
+      ipv6_bits: 64 # Keep /64 network
 
     user_agents:
       method: "fingerprinting"
@@ -155,7 +155,7 @@ data_masking:
 
 ---
 
-## 📊 **Compliance Frameworks**
+## **Compliance Frameworks**
 
 ### **GDPR Compliance (EU)**
 
@@ -167,8 +167,8 @@ gdpr_compliance:
   enabled: true
 
   data_controller:
-    organization: "Your Organization"
-    contact: "dpo@yourorg.com"
+    organization: "DankeyDev"
+    contact: "dankeydevdave@users.noreply.github.com"
 
   lawful_basis:
     processing_purpose: "cybersecurity_protection"
@@ -182,12 +182,12 @@ gdpr_compliance:
     right_to_object: true
 
   data_retention:
-    threat_logs: 365  # days
+    threat_logs: 365 # days
     metrics_data: 90
     personal_data: 30
 
   consent_management:
-    explicit_consent: false  # Using legitimate interest
+    explicit_consent: false # Using legitimate interest
     opt_out_mechanism: true
 
   data_protection_impact_assessment:
@@ -253,10 +253,10 @@ Configuration for Payment Card Industry Data Security Standard:
 pci_dss_compliance:
   enabled: true
 
-  merchant_level: 1  # Level 1-4
+  merchant_level: 1 # Level 1-4
 
   cardholder_data_protection:
-    detect_pan: true  # Primary Account Number
+    detect_pan: true # Primary Account Number
     mask_pan: true
     encrypt_pan: true
 
@@ -334,7 +334,7 @@ soc2_compliance:
 
 ---
 
-## 🔐 **Security Architecture**
+## **Security Architecture**
 
 ### **Zero Trust Security Model**
 
@@ -396,7 +396,7 @@ secure_development:
 
 ---
 
-## 📝 **Audit and Compliance Monitoring**
+## **Audit and Compliance Monitoring**
 
 ### **Audit Logging**
 
@@ -415,7 +415,7 @@ audit_logging:
     - system_failures
 
   log_format: "json"
-  log_retention_days: 2555  # 7 years for compliance
+  log_retention_days: 2555 # 7 years for compliance
 
   log_fields:
     timestamp: true
@@ -448,8 +448,8 @@ compliance_reporting:
 
   report_delivery:
     email_recipients:
-      - "compliance@yourorg.com"
-      - "security@yourorg.com"
+      - "dankeydevdave@users.noreply.github.com"
+      - "dankeydevdave+security@users.noreply.github.com"
 
     secure_delivery: true
     encryption: true
@@ -463,7 +463,7 @@ compliance_reporting:
 
 ---
 
-## 🚨 **Incident Response and Breach Management**
+## **Incident Response and Breach Management**
 
 ### **Privacy Incident Response**
 
@@ -476,10 +476,10 @@ privacy_incident_response:
 
   incident_classification:
     severity_levels:
-      - critical    # Personal data breach affecting >1000 individuals
-      - high        # Personal data breach affecting <1000 individuals
-      - medium      # Policy violation with potential exposure
-      - low         # Minor compliance issue
+      - critical # Personal data breach affecting >1000 individuals
+      - high # Personal data breach affecting <1000 individuals
+      - medium # Policy violation with potential exposure
+      - low # Minor compliance issue
 
   response_procedures:
     immediate_actions:
@@ -498,9 +498,9 @@ privacy_incident_response:
       - internal_stakeholders
 
   timeline_requirements:
-    gdpr_authority_notification: 72  # hours
-    hipaa_hhs_notification: 1440     # hours (60 days)
-    pci_acquirer_notification: 24    # hours
+    gdpr_authority_notification: 72 # hours
+    hipaa_hhs_notification: 1440 # hours (60 days)
+    pci_acquirer_notification: 24 # hours
 
   documentation:
     incident_log: true
@@ -530,12 +530,12 @@ security_incident_response:
   stakeholder_communication:
     internal_notification: true
     customer_notification: true
-    public_disclosure: false  # Case by case
+    public_disclosure: false # Case by case
 ```
 
 ---
 
-## 🔒 **Data Retention and Disposal**
+## **Data Retention and Disposal**
 
 ### **Data Lifecycle Management**
 
@@ -548,23 +548,23 @@ data_lifecycle:
 
   retention_policies:
     threat_detection_logs:
-      retention_period: 365  # days
-      archival_period: 1095  # 3 years
+      retention_period: 365 # days
+      archival_period: 1095 # 3 years
       disposal_method: "secure_deletion"
 
     personal_data:
-      retention_period: 30   # days
-      review_period: 90      # days
+      retention_period: 30 # days
+      review_period: 90 # days
       disposal_method: "cryptographic_erasure"
 
     compliance_logs:
-      retention_period: 2555  # 7 years
-      archival_period: 3650   # 10 years
+      retention_period: 2555 # 7 years
+      archival_period: 3650 # 10 years
       disposal_method: "certified_destruction"
 
     metrics_data:
-      retention_period: 90    # days
-      aggregation_period: 30  # days
+      retention_period: 90 # days
+      aggregation_period: 30 # days
       disposal_method: "overwrite"
 
   automated_disposal:
@@ -605,7 +605,7 @@ data_subject_rights:
 
 ---
 
-## 📋 **Privacy Impact Assessment**
+## **Privacy Impact Assessment**
 
 ### **PIA Framework**
 
@@ -653,7 +653,7 @@ privacy_impact_assessment:
 
 ---
 
-## 🛠️ **Implementation Best Practices**
+## **Implementation Best Practices**
 
 ### **Privacy-Preserving Configuration**
 

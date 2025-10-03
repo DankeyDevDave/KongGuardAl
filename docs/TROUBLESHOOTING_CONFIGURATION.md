@@ -88,14 +88,14 @@ volumes:
 
 #### Boolean Field Errors
 ```bash
-# ❌ Incorrect
+# Incorrect
 {
   "config": {
-    "dry_run": "true"  # String instead of boolean
+    "dry_run": "true" # String instead of boolean
   }
 }
 
-# ✅ Correct
+# Correct
 {
   "config": {
     "dry_run": true
@@ -105,18 +105,18 @@ volumes:
 
 #### Array Field Errors
 ```bash
-# ❌ Incorrect
+# Incorrect
 {
   "config": {
     "threat_detection": {
       "rules": {
-        "suspicious_patterns": "SELECT.*FROM"  # String instead of array
+        "suspicious_patterns": "SELECT.*FROM" # String instead of array
       }
     }
   }
 }
 
-# ✅ Correct
+# Correct
 {
   "config": {
     "threat_detection": {
@@ -214,14 +214,14 @@ watch -n 5 'ps -eo pid,ppid,cmd,%mem --sort=-%mem | grep kong'
 {
   "config": {
     "performance": {
-      "max_processing_time": 5,        // Reduce from default 10ms
+      "max_processing_time": 5, // Reduce from default 10ms
       "enable_caching": true,
-      "cache_size": 500,               // Reduce if memory constrained
-      "sampling_rate": 0.1             // Process only 10% of requests
+      "cache_size": 500, // Reduce if memory constrained
+      "sampling_rate": 0.1 // Process only 10% of requests
     },
     "threat_detection": {
       "rules": {
-        "max_payload_size": 65536      // Reduce payload analysis size
+        "max_payload_size": 65536 // Reduce payload analysis size
       }
     }
   }
@@ -360,7 +360,7 @@ curl http://localhost:8001/plugins/PLUGIN_ID | jq '.config.ai_gateway'
       "model_endpoint": "https://api.openai.com/v1",
       "model_name": "gpt-3.5-turbo",
       "api_key": "your-api-key",
-      "analysis_timeout": 10000,     // Increase timeout
+      "analysis_timeout": 10000, // Increase timeout
       "cache_results": true,
       "cache_ttl": 300
     }
@@ -400,16 +400,16 @@ sudo chmod -R 755 /usr/local/share/lua/5.1/kong/plugins/kong-guard-ai/
 ./scripts/validate-konnect-compatibility.sh
 
 # Check for Konnect-specific constraints
-grep -i "localhost" kong.yml  # Should be empty
-grep "http://" kong.yml       # Should prefer HTTPS
+grep -i "localhost" kong.yml # Should be empty
+grep "http://" kong.yml # Should prefer HTTPS
 ```
 
 #### Environment Variable Issues
 ```yaml
 # Ensure environment variables are set in Konnect
 config:
-  webhook_url: "${WEBHOOK_URL}"     # Must be set in Konnect environment
-  api_key: "${AI_API_KEY}"          # Must be configured as secret
+  webhook_url: "${WEBHOOK_URL}" # Must be set in Konnect environment
+  api_key: "${AI_API_KEY}" # Must be configured as secret
 ```
 
 ### Docker Deployment
