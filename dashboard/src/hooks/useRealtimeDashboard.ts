@@ -8,6 +8,7 @@ interface AttackResult {
   reasoning: string
   confidence?: number
   processing_time?: number
+  ai_model?: string
 }
 
 interface AttackMetrics {
@@ -20,6 +21,158 @@ interface AttackMetrics {
   successRate: number
 }
 
+const PROTECTION_TIERS = ['unprotected', 'cloud', 'local'] as const
+type ProtectionTier = typeof PROTECTION_TIERS[number]
+type ActiveModels = Record<ProtectionTier, string | null>
+
+function isProtectionTier(value: string): value is ProtectionTier {
+  return PROTECTION_TIERS.includes(value as ProtectionTier)
+}
+
+const MODEL_NAME_OVERRIDES: Array<[RegExp, string]> = [
+  // Cloud providers (keep these - they have special naming conventions)
+  [/gemini.*2\.5.*flash/i, 'Gemini 2.5 Flash'],
+  [/gemini.*2\.0.*flash/i, 'Gemini 2.0 Flash'],
+  [/gemini.*flash/i, 'Gemini Flash'],
+  [/gpt[-_]?4o[-_]?mini/i, 'GPT-4o Mini'],
+  [/gpt[-_]?4\.1/i, 'GPT-4.1'],
+  
+  // ML models
+  [/ml\/ensemble/i, 'ML Ensemble'],
+  
+  // Remove local provider patterns - let parseModelName() handle them
+  // This preserves full version info like "7B", "13B Instruct", etc.
+]
+
+function formatParameterSize(sizeStr: string): string {
+  // "7b" → "7B"
+  // "13b" → "13B"
+  // "8x7b" → "8×7B"
+  
+  const match = sizeStr.match(/^(\d+(?:\.\d+)?)(?:x(\d+))?(b|m)?$/i)
+  if (!match) return sizeStr.toUpperCase()
+  
+  const [, num1, num2, unit] = match
+  
+  if (num2) {
+    // Architecture notation: 8x7b → 8×7B
+    return `${num1}×${num2}${unit?.toUpperCase() || 'B'}`
+  } else {
+    // Simple size: 7b → 7B
+    return `${num1}${unit?.toUpperCase() || 'B'}`
+  }
+}
+
+function parseParameters(versionStr: string): string | null {
+  // Handle formats like:
+  // "7b" → "7B"
+  // "13b-instruct" → "13B Instruct"
+  // "8x7b" → "8×7B"
+  
+  const parts = versionStr.split('-')
+  const sizeStr = parts[0]
+  const qualifiers = parts.slice(1)
+  
+  const formatted = formatParameterSize(sizeStr)
+  
+  // Add qualifiers (instruct, chat, code, etc.)
+  const qualifierStr = qualifiers
+    .map(q => q.charAt(0).toUpperCase() + q.slice(1).toLowerCase())
+    .filter(q => !q.match(/^[Vv]\d/))  // Filter out version tags like v0.1
+    .join(' ')
+  
+  return qualifierStr ? `${formatted} ${qualifierStr}` : formatted
+}
+
+function parseModelName(modelStr: string): string {
+  // Split by colon to separate base name from version/params
+  // e.g., "mistral:7b" or "llama2:13b-instruct"
+  const [baseName, ...versionParts] = modelStr.split(':')
+  
+  // Check if base name has parameters embedded (e.g., "mixtral-8x7b-instruct")
+  const paramMatch = baseName.match(/(.+?)[-_](\d+(?:\.\d+)?(?:x\d+)?b)(?:[-_](\w+))?$/i)
+  
+  if (paramMatch) {
+    // Parameters in base name without colon
+    const [, cleanBase, paramSize, qualifier] = paramMatch
+    
+    let formatted = cleanBase
+      .replace(/(\d+)/g, ' $1')
+      .replace(/[-_]/g, ' ')
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+    
+    // Add parameter info
+    formatted += ` ${formatParameterSize(paramSize)}`
+    
+    // Add qualifier if present
+    if (qualifier && !qualifier.match(/^v\d/i)) {
+      formatted += ` ${qualifier.charAt(0).toUpperCase() + qualifier.slice(1).toLowerCase()}`
+    }
+    
+    return formatted
+  }
+  
+  // Format base name: "llama2" → "Llama 2", "codellama" → "CodeLlama"
+  let formatted = baseName
+    .replace(/(\d+(?:\.\d+)?)/g, ' $1')  // Add space before numbers
+    .replace(/[-_]/g, ' ')                // Replace hyphens/underscores
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+  
+  // Parse version/parameters if present (after colon)
+  if (versionParts.length > 0) {
+    const versionStr = versionParts.join(':')
+    const params = parseParameters(versionStr)
+    if (params) {
+      formatted += ` ${params}`
+    }
+  }
+  
+  return formatted
+}
+
+function formatModelDisplayName(rawModel: string): string {
+  if (!rawModel) {
+    return 'Unknown'
+  }
+
+  const normalized = rawModel.toLowerCase()
+  
+  // Check against override patterns first (for cloud providers)
+  for (const [pattern, label] of MODEL_NAME_OVERRIDES) {
+    if (pattern.test(normalized)) {
+      return label
+    }
+  }
+
+  // Remove cache prefix if present
+  const cleaned = rawModel.replace(/^cache\//i, '')
+  
+  // Parse provider/model format (e.g., "ollama/mistral:7b")
+  const parts = cleaned.split('/')
+  if (parts.length >= 2) {
+    const provider = parts[0]
+      .replace(/[-_]/g, ' ')
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ')
+    
+    const modelFull = parts[1]
+    const parsed = parseModelName(modelFull)
+    
+    return `${provider} / ${parsed}`
+  }
+
+  // Single name without provider (fallback)
+  const parsed = parseModelName(cleaned)
+  return parsed
+}
+
 interface RealtimeData {
   metrics: {
     unprotected: AttackMetrics
@@ -28,6 +181,7 @@ interface RealtimeData {
   }
   attackResults: Record<string, Record<string, AttackResult>>
   connectionStatus: 'connected' | 'disconnected' | 'connecting'
+  activeModels: ActiveModels
 }
 
 interface UseRealtimeDashboardOptions {
@@ -47,7 +201,12 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
       local: { total: 0, blocked: 0, vulnerable: 0, totalTime: 0, totalConfidence: 0, detectionRate: 0 },
     },
     attackResults: {},
-    connectionStatus: 'disconnected'
+    connectionStatus: 'disconnected',
+    activeModels: {
+      unprotected: null,
+      cloud: null,
+      local: null
+    }
   })
 
   const [websocket, setWebsocket] = useState<WebSocket | null>(null)
@@ -62,6 +221,28 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
     },
     ...options
   }
+
+  const updateActiveModel = useCallback((tier: ProtectionTier, rawModel?: string | null) => {
+    if (!rawModel) {
+      return
+    }
+
+    const formattedModel = formatModelDisplayName(rawModel)
+
+    setData(prev => {
+      if (prev.activeModels[tier] === formattedModel) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        activeModels: {
+          ...prev.activeModels,
+          [tier]: formattedModel
+        }
+      }
+    })
+  }, [])
 
   // WebSocket connection management
   useEffect(() => {
@@ -120,53 +301,6 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
     }
   }, [])
 
-  const handleWebSocketMessage = useCallback((message: any) => {
-    console.log('📨 WebSocket message:', message)
-
-    switch (message.type) {
-      case 'connection':
-        console.log('✅ Connection established:', message.message)
-        if (message.metrics) {
-          console.log('📊 Initial metrics:', message.metrics)
-        }
-        break
-
-      case 'ai_thinking':
-        console.log('🤔 AI processing:', message.data)
-        break
-
-      case 'threat_analysis':
-        console.log('🔍 Threat analysis received:', message.data)
-        if (message.metrics) {
-          console.log('📊 Updated metrics:', message.metrics)
-        }
-        break
-
-      case 'attack_flood_started':
-        console.log('🚀 Attack flood started:', message)
-        break
-
-      case 'attack_flood_progress':
-        console.log('📊 Attack flood progress:', message)
-        break
-
-      case 'attack_flood_completed':
-        console.log('✅ Attack flood completed:', message)
-        break
-
-      case 'attack_metric':
-        handleAttackMetric(message.metric)
-        break
-
-      case 'tier_statistics':
-        console.log('📈 Tier statistics update:', message.stats)
-        break
-
-      default:
-        console.log('🔍 Unknown WebSocket message type:', message.type)
-    }
-  }, [])
-
   const handleAttackMetric = useCallback((metric: any) => {
     // Update metrics based on incoming data
     const tier = metric.tier || 'unknown'
@@ -217,6 +351,152 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
 
     setActivityLog(prev => [newEntry, ...prev].slice(0, 60)) // Keep last 60 total
   }, [])
+
+  const handleWebSocketMessage = useCallback((message: any) => {
+    console.log('📨 WebSocket message:', message)
+
+    switch (message.type) {
+      case 'connection':
+        console.log('✅ Connection established:', message.message)
+        if (message.metrics) {
+          console.log('📊 Initial metrics:', message.metrics)
+        }
+        break
+
+      case 'ai_thinking':
+        console.log('🤔 AI processing:', message.data)
+        break
+
+      case 'threat_analysis': {
+        const tierValue = typeof message.tier === 'string' ? message.tier : typeof message.data?.tier === 'string' ? message.data.tier : undefined
+        const aiModelValue = message.ai_model ?? message.data?.ai_model
+        if (aiModelValue) {
+          if (tierValue && isProtectionTier(tierValue)) {
+            updateActiveModel(tierValue, aiModelValue)
+          } else {
+            updateActiveModel('cloud', aiModelValue)
+          }
+        }
+        console.log('🔍 Threat analysis received:', message.data)
+        if (message.metrics) {
+          console.log('📊 Updated metrics:', message.metrics)
+        }
+        break
+      }
+
+      case 'ml_threat_analysis': {
+        const tierValue = typeof message.tier === 'string' ? message.tier : undefined
+        const aiModelValue = message.ai_model ?? message.data?.ai_model ?? 'ml/ensemble'
+        if (tierValue && isProtectionTier(tierValue)) {
+          updateActiveModel(tierValue, aiModelValue)
+        }
+        console.log('🧠 ML threat analysis received:', message)
+        break
+      }
+
+      case 'cached_threat_analysis': {
+        const tierValue = typeof message.tier === 'string' ? message.tier : undefined
+        const aiModelValue = message.ai_model ?? message.data?.ai_model
+        if (tierValue && isProtectionTier(tierValue) && aiModelValue) {
+          updateActiveModel(tierValue, aiModelValue)
+        }
+        console.log('💾 Cached threat analysis received:', message)
+        break
+      }
+
+      case 'attack_flood_started':
+        console.log('🚀 Attack flood started:', message)
+        break
+
+      case 'attack_flood_progress':
+        console.log('📊 Attack flood progress:', message)
+        break
+
+      case 'attack_flood_completed':
+        console.log('✅ Attack flood completed:', message)
+        break
+
+      case 'attack_metric':
+        handleAttackMetric(message.metric)
+        break
+
+      case 'tier_statistics':
+        console.log('📈 Tier statistics update:', message.stats)
+        break
+
+      default:
+        console.log('🔍 Unknown WebSocket message type:', message.type)
+    }
+  }, [handleAttackMetric, updateActiveModel])
+
+  // Update attack results and metrics
+  const updateAttackResult = useCallback((attackType: string, tier: string, result: AttackResult) => {
+    if (isProtectionTier(tier) && result.ai_model) {
+      updateActiveModel(tier, result.ai_model)
+    }
+
+    setData(prev => ({
+      ...prev,
+      attackResults: {
+        ...prev.attackResults,
+        [attackType]: {
+          ...prev.attackResults[attackType],
+          [tier]: result
+        }
+      }
+    }))
+
+    // Update metrics
+    setData(prev => {
+      const newMetrics = { ...prev.metrics }
+      const tierMetrics = newMetrics[tier as keyof typeof newMetrics]
+
+      if (tierMetrics) {
+        tierMetrics.total++
+        tierMetrics.totalTime += result.processing_time || 0
+
+        if (result.confidence) {
+          tierMetrics.totalConfidence += result.confidence
+        } else if (result.threat_score !== undefined) {
+          tierMetrics.totalConfidence += result.threat_score
+        }
+
+        if (result.threat_score >= 0.7) {
+          tierMetrics.blocked++
+        } else if (tier === 'unprotected' && result.threat_score === 0) {
+          tierMetrics.vulnerable++
+        }
+
+        // Calculate rates
+        if (tier === 'unprotected') {
+          tierMetrics.successRate = ((tierMetrics.total - tierMetrics.vulnerable) / tierMetrics.total) * 100
+        } else {
+          tierMetrics.detectionRate = (tierMetrics.blocked / tierMetrics.total) * 100
+        }
+      }
+
+      return {
+        ...prev,
+        metrics: newMetrics
+      }
+    })
+
+    // Add to activity log
+    const newEntry: ActivityLogEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: Date.now(),
+      tier: tier as 'unprotected' | 'cloud' | 'local',
+      attackType: attackType,
+      latencyMs: (result.processing_time || 0),
+      action: result.threat_score >= 0.7 ? 'blocked' : 'allowed',
+      threatScore: result.threat_score,
+      confidence: result.confidence,
+      method: 'POST',
+      path: '/analyze'
+    }
+
+    setActivityLog(prev => [newEntry, ...prev].slice(0, 60))
+  }, [updateActiveModel])
 
   // API methods for testing attacks
   const testAttack = useCallback(async (attackType: string, tier: string): Promise<AttackResult> => {
@@ -337,71 +617,7 @@ export function useRealtimeDashboard(options: UseRealtimeDashboardOptions = {}) 
       updateAttackResult(attackType, tier, mockResult)
       return mockResult
     }
-  }, [defaultOptions.apiBaseUrls])
-
-  const updateAttackResult = useCallback((attackType: string, tier: string, result: AttackResult) => {
-    setData(prev => ({
-      ...prev,
-      attackResults: {
-        ...prev.attackResults,
-        [attackType]: {
-          ...prev.attackResults[attackType],
-          [tier]: result
-        }
-      }
-    }))
-
-    // Update metrics
-    setData(prev => {
-      const newMetrics = { ...prev.metrics }
-      const tierMetrics = newMetrics[tier as keyof typeof newMetrics]
-
-      if (tierMetrics) {
-        tierMetrics.total++
-        tierMetrics.totalTime += result.processing_time || 0
-
-        if (result.confidence) {
-          tierMetrics.totalConfidence += result.confidence
-        } else if (result.threat_score !== undefined) {
-          tierMetrics.totalConfidence += result.threat_score
-        }
-
-        if (result.threat_score >= 0.7) {
-          tierMetrics.blocked++
-        } else if (tier === 'unprotected' && result.threat_score === 0) {
-          tierMetrics.vulnerable++
-        }
-
-        // Calculate rates
-        if (tier === 'unprotected') {
-          tierMetrics.successRate = ((tierMetrics.total - tierMetrics.vulnerable) / tierMetrics.total) * 100
-        } else {
-          tierMetrics.detectionRate = (tierMetrics.blocked / tierMetrics.total) * 100
-        }
-      }
-
-      return {
-        ...prev,
-        metrics: newMetrics
-      }
-    })
-
-    // Add to activity log
-    const newEntry: ActivityLogEntry = {
-      id: `${Date.now()}-${Math.random()}`,
-      timestamp: Date.now(),
-      tier: tier as 'unprotected' | 'cloud' | 'local',
-      attackType: attackType,
-      latencyMs: (result.processing_time || 0),
-      action: result.threat_score >= 0.7 ? 'blocked' : 'allowed',
-      threatScore: result.threat_score,
-      confidence: result.confidence,
-      method: 'POST',
-      path: '/analyze'
-    }
-
-    setActivityLog(prev => [newEntry, ...prev].slice(0, 60))
-  }, [])
+  }, [defaultOptions.apiBaseUrls, updateAttackResult])
 
   // Attack flood control - simulates attack activity for demo
   const launchAttackFlood = useCallback(async (config: {

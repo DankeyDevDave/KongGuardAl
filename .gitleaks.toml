@@ -62,19 +62,28 @@ tags = ["api", "kong"]
 [allowlist]
 description = "Allowlist for test files, docs, and placeholder values"
 paths = [
-    '''^\.env\.example$''',
+    '''^\.env\.example
+'',
     '''^tests/''',
     '''^spec/''',
     '''^specs/''',
     '''^docs/''',
-    '''^README\.md$''',
-    '''^CHANGELOG\.md$''',
-    '''^.*DEPLOYMENT.*\.md$''',
-    '''^.*COMPLETE.*\.md$''',
-    '''^.*CHECKLIST.*\.md$''',
-    '''^.*SUMMARY.*\.md$''',
-    '''^.*GUIDE.*\.md$''',
-    '''^deploy-.*\.sh$''',
+    '''^README\.md
+'',
+    '''^CHANGELOG\.md
+'',
+    '''^.*DEPLOYMENT.*\.md
+'',
+    '''^.*COMPLETE.*\.md
+'',
+    '''^.*CHECKLIST.*\.md
+'',
+    '''^.*SUMMARY.*\.md
+'',
+    '''^.*GUIDE.*\.md
+'',
+    '''^deploy-.*\.sh
+'',
     '''^grafana-data/plugins/''',
     '''^config/docker/'''
 ]
@@ -96,5 +105,12 @@ regexes = [
     '''CLERK_SECRET_KEY=\*{10,}''',
     '''\*{10,}''',
     '''redis://(localhost|redis|redis-service):''',
-    '''postgresql://(localhost|postgres|postgres-service):'''
+    '''postgresql://(localhost|postgres|postgres-service):''',
+    # Test patterns used in agent unit tests for redaction validation
+    '''sk-1234567890abcdef''',
+    '''secret123456789''',
+    '''token123''',
+    '''secret123''',
+    '''dXNlcjpwYXNzd29yZA==''',
+    '''Bearer sk-12345'''
 ]

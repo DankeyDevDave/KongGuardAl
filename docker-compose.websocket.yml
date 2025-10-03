@@ -19,6 +19,8 @@ services:
       - PORT=18002
       - ENABLE_WEBSOCKET=true
       - LOG_LEVEL=INFO
+      - ENABLE_FILE_LOGGING=${ENABLE_FILE_LOGGING:-1}
+      - LOG_DIR=/app/logs
     volumes:
       - ./logs/websocket-ai:/app/logs
     healthcheck:

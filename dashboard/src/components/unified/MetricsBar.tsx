@@ -74,86 +74,70 @@ export function MetricsBar({ metrics, isConnected, className = "" }: MetricsBarP
   ]
 
   return (
-    <Card className={`border-b border-border bg-kong-surface/50 backdrop-blur-sm ${className}`}>
-      <div className="w-full px-6 py-3">
-        <div className="flex items-center justify-between gap-4">
-          {/* Logo and Title */}
-          <div className="flex items-center space-x-4">
-            <div className="flex flex-col">
-              <img
-                src="/kong-guard-ai-full-logo.png"
-                alt="Kong Guard AI full logo"
-                className="h-12 w-auto max-w-[220px] object-contain"
-                style={{ filter: 'brightness(1.1) contrast(1.1)' }}
-              />
-              <p className="text-xs text-muted-foreground">Enterprise Security Dashboard</p>
-            </div>
-          </div>
+    <TooltipProvider>
+      <Card className={`border-b border-border bg-kong-surface/50 backdrop-blur-sm rounded-none border-x-0 ${className}`}>
+        <div className="container mx-auto flex w-full flex-wrap items-center justify-end gap-4 px-6 py-5">
+          <div className="flex-shrink-0 w-24 sm:w-40 md:w-52 lg:w-64" aria-hidden />
 
-          {/* Metrics */}
-          <TooltipProvider>
-            <div className="ml-auto flex items-center gap-4 lg:gap-6">
-              {metricItems.map((metric, index) => {
-                const Icon = metric.icon
-                return (
-                  <Tooltip key={index}>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 cursor-help">
-                        <Icon className={`h-4 w-4 ${metric.color}`} />
-                        <div className="hidden sm:block">
-                          <p className="text-xs text-muted-foreground leading-none">{metric.label}</p>
-                          <p className={`text-sm font-semibold ${metric.color} leading-none mt-1`}>
-                            {metric.value}
-                          </p>
-                        </div>
-                        <div className="sm:hidden">
-                          <p className={`text-sm font-semibold ${metric.color}`}>{metric.value}</p>
-                        </div>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">{metric.tooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })}
-
-              {/* Connection Status */}
-              <Tooltip>
+          {metricItems.map((metric, index) => {
+            const Icon = metric.icon
+            return (
+              <Tooltip key={index}>
                 <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className={`${
-                      isConnected
-                        ? 'text-kong-normal border-kong-normal'
-                        : 'text-kong-critical border-kong-critical'
-                    }`}
-                  >
-                    {isConnected ? (
-                      <>
-                        <Wifi className="h-3 w-3 mr-1" />
-                        <span className="hidden sm:inline">Live</span>
-                      </>
-                    ) : (
-                      <>
-                        <WifiOff className="h-3 w-3 mr-1" />
-                        <span className="hidden sm:inline">Offline</span>
-                      </>
-                    )}
-                  </Badge>
+                  <div className="flex items-center gap-2 cursor-help">
+                    <Icon className={`h-4 w-4 ${metric.color}`} />
+                    <div className="hidden sm:block">
+                      <p className="text-xs text-muted-foreground leading-none">{metric.label}</p>
+                      <p className={`text-sm font-semibold ${metric.color} leading-none mt-1`}>
+                        {metric.value}
+                      </p>
+                    </div>
+                    <div className="sm:hidden">
+                      <p className={`text-sm font-semibold ${metric.color}`}>{metric.value}</p>
+                    </div>
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">
-                    {isConnected
-                      ? 'Real-time WebSocket connection active'
-                      : 'WebSocket disconnected - attempting to reconnect'}
-                  </p>
+                  <p className="text-xs">{metric.tooltip}</p>
                 </TooltipContent>
               </Tooltip>
-            </div>
-          </TooltipProvider>
+            )
+          })}
+
+          {/* Connection Status */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={`${
+                  isConnected
+                    ? 'text-kong-normal border-kong-normal'
+                    : 'text-kong-critical border-kong-critical'
+                }`}
+              >
+                {isConnected ? (
+                  <>
+                    <Wifi className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Live</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Offline</span>
+                  </>
+                )}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">
+                {isConnected
+                  ? 'Real-time WebSocket connection active'
+                  : 'WebSocket disconnected - attempting to reconnect'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </TooltipProvider>
   )
 }

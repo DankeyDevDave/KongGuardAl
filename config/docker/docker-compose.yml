@@ -288,6 +288,8 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - ML_ENABLED=true
       - LOG_LEVEL=INFO
+      - ENABLE_FILE_LOGGING=${ENABLE_FILE_LOGGING:-1}
+      - LOG_DIR=/app/logs
     volumes:
       - ./ai-service:/app
       - ./logs/cloud-ai:/app/logs
@@ -313,6 +315,8 @@ services:
       - OLLAMA_MODEL=llama3.2:3b
       - ML_ENABLED=true
       - LOG_LEVEL=INFO
+      - ENABLE_FILE_LOGGING=${ENABLE_FILE_LOGGING:-1}
+      - LOG_DIR=/app/logs
     volumes:
       - ./ai-service:/app
       - ./logs/ollama-ai:/app/logs
