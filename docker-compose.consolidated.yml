@@ -67,7 +67,7 @@ services:
       - "${KONG_ADMIN_EXTERNAL_PORT:-28081}:8001/tcp"
       - "${KONG_ADMIN_SSL_EXTERNAL_PORT:-28444}:8444/tcp"
     volumes:
-      - ./kong-plugin/kong/plugins:/usr/local/share/lua/5.1/kong/plugins
+      - ./kong-plugin/kong/plugins/kong-guard-ai:/usr/local/share/lua/5.1/kong/plugins/kong-guard-ai
       # - ./kong.conf:/etc/kong/kong.conf
     environment:
       KONG_DATABASE: ${KONG_DATABASE:-postgres}
@@ -82,7 +82,7 @@ services:
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
       KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
-      KONG_PLUGINS: "kong-guard-ai"
+      KONG_PLUGINS: "bundled,kong-guard-ai"
       # KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/kong/plugins/custom/?.lua;;"
       KONG_LOG_LEVEL: ${KONG_LOG_LEVEL:-debug}
     healthcheck:
@@ -94,14 +94,18 @@ services:
 
   # Demo API Service for Testing
   demo-api:
-    image: postman/httpbin
+    image: kennethreitz/httpbin
     container_name: demo-api
     networks:
       - kong-net
     ports:
       - "${DEMO_API_PORT:-28085}:80"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/status/200"]
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost/status/200')\"",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -204,7 +208,11 @@ services:
       kong:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1337"]
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://localhost:1337', res => { process.exit(res.statusCode >= 200 && res.statusCode < 400 ? 0 : 1); });\"",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -287,13 +295,16 @@ services:
       - "${AI_CLOUD_EXTERNAL_PORT:-28100}:8000"
     environment:
       - PORT=8000
-      - AI_PROVIDER=${AI_PROVIDER:-openai}
+      - AI_PROVIDER=gemini
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - ML_ENABLED=true
       - LOG_LEVEL=INFO
       - ENABLE_FILE_LOGGING=${ENABLE_FILE_LOGGING:-1}
       - LOG_DIR=/app/logs
+      - CACHE_ENABLED=false
+      - REDIS_URL=redis://kong-redis:6379/0
     volumes:
       - ./ai-service:/app
       - ./logs/cloud-ai:/app/logs
@@ -317,14 +328,17 @@ services:
       - PORT=8000
       - AI_PROVIDER=ollama
       - OLLAMA_HOST=http://host.docker.internal:11434
-      - OLLAMA_MODEL=llama3.2:3b
+      - OLLAMA_MODEL=gemma2:2b
       - ML_ENABLED=true
       - LOG_LEVEL=INFO
       - ENABLE_FILE_LOGGING=${ENABLE_FILE_LOGGING:-1}
       - LOG_DIR=/app/logs
+      - CACHE_ENABLED=false
+      - REDIS_URL=redis://kong-redis:6379/0
     volumes:
       - ./ai-service:/app
       - ./logs/ollama-ai:/app/logs
+      - ./attack_metrics.db:/app/attack_metrics.db:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -343,8 +357,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://192.168.0.228:28100
-      - NEXT_PUBLIC_WEBSOCKET_URL=ws://192.168.0.228:28100/ws
+      - NEXT_PUBLIC_API_URL=http://localhost:28100
+      - NEXT_PUBLIC_WEBSOCKET_URL=ws://localhost:18002/ws
     volumes:
       - ./dashboard:/app
       - /app/node_modules

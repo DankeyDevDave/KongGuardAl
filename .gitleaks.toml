@@ -62,28 +62,19 @@ tags = ["api", "kong"]
 [allowlist]
 description = "Allowlist for test files, docs, and placeholder values"
 paths = [
-    '''^\.env\.example
-'',
+    '''^\.env\.example''',
     '''^tests/''',
     '''^spec/''',
     '''^specs/''',
     '''^docs/''',
-    '''^README\.md
-'',
-    '''^CHANGELOG\.md
-'',
-    '''^.*DEPLOYMENT.*\.md
-'',
-    '''^.*COMPLETE.*\.md
-'',
-    '''^.*CHECKLIST.*\.md
-'',
-    '''^.*SUMMARY.*\.md
-'',
-    '''^.*GUIDE.*\.md
-'',
-    '''^deploy-.*\.sh
-'',
+    '''^README\.md''',
+    '''^CHANGELOG\.md''',
+    '''^.*DEPLOYMENT.*\.md''',
+    '''^.*COMPLETE.*\.md''',
+    '''^.*CHECKLIST.*\.md''',
+    '''^.*SUMMARY.*\.md''',
+    '''^.*GUIDE.*\.md''',
+    '''^deploy-.*\.sh''',
     '''^grafana-data/plugins/''',
     '''^config/docker/'''
 ]
