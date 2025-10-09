@@ -43,3 +43,10 @@ memory-profiler>=0.61.0
 
 # Linting for specific file types
 yamllint>=1.33.0
+
+# Audit runner dependencies
+requests>=2.31.0
+pyyaml>=6.0.1
+rich>=13.7.0
+websockets>=12.0
+aiohttp>=3.9.0

@@ -1,0 +1,79 @@
+# Live Audit Log
+
+## Real-time Attack Results
+
+| Timestamp | Tier | Attack Type | Action | Threat Score | Latency |
+|-----------|------|-------------|--------|--------------|---------|
+
+- **2025-10-09 15:30:32** | UNPROTECTED | sql_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | sql_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | sql_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | xss | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | xss | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | xss | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | cmd_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | cmd_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | cmd_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | path_traversal | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | path_traversal | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | path_traversal | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | ldap_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | ldap_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | ldap_injection | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | business_logic | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | business_logic | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | business_logic | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | ransomware | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | ransomware | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | ransomware | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | normal | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | normal | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | UNPROTECTED | normal | ALLOWED | Score: 0.000 | 2ms
+- **2025-10-09 15:30:32** | CLOUD | sql_injection | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:32** | CLOUD | sql_injection | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:32** | CLOUD | sql_injection | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:32** | CLOUD | xss | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:32** | CLOUD | xss | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:32** | CLOUD | xss | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:32** | CLOUD | cmd_injection | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:32** | CLOUD | cmd_injection | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:32** | CLOUD | cmd_injection | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:32** | CLOUD | path_traversal | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:32** | CLOUD | path_traversal | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:32** | CLOUD | path_traversal | BLOCK | Score: 1.000 | 1ms
+- **2025-10-09 15:30:35** | CLOUD | ldap_injection | BLOCK | Score: 0.950 | 2527ms
+- **2025-10-09 15:30:35** | CLOUD | ldap_injection | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:35** | CLOUD | ldap_injection | BLOCK | Score: 1.000 | 2ms
+- **2025-10-09 15:30:36** | CLOUD | business_logic | BLOCK | Score: 0.800 | 1363ms
+- **2025-10-09 15:30:39** | CLOUD | business_logic | BLOCK | Score: 0.800 | 2671ms
+- **2025-10-09 15:30:41** | CLOUD | business_logic | BLOCK | Score: 0.800 | 1580ms
+- **2025-10-09 15:30:44** | CLOUD | ransomware | BLOCK | Score: 0.900 | 3877ms
+- **2025-10-09 15:30:48** | CLOUD | ransomware | BLOCK | Score: 0.900 | 3347ms
+- **2025-10-09 15:30:50** | CLOUD | ransomware | BLOCK | Score: 0.900 | 1926ms
+- **2025-10-09 15:30:51** | CLOUD | normal | ALLOW | Score: 0.000 | 1558ms
+- **2025-10-09 15:30:53** | CLOUD | normal | ALLOW | Score: 0.000 | 1553ms
+- **2025-10-09 15:30:55** | CLOUD | normal | ALLOW | Score: 0.000 | 2377ms
+- **2025-10-09 15:30:55** | LOCAL | sql_injection | BLOCK | Score: 1.000 | 13ms
+- **2025-10-09 15:30:55** | LOCAL | sql_injection | BLOCK | Score: 1.000 | 12ms
+- **2025-10-09 15:30:55** | LOCAL | sql_injection | BLOCK | Score: 1.000 | 8ms
+- **2025-10-09 15:30:55** | LOCAL | xss | BLOCK | Score: 1.000 | 10ms
+- **2025-10-09 15:30:55** | LOCAL | xss | BLOCK | Score: 1.000 | 14ms
+- **2025-10-09 15:30:55** | LOCAL | xss | BLOCK | Score: 1.000 | 5ms
+- **2025-10-09 15:30:55** | LOCAL | cmd_injection | BLOCK | Score: 1.000 | 5ms
+- **2025-10-09 15:30:55** | LOCAL | cmd_injection | BLOCK | Score: 1.000 | 7ms
+- **2025-10-09 15:30:55** | LOCAL | cmd_injection | BLOCK | Score: 1.000 | 9ms
+- **2025-10-09 15:30:55** | LOCAL | path_traversal | BLOCK | Score: 1.000 | 5ms
+- **2025-10-09 15:30:55** | LOCAL | path_traversal | BLOCK | Score: 1.000 | 5ms
+- **2025-10-09 15:30:55** | LOCAL | path_traversal | BLOCK | Score: 1.000 | 5ms
+- **2025-10-09 15:30:55** | LOCAL | ldap_injection | ALLOW | Score: 0.000 | 17ms
+- **2025-10-09 15:30:55** | LOCAL | ldap_injection | ALLOW | Score: 0.000 | 15ms
+- **2025-10-09 15:30:55** | LOCAL | ldap_injection | ALLOW | Score: 0.000 | 10ms
+- **2025-10-09 15:30:55** | LOCAL | business_logic | ALLOW | Score: 0.000 | 16ms
+- **2025-10-09 15:30:55** | LOCAL | business_logic | ALLOW | Score: 0.000 | 18ms
+- **2025-10-09 15:30:55** | LOCAL | business_logic | ALLOW | Score: 0.000 | 54ms
+- **2025-10-09 15:30:55** | LOCAL | ransomware | ALLOW | Score: 0.000 | 49ms
+- **2025-10-09 15:30:55** | LOCAL | ransomware | ALLOW | Score: 0.000 | 18ms
+- **2025-10-09 15:30:55** | LOCAL | ransomware | ALLOW | Score: 0.000 | 16ms
+- **2025-10-09 15:30:56** | LOCAL | normal | ALLOW | Score: 0.000 | 17ms
+- **2025-10-09 15:30:56** | LOCAL | normal | ALLOW | Score: 0.000 | 19ms
+- **2025-10-09 15:30:56** | LOCAL | normal | ALLOW | Score: 0.000 | 12ms

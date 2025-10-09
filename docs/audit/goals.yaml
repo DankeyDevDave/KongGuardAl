@@ -1,0 +1,167 @@
+# Kong Guard AI Audit Goals - Staged Approach
+# Performance targets for automated testing with progressive improvement
+
+# Phase 1: Quick Wins (Week 1-2) - Target: Red to Yellow
+phase_1:
+  description: "Quick wins to move from red to yellow performance"
+  cloud:
+    block_rate: 0.65          # Target: 52.5% -> 65% (+12.5%)
+    p95_latency_ms: 400       # Target: 704ms -> 400ms (-43%)
+    p99_latency_ms: 600
+  local:
+    block_rate: 0.55          # Target: 50% -> 55% (+5%)
+    p95_latency_ms: 200
+    p99_latency_ms: 300
+  false_positive_rate: 0.02
+
+# Phase 2: Model Optimization (Week 3-4) - Target: Yellow to Green
+phase_2:
+  description: "Model optimization to move from yellow to green"
+  cloud:
+    block_rate: 0.75          # Target: 65% -> 75% (+10%)
+    p95_latency_ms: 300       # Target: 400ms -> 300ms (-25%)
+    p99_latency_ms: 450
+  local:
+    block_rate: 0.60          # Target: 55% -> 60% (+5%)
+    p95_latency_ms: 150
+    p99_latency_ms: 250
+  false_positive_rate: 0.015
+
+# Phase 3: Advanced Features (Week 5-8) - Target: Enterprise Grade
+phase_3:
+  description: "Advanced features for enterprise-grade performance"
+  cloud:
+    block_rate: 0.80          # Target: 75% -> 80% (+5%)
+    p95_latency_ms: 250       # Target: 300ms -> 250ms (-17%)
+    p99_latency_ms: 400
+  local:
+    block_rate: 0.65          # Target: 60% -> 65% (+5%)
+    p95_latency_ms: 100
+    p99_latency_ms: 200
+  false_positive_rate: 0.01
+
+# Phase 4: Enterprise Features (Week 9-12) - Target: Production Ready
+phase_4:
+  description: "Enterprise features for production deployment"
+  cloud:
+    block_rate: 0.85          # Target: 80% -> 85% (+5%)
+    p95_latency_ms: 200       # Target: 250ms -> 200ms (-20%)
+    p99_latency_ms: 350
+  local:
+    block_rate: 0.70          # Target: 65% -> 70% (+5%)
+    p95_latency_ms: 80
+    p99_latency_ms: 150
+  false_positive_rate: 0.005
+
+# Current active phase (update as we progress)
+active_phase: phase_1
+
+# Global goals (legacy support)
+global:
+  min_overall_block_rate: 65.0  # Phase 1 target
+  max_overall_latency_ms: 400    # Phase 1 target
+  min_uptime_percentage: 99.0    # Minimum service uptime
+
+# Tier-specific goals
+unprotected:
+  description: "No protection - baseline vulnerability"
+  min_block_rate: 0.0           # Expected: no blocking
+  max_latency_ms: 10            # Should be very fast (no AI processing)
+  expected_threat_score: 0.0    # No threat detection
+
+cloud:
+  description: "Cloud AI protection using OpenAI/Gemini"
+  min_block_rate: 65.0          # Phase 1 target: 52.5% -> 65%
+  max_latency_ms: 400           # Phase 1 target: 704ms -> 400ms
+  p95_latency_ms: 400
+  p99_latency_ms: 600
+  min_threat_score: 0.7         # High confidence detection
+  ai_models:
+    - "openai/gpt-4o-mini"
+    - "google/gemini-pro"
+    - "anthropic/claude-3-haiku"
+
+local:
+  description: "Local AI protection using Ollama"
+  min_block_rate: 55.0          # Phase 1 target: 50% -> 55%
+  max_latency_ms: 200           # Phase 1 target: maintain current performance
+  p95_latency_ms: 200
+  p99_latency_ms: 300
+  min_threat_score: 0.6         # Good confidence detection
+  ai_models:
+    - "ollama/llama3.1"
+    - "ollama/codellama"
+    - "ollama/mistral"
+
+# Attack-specific goals
+attack_types:
+  sql_injection:
+    min_block_rate: 90.0        # SQL injection should be caught reliably
+    max_false_positive: 5.0     # Max 5% false positives
+    
+  xss:
+    min_block_rate: 85.0        # XSS should be detected well
+    max_false_positive: 10.0    # Some legitimate HTML might be flagged
+    
+  cmd_injection:
+    min_block_rate: 95.0        # Command injection is very dangerous
+    max_false_positive: 2.0    # Very low false positive tolerance
+    
+  path_traversal:
+    min_block_rate: 80.0        # Path traversal detection
+    max_false_positive: 8.0
+    
+  ldap_injection:
+    min_block_rate: 85.0        # LDAP injection detection
+    max_false_positive: 5.0
+    
+  business_logic:
+    min_block_rate: 70.0        # Business logic is harder to detect
+    max_false_positive: 15.0    # Higher false positive tolerance
+    
+  ransomware:
+    min_block_rate: 90.0        # Ransomware should be caught
+    max_false_positive: 3.0     # Low false positive tolerance
+    
+  normal:
+    min_block_rate: 0.0         # Normal traffic should not be blocked
+    max_false_positive: 100.0   # Any blocking of normal traffic is a false positive
+
+# Risk tier thresholds (for action normalization)
+risk_tiers:
+  critical:
+    block_threshold: 0.35
+    monitor_threshold: 0.20
+  high:
+    block_threshold: 0.45
+    monitor_threshold: 0.25
+  medium:
+    block_threshold: 0.55
+    monitor_threshold: 0.35
+  low:
+    block_threshold: 0.80
+    monitor_threshold: 0.60
+
+# Performance benchmarks
+performance:
+  concurrent_requests: 100      # System should handle 100 concurrent requests
+  max_memory_usage_mb: 512      # Maximum memory usage per service
+  max_cpu_usage_percent: 80     # Maximum CPU usage under load
+  cache_hit_rate: 0.80         # Target cache hit rate
+  
+# Reliability targets
+reliability:
+  max_error_rate: 1.0           # Maximum 1% error rate
+  max_downtime_minutes: 5       # Maximum 5 minutes downtime per day
+  recovery_time_seconds: 30     # System should recover within 30 seconds
+
+# CI/CD gates
+ci_gates:
+  fail_on:
+    p95_latency_exceeds_goal: true
+    false_positive_rate_exceeds: 0.02
+    block_rate_below_goal: true
+  warn_on:
+    provider_variance_exceeds: 0.05
+    cache_hit_rate_below: 0.70
+    availability_below: 0.995

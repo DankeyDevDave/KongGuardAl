@@ -1,36 +1,26 @@
-# Kong Guard AI 🛡️🤖
-## Autonomous API Threat Response Agent for Kong Gateway
+# KongGuardAI 🛡️🤖
 
+[![Spec-Kit](https://img.shields.io/badge/Spec--Kit-2.0.0-blue.svg)](https://github.com/spec-kit/spec-kit)
 [![Kong Version](https://img.shields.io/badge/Kong-3.8.0-blue)](https://konghq.com)
-[![Plugin Version](https://img.shields.io/badge/Plugin-3.0.0-green)](https://github.com/DankeyDevDave/KongGuardAI)
-[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production_Ready-success)](https://github.com/DankeyDevDave/KongGuardAI)
 
-> Transform your Kong Gateway into an intelligent, self-healing security system that autonomously detects, classifies, and responds to API threats in real-time.
-
-## ⚠️ PROPRIETARY SOFTWARE NOTICE
-
-This is proprietary software developed for the Kong Agentic AI Hackathon 2025. The ML models and core algorithms are protected intellectual property. See [LICENSE](LICENSE) and [proprietary-notice.md](proprietary-notice.md) for details.
-
-**Copyright © 2024 Jacques Francois Coetzee. All Rights Reserved.**
+> **AI-Powered Security Platform for Kong Gateway**
+> Real-time threat detection, automated response, and intelligent security operations
 
 ## 🚀 Quick Start
 
+KongGuardAI is initialized with [Spec-Kit](https://github.com/spec-kit/spec-kit) methodology and includes a comprehensive `quick_launch.sh` script for all operations.
+
 ```bash
-# Clone the repository
-git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
-cd kong-guard-ai
+# Make the launcher executable
+chmod +x quick_launch.sh
 
-# Start Kong with Guard AI plugin
-docker-compose -f docker-compose-simple.yml up -d
-
-# Verify installation
-curl http://localhost:8001 | jq '.plugins.available_on_server' | grep kong-guard-ai
-
-# Test the plugin
-curl http://localhost:8000/demo/get  # Normal request (200 OK)
-curl "http://localhost:8000/demo/get?q='; DROP TABLE users;"  # SQL injection (403 Blocked)
+# Start the complete development environment
+./quick_launch.sh
 ```
+
+Choose option **1** 🚀 to run the development server with all services.
 
 ## 🎯 Key Features
 
@@ -433,7 +423,66 @@ curl http://localhost:8001/kong-guard-ai/incidents
 
 ## 🧪 Testing
 
-### Test Attack Patterns (v3.0)
+### Automated Audit Runner
+
+Kong Guard AI includes a comprehensive automated audit system for systematic testing and goal tracking:
+
+```bash
+# Quick setup
+make install-dev
+make docker-up
+
+# Run comprehensive audits
+make audit          # Full audit (10 clicks per attack)
+make audit-quick     # Quick audit (3 clicks per attack)
+make audit-live      # With live markdown output
+
+# Live presentation
+make present         # Start reveal-md presentation
+```
+
+#### Audit Features
+
+- **🎯 Multi-Tier Testing** - Unprotected, Cloud AI, and Local AI protection tiers
+- **📊 Goal Tracking** - Compare results against configurable performance targets
+- **📈 Real-time Reporting** - Live markdown logs and JSON/CSV reports
+- **🔍 AI Provider Discovery** - Automatic detection of Gemini, Ollama, OpenAI providers
+- **📋 Attack Matrix Updates** - Automatic updates to demo-attack-matrix.md
+- **🎨 Live Presentations** - Real-time updates for demos and presentations
+
+#### Audit Results Example
+
+**Phase 1 Implementation Results:**
+```
+Tier Performance Summary
+┏━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━┓
+┃ Tier      ┃ Total Req ┃ Blocked ┃ Allowed ┃ Block Rate┃ Avg Latency┃ AI Model ┃
+┡━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━┩
+│ unprotected│        24 │       0 │      24 │      0.0% │         2 │ none     │
+│ cloud     │        24 │      21 │       3 │     87.5% │       950 │ gemini   │
+│ local     │        24 │      12 │      12 │     50.0% │        15 │ ollama   │
+└───────────┴───────────┴─────────┴─────────┴───────────┴───────────┴──────────┘
+
+Goal Violations:
+  - cloud: Avg latency 950ms > goal 400ms
+  - local: Block rate 50.0% < goal 55.0%
+```
+
+**Improvements Achieved:**
+- **Cloud AI Block Rate**: 52.5% → 87.5% (+35% improvement)
+- **Action Normalization**: Fixed "block" vs "blocked" inconsistency
+- **Payload Optimization**: Reduced payload size while preserving structure
+- **Allowlist Logic**: Implemented false positive reduction
+- **CI/CD Gates**: Automated quality assurance
+
+#### Generated Artifacts
+
+- **JSON Reports**: `docs/audit/runs/YYYYMMDD_HHMMSS-audit.json`
+- **CSV Reports**: `docs/audit/runs/YYYYMMDD_HHMMSS-audit.csv`
+- **Live Logs**: `docs/audit/live/audit-live.md`
+- **Updated Matrix**: `docs/demo-attack-matrix.md`
+
+### Manual Test Attack Patterns (v3.0)
 
 ```bash
 # Traditional Attacks
@@ -566,16 +615,80 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 ```bash
 # Clone repository
 git clone https://github.com/DankeyDevDave/KongGuardAI.git kong-guard-ai
+cd kong-guard-ai
 
-# Install dependencies
-luarocks install busted
-luarocks install kong-pdk
+# Install development dependencies
+make install-dev
+
+# Start development environment
+make docker-up
+
+# Run automated audits
+make audit
 
 # Run tests
 busted spec/
 
 # Lint code
 luacheck kong-plugin/
+```
+
+#### Development Workflow
+
+The automated audit runner supports continuous integration and development workflows:
+
+```bash
+# Full development cycle
+make dev-setup      # Install deps + start services
+make ci-audit       # Run CI/CD audit with quality gates
+make ci-gates       # Check quality gates only
+make test           # Run test suite
+make clean          # Clean build artifacts
+
+# Production preparation
+make deploy-prep    # Clean + test + audit + quality gates
+
+# CI/CD Integration
+make dev-test       # Development testing workflow
+make dev-clean      # Clean development artifacts
+```
+
+#### Phase 1 Improvements
+
+**Implemented Features:**
+- **Action Normalization**: Standardized BLOCK/ALLOW/MONITOR actions
+- **Risk Tier Thresholds**: Attack-specific confidence thresholds
+- **Payload Optimization**: Reduced size while preserving AI service compatibility
+- **Allowlist Logic**: False positive reduction for normal traffic
+- **Async AI Client**: Caching and deadline handling
+- **CI/CD Quality Gates**: Automated quality assurance
+- **Staged Goals**: Progressive performance targets
+
+**Performance Gains:**
+- Cloud AI block rate improved from 52.5% to 87.5%
+- Fixed action normalization inconsistencies
+- Reduced false positives through allowlist logic
+- Automated quality gates prevent regressions
+
+#### Audit Configuration
+
+Customize audit goals in `docs/audit/goals.yaml`:
+
+```yaml
+# Tier-specific goals
+cloud:
+  min_block_rate: 75.0          # Should block 75%+ of threats
+  max_latency_ms: 300           # Cloud AI processing time
+  ai_models:
+    - "openai/gpt-4o-mini"
+    - "google/gemini-pro"
+
+local:
+  min_block_rate: 60.0          # Should block 60%+ of threats
+  max_latency_ms: 200           # Local processing should be faster
+  ai_models:
+    - "ollama/llama3.1"
+    - "ollama/codellama"
 ```
 
 ## 📄 License
