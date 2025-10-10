@@ -48,11 +48,46 @@ export function LiveVisualization({ data, activeModels = {}, fullWidth = false, 
     return `${baseTitle} (${activeModel})`
   }
 
+  const getModelDescription = (tierId: string, fallbackText: string) => {
+    const activeModel = activeModels[tierId as keyof typeof activeModels]
+
+    if (!activeModel) {
+      // Model is offline - show offline status with failover info
+      if (tierId === 'cloud') {
+        return 'Model Offline - Failover to Local AI'
+      } else if (tierId === 'local') {
+        return 'Model Offline - Failover to Cloud AI'
+      }
+      return fallbackText
+    }
+
+    // Model is online - show full provider/model name
+    return activeModel
+  }
+
+  const getModelStatusColor = (tierId: string) => {
+    const activeModel = activeModels[tierId as keyof typeof activeModels]
+
+    if (!activeModel) {
+      // Model is offline - use caution color
+      return 'text-kong-caution'
+    }
+
+    // Model is online - use normal colors
+    if (tierId === 'cloud') {
+      return 'text-kong-steel'
+    } else if (tierId === 'local') {
+      return 'text-kong-normal'
+    }
+    return 'text-muted-foreground'
+  }
+
   const protectionTiers = [
     {
       id: 'unprotected',
       title: resolveTitle('unprotected', 'Unprotected Kong Gateway'),
       description: 'No AI Protection',
+      descriptionColor: 'text-muted-foreground',
       icon: AlertTriangle,
       statusColor: 'text-kong-critical',
       borderColor: 'border-kong-critical',
@@ -60,15 +95,17 @@ export function LiveVisualization({ data, activeModels = {}, fullWidth = false, 
     {
       id: 'cloud',
       title: resolveTitle('cloud', 'Cloud AI Protection'),
-      description: 'Gemini/GPT Analysis',
+      description: getModelDescription('cloud', 'Gemini/GPT Analysis'),
+      descriptionColor: getModelStatusColor('cloud'),
       icon: Shield,
       statusColor: 'text-kong-steel',
       borderColor: 'border-kong-steel',
     },
     {
       id: 'local',
-      title: 'Local AI Protection',
-      description: activeModels.local || 'Private Local AI',
+      title: resolveTitle('local', 'Local AI Protection'),
+      description: getModelDescription('local', 'Private Local AI'),
+      descriptionColor: getModelStatusColor('local'),
       icon: ShieldCheck,
       statusColor: 'text-kong-normal',
       borderColor: 'border-kong-normal',
@@ -111,7 +148,7 @@ export function LiveVisualization({ data, activeModels = {}, fullWidth = false, 
                     <Icon className={`h-5 w-5 ${tier.statusColor}`} />
                     <span className="text-kong-silver text-sm">{tier.title}</span>
                   </CardTitle>
-                  <p className="text-xs text-muted-foreground">{tier.description}</p>
+                  <p className={`text-xs ${tier.descriptionColor}`}>{tier.description}</p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -211,7 +248,7 @@ export function LiveVisualization({ data, activeModels = {}, fullWidth = false, 
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, rate }: { name: string; rate: number }) => `${name}: ${rate.toFixed(1)}%`}
+                    label={(entry: any) => `${entry.name}: ${entry.rate.toFixed(1)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="rate"

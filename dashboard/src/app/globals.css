@@ -88,10 +88,19 @@
 @layer base {
   * {
     @apply border-border;
+    min-width: 0;
+  }
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
   }
   body {
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, -apple-system, sans-serif;
+  }
+  img, svg, canvas, video {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -122,6 +131,12 @@
 
 .border-kong-silver {
   border-color: hsl(var(--kong-silver) / 0.2);
+}
+
+/* Activity panel vertical text */
+.writing-mode-vertical-rl {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
 }
 
 .border-kong-critical {

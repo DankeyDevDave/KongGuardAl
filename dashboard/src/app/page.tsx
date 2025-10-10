@@ -8,9 +8,12 @@ import { ModeToggle } from "@/components/unified/ModeToggle"
 import { ControlPanel } from "@/components/unified/ControlPanel"
 import { LiveVisualization } from "@/components/unified/LiveVisualization"
 import { ActivityLogPanel } from "@/components/unified/ActivityLogPanel"
+import { MobileMenuButton } from "@/components/unified/MobileMenuButton"
 
 export default function KongGuardDashboard() {
   const [isControlCollapsed, setIsControlCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   // Use the demo mode hook for mode management
   const { mode, setMode, showControls, isFullWidth } = useDemoMode({
@@ -18,19 +21,33 @@ export default function KongGuardDashboard() {
     enableKeyboardShortcuts: true
   })
 
+  const apiBaseUrls = {
+    unprotected: 'http://localhost:8000',
+    cloud: 'http://localhost:28100',
+    local: 'http://localhost:28101'
+  }
+
   // Use the real-time dashboard hook
   const { data, activityLog, testAttack, launchAttackFlood, isConnected } = useRealtimeDashboard({
     websocketUrl: 'ws://localhost:18002/ws',
-    apiBaseUrls: {
-      unprotected: 'http://localhost:8000',
-      cloud: 'http://localhost:28100',
-      local: 'http://localhost:28101'
-    }
+    apiBaseUrls
   })
 
   // Apply dark mode on mount (always dark for this dashboard)
   useEffect(() => {
     document.documentElement.classList.add('dark')
+  }, [])
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
 
@@ -52,11 +69,18 @@ export default function KongGuardDashboard() {
               />
             </div>
           </div>
-          <div className="pointer-events-none absolute left-6 top-0 translate-y-2 sm:translate-y-2 md:translate-y-3 lg:translate-y-4 xl:translate-y-5 z-20">
+          <div className="absolute left-6 top-0 translate-y-2 sm:translate-y-2 md:translate-y-3 lg:translate-y-4 xl:translate-y-5 z-20 flex items-center gap-3">
+            {showControls && (
+              <MobileMenuButton
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="pointer-events-auto"
+              />
+            )}
             <img
               src="/LogoSet.png"
               alt="Kong Guard AI"
-              className="h-16 w-auto sm:h-20 md:h-24 lg:h-28"
+              className="h-16 w-auto sm:h-20 md:h-24 lg:h-28 pointer-events-none"
               style={{ filter: 'brightness(1.08) contrast(1.08)' }}
             />
           </div>
@@ -72,6 +96,10 @@ export default function KongGuardDashboard() {
             onLaunchFlood={launchAttackFlood}
             isCollapsed={isControlCollapsed}
             onToggleCollapse={() => setIsControlCollapsed(!isControlCollapsed)}
+            isMobile={isMobile}
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            demoStatusBaseUrl={apiBaseUrls.cloud}
           />
         )}
 
@@ -83,10 +111,11 @@ export default function KongGuardDashboard() {
         />
       </div>
 
-      {/* Activity Log Panel - Below main content */}
-      <ActivityLogPanel 
+      {/* Activity Log Panel - Floating on the right */}
+      <ActivityLogPanel
         activityLog={activityLog}
-        className="mx-6 mb-6"
+        isCollapsible={true}
+        defaultCollapsed={true}
       />
     </div>
   )
